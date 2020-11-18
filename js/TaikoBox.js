@@ -7,6 +7,8 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+// This class is for constructiong a midi event sequence
+// from a given Kuchi Shoga song string
 class TaikoMidi {
     constructor() {
         this.beatDur = 200;
@@ -156,7 +158,7 @@ class TaikoBox extends MidiBox {
         window.taikoMidi = taikoMidi;
         this.taikoMidi = taikoMidi;
         taikoMidi.addKuchiShoga("don don don kara kata don don su don don kara kata");
-        taikoMidi.dump();
+        //taikoMidi.dump();
         $("#kuchiShoga").change(e => inst.noticeNewKuchiShoga());
         $("#ff1").click(e => inst.playFastAndFurious1());
         $("#ff2").click(e => inst.playFastAndFurious2());
