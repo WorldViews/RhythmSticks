@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>WorldViews Flower Garden</title>
+    <title>WorldViews Taiko Rhythm Games</title>
     <link rel="stylesheet" type="text/css" href="css/garden.css">
     <style>
         #taikoDiv {
@@ -26,19 +26,7 @@
 <body>
     <div id="gardenDiv" style="width: 100%; height: 100%">
         <div id="gardenPanel" style="width: 100%; height: 100%; float: left; background: green; position: relative">
-            <canvas id="flowerCanvas" style="height:100%"></canvas>
-            <!-- 
-            <div id="controls">
-                <span id="buttons" class="buttons">
-                    <button id="login">login</button>
-                    <button id="save">save</button>
-                    <button id="jitsi">jitsi</button>
-                    <span id="userInfo">null</span>
-                </span>
-                <span id="canvasStat" class="stats">stats</span>
-            </div>
-
- -->
+            <canvas id="taikoCanvas" style="height:100%"></canvas>
             <div id="taikoDiv">
                 Kuchi Shoga: <input style="width: 95%" id="kuchiShoga" type="text" value="don don doko don"><br>
                 <button id="ff1">Fast and Furious 1</button>
@@ -56,7 +44,6 @@
     <script src="js/CanvasTool.js"></script>
     <script src="js/GardenTool.js"></script>
     <script src="js/Garden.js">d</script>
-    <script src="js/Flower.js"></script>
     <script src="js/util.js"></script>
     <script src="https://www.gstatic.com/firebasejs/7.15.5/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/7.15.5/firebase-auth.js"></script>
@@ -107,7 +94,7 @@
         var garden;
 
         $(document).ready(function () {
-            gtool = new GardenTool("flowerCanvas", { numStartupFlowers: 0, maxNumFlowers: 200 });
+            gtool = new GardenTool("taikoCanvas");
             gtool.initFirebase();
             gtool.start();
             gtool.setView(0, 0, 800);

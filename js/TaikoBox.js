@@ -1,6 +1,4 @@
 
-// A garden with flowers representing Git repos for an organization
-//
 "use strict"
 
 function sleep(ms) {

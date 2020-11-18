@@ -37,7 +37,7 @@ body {
     overflow-x: hidden;
 }
 
-#flowerCanvas {
+#taikoCanvas {
     width: 100%;
     height: 93%;
     background: -webkit-radial-gradient(left bottom, circle farthest-corner, #e1fd3e, #174709);

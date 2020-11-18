@@ -1,7 +1,4 @@
 
-// SOme of this code is based on flower samples from
-// https://www.html5canvastutorials.com/advanced/html5-canvas-blooming-flowers-effect/
-
 "use strict"
 
 console.log("in Taiko.js");
