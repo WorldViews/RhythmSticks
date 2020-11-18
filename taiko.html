@@ -1,0 +1,122 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>WorldViews Flower Garden</title>
+    <link rel="stylesheet" type="text/css" href="css/garden.css">
+    <style>
+        #taikoDiv {
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            position: absolute
+        }
+
+        #midiControl {
+            border-style: none;
+            border-width: 2px;
+            border-color: red;
+            xwidth: 90%;
+            height: 200px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="gardenDiv" style="width: 100%; height: 100%">
+        <div id="gardenPanel" style="width: 100%; height: 100%; float: left; background: green; position: relative">
+            <canvas id="flowerCanvas" style="height:100%"></canvas>
+            <!-- 
+            <div id="controls">
+                <span id="buttons" class="buttons">
+                    <button id="login">login</button>
+                    <button id="save">save</button>
+                    <button id="jitsi">jitsi</button>
+                    <span id="userInfo">null</span>
+                </span>
+                <span id="canvasStat" class="stats">stats</span>
+            </div>
+
+ -->
+            <div id="taikoDiv">
+                Kuchi Shoga: <input style="width: 95%" id="kuchiShoga" type="text" value="don don doko don"><br>
+                <button id="ff1">Fast and Furious 1</button>
+                <button id="ff2">Fast and Furious 2</button>
+                <button id="matsuri">Matsuri</button>
+                <div id="midiControl">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/libs/jquery-3.1.0.min.js"></script>
+    <script src="js/libs/socket.io-1.4.5.js"></script>
+    <script src="js/libs/sprintf.js"></script>
+    <script src="js/CanvasTool.js"></script>
+    <script src="js/GardenTool.js"></script>
+    <script src="js/Garden.js">d</script>
+    <script src="js/Flower.js"></script>
+    <script src="js/util.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.15.5/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.15.5/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.15.5/firebase-database.js"></script>
+    <script src='https://meet.jit.si/external_api.js'></script>
+    <script src="js/MUSEControl.js"></script>
+    <script src="js/Display.js"></script>
+
+    <!-- Beginning of midi scripts -->
+    <!-- shims -->
+    <script src="js/wmb/Base64.js"></script>
+    <script src="js/wmb/Base64binary.js"></script>
+    <script src="js/wmb/WebAudioAPI.js"></script>
+    <!-- midi.js package -->
+    <script src="js/wmb/audioDetect.js"></script>
+    <script src="js/wmb/gm.js"></script>
+    <script src="js/wmb/loader.js"></script>
+    <script src="js/wmb/plugin.audiotag.js"></script>
+    <script src="js/wmb/plugin.webaudio.js"></script>
+    <script src="js/wmb/plugin.webmidi.js"></script>
+    <script src="js/wmb/player.js"></script>
+    <!-- utils -->
+    <script src="js/wmb/dom_request_xhr.js"></script>
+    <script src="js/wmb/dom_request_script.js"></script>
+    <!-- includes -->
+    <script src="js/wmb/timer.js"></script>
+    <!-- End of midi scripts -->
+
+    <script src="js/RhythmTool.js"></script>
+    <script src="js/DynObj/DynamicObject.js"></script>
+    <script src="js/DynObj/DynamicObjectDB.js"></script>
+    <script src="js/MidiTool.js"></script>
+    <script src="js/SoundPlayer.js"></script>
+    <script src="js/RhythmScorer.js"></script>
+    <!--
+    <script src="rhythm/js/CanvasTool.js"></script>
+    -->
+    <script src="js/RhythmCanvasGUI.js"></script>
+    <script src="js/GamePad.js"></script>
+    <script src="js/MidiBox.js"></script>
+
+    <script src="js/MidiPlayTool.js"></script>
+    <script src="https://unpkg.com/@tonejs/midi"></script>
+
+    <script>
+
+        var gtool;
+        var garden;
+
+        $(document).ready(function () {
+            gtool = new GardenTool("flowerCanvas", { numStartupFlowers: 0, maxNumFlowers: 200 });
+            gtool.initFirebase();
+            gtool.start();
+            gtool.setView(0, 0, 800);
+            var gardenName = getParameterByName("garden", "taikogarden");
+            var gardenURL = sprintf("gardens/%s.json", gardenName)
+            garden = gtool.loadGardenFile(gardenURL);
+        });
+
+    </script>
+</body>
+
+</html>
