@@ -144,7 +144,7 @@ class TaikoBox extends MidiBox {
         this.player = new MidiPlayTool();
         window.MPLAYER = this.player;
         var player = this.player;
-        player.midiPrefix = "/rhythm/midi/";
+        player.midiPrefix = "midi/";
         //player.scene = this;
         this.notes = [];
         this.targets = {};
@@ -314,7 +314,7 @@ class TaikoBox extends MidiBox {
 
 
     async playMySong() {
-        this.player.loadMidiFile("/rhythm/midi/sakura.mid");
+        this.player.loadMidiFile("midi/sakura.mid");
         //var midiObj = await this.getMidiObj();
         //this.taikoMidi.dump();
         var midiObj = this.taikoMidi.getMidiObj();
@@ -335,12 +335,15 @@ class TaikoBox extends MidiBox {
 
 
     async addItems() {
-        await requirePackage("Taiko");
+        //await requirePackage("Taiko");
+        await sleep(0.5);
         console.log("TaikoBox.addItems");
         var x = this.x + 20;
         var y = this.y - 40;
-        var opts = { x, y, width: 200, height: 200, id: "taikobox1" };
-        this.taiko = new Taiko(opts);
+        var opts = { x, y, width: 200, height: 200,
+            url: "images/taiko.svg",
+            id: "taikobox1" };
+        this.taiko = new Pic(opts);
         //this.gtool.addGraphic(this.taiko);
         x -= 8;
         y -= 55;

@@ -42,7 +42,7 @@
     <script src="js/libs/socket.io-1.4.5.js"></script>
     <script src="js/libs/sprintf.js"></script>
     <script src="js/CanvasTool.js"></script>
-    <script src="js/GardenTool.js"></script>
+    <script src="js/TaikoTool.js"></script>
     <script src="js/Garden.js">d</script>
     <script src="js/util.js"></script>
     <script src="https://www.gstatic.com/firebasejs/7.15.5/firebase-app.js"></script>
@@ -94,7 +94,7 @@
         var garden;
 
         $(document).ready(function () {
-            gtool = new GardenTool("taikoCanvas");
+            gtool = new TaikoTool("taikoCanvas");
             gtool.initFirebase();
             gtool.start();
             gtool.setView(0, 0, 800);

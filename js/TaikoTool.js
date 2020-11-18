@@ -76,7 +76,7 @@ var PICS = [
 ];
 
 
-class GardenTool extends CanvasTool {
+class TaikoTool extends CanvasTool {
   constructor(name, opts) {
     super(name, opts);
     opts = opts || {};
@@ -457,18 +457,6 @@ class GardenTool extends CanvasTool {
     var garden = new ProjectGarden({ name: "projects", gtool, dbName: "foo" });
   }
 
-  getGardenStateObj() {
-    var obj = { flowers: [] };
-    this.flowers.forEach(f => obj.flowers.push(f.getState()));
-    return obj;
-  }
-
-  downloadGardenObj() {
-    var obj = this.getGardenStateObj();
-    var jstr = JSON.stringify(obj, null, 3);
-    downloadFromBrowser("gardenState.json", jstr);
-  }
-
   handleDrop(e) {
     var inst = this;
     console.log("handleDrop", e);
@@ -509,58 +497,6 @@ class GardenTool extends CanvasTool {
     }
   }
 
-  showProject(project) {
-    console.log("showProject");
-    var hstr = sprintf("<h3 align='center'>%s</h3><p>\n%s", project.name, project.description)
-    $("#projectView").html(hstr);
-    $("#instagramView").html("");
-    if (project.instagramUsername || project.instagramTag)
-      this.showInstagram(project);
-  }
-
-  showInstagram(project) {
-    console.log("showInstagram");
-    var opts = {
-      //      'username': 'taikoin',
-      'username': project.instagramUsername,
-      //      'container': "#instagram-feed1",
-      'container': "#instagramView",
-      'display_profile': true,
-      'display_biography': true,
-      'display_gallery': true,
-      'callback': null,
-      'styling': true,
-      'items': 8,
-      'items_per_row': 4,
-      'margin': 1
-    }
-    if (project.instagramUsername)
-      opts.username = project.instagramUsername;
-    else if (project.instagramTag)
-      opts.tag = project.instagramTag;
-    $.instagramFeed(opts);
-  }
-
-  showPage(url) {
-    console.log("showPage ", url);
-    $("#webView").attr('src', url);
-  }
-
-  showImage(url) {
-    console.log("showImage ", url);
-    if (this.hudDisplay)
-      this.hudDisplay.showImage(url);
-   if (this.picViewer) {
-      this.picViewer.setImageURL(url);
-    }
-  }
-
-  showVideo(idOrURL) {
-    console.log("GardenTool.showVideo ", idOrURL);
-    this.addHUD();
-    if (this.hudDisplay)
-      this.hudDisplay.playVideo(idOrURL);
-  }
 
 }
 

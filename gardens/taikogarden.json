@@ -2,7 +2,7 @@
     "items": [
         {
             "type": "TaikoBox",
-            "id": "tailo",
+            "id": "taiko",
             "name": "Taiko Box",
             "lineWidth": 4,
             "fillStyle": "brown",
