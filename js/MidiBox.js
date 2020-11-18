@@ -58,8 +58,8 @@ class MPlayer {
             }
         });
     }
-
 }
+
 //
 // based on example at https://codepen.io/Koenie/pen/qBEQJyK
 //

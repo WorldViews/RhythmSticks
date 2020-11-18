@@ -1,7 +1,5 @@
 "use strict"
 
-console.log("in PeaceTree.js");
-
 class Garden extends CanvasTool.RectGraphic {
     constructor(opts) {
         super(opts);
