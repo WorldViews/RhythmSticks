@@ -21,6 +21,8 @@ function setup() {
     synth = new Tone.MembraneSynth().toMaster();
 }
 
+var toneIsOn = false;
+
 function beep(dur) {
     console.log("beep");
     setup();
@@ -29,11 +31,17 @@ function beep(dur) {
 }
 
 function toneOn() {
+    if (toneIsOn)
+        return;
     osc.start();
+    toneIsOn = true;
 }
 
 function toneOff() {
+    if (!toneIsOn)
+        return;
     osc.stop();
+    toneIsOn = false;
 }
 
 function playNote()
