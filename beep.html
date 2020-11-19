@@ -1,0 +1,23 @@
+<html lang="en">
+
+<head>
+    <script src="js/libs/jquery-3.1.0.min.js"></script>
+    <script src="js/libs/tone/13.8.17/Tone.js"></script>
+    <script src="js/beep.js"></script>
+</head>
+
+<body>
+    <button id="beep">beep</button>
+
+    <script>
+
+        $(document).ready(() => {
+            $("#beep").click(() => {
+                beep();
+            });
+        });
+
+    </script>
+</body>
+
+</html>
