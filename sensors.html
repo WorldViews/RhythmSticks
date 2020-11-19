@@ -1,34 +1,38 @@
-
 <html lang="en">
 
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <title>Demo - Smartphone Sensors</title>
+    <script src="js/libs/jquery-3.1.0.min.js"></script>
+    <script src="js/libs/tone/13.8.17/Tone.js"></script>
+    <script src="js/beep.js"></script>
+
 </head>
 
 <body>
     <main role="main" class="container">
 
         <div xclass="p-3 mb-2 bg-secondary" id="demo-div">
-            <a id="start_demo" class="btn btn-lg btn-success py-1" href="#" role="button">Start demo</a>
+            <button id="start">start</button>
+            <button id="beep">beep</button>
             <p style="margin-top:1rem;">Num. of datapoints: <span xclass="badge badge-warning"
                     id="num-observed-events">0</span></p>
 
             <h4>Accelerometer</h4>
 
-                X-axis: <span id="Accelerometer_x">0</span><br>
-                Y-axis: <span id="Accelerometer_y">0</span><br>
-                Z-axis: <span id="Accelerometer_z">0</span><br>
-                Data Interval: <span id="Accelerometer_i">0</span><br>
-                Mag: <span id="mag"></span><br>
+            X-axis: <span id="Accelerometer_x">0</span><br>
+            Y-axis: <span id="Accelerometer_y">0</span><br>
+            Z-axis: <span id="Accelerometer_z">0</span><br>
+            Data Interval: <span id="Accelerometer_i">0</span><br>
+            Mag: <span id="mag"></span><br>
 
 
             <h4>Accelerometer including gravity</h4>
 
-                X-axis: <span id="Accelerometer_gx">0</span><br>
-                Y-axis: <span id="Accelerometer_gy">0</span><br>
-                Z-axis: <span id="Accelerometer_gz">0</span><br>
+            X-axis: <span id="Accelerometer_gx">0</span><br>
+            Y-axis: <span id="Accelerometer_gy">0</span><br>
+            Z-axis: <span id="Accelerometer_gz">0</span><br>
 
         </div>
     </main>
@@ -46,10 +50,17 @@
         }
 
         function handleMotion(event) {
-            updateFieldIfNotNull('Accelerometer_gx', event.accelerationIncludingGravity.x);
-            updateFieldIfNotNull('Accelerometer_gy', event.accelerationIncludingGravity.y);
-            updateFieldIfNotNull('Accelerometer_gz', event.accelerationIncludingGravity.z);
-
+            var acc = event.accelerationIncludingGravity;
+            var { x, y, z } = acc;
+            var mag = x * x + y * y + z * z;
+            updateFieldIfNotNull('Accelerometer_gx', x);
+            updateFieldIfNotNull('Accelerometer_gy', y);
+            updateFieldIfNotNull('Accelerometer_gz', z);
+            updateFieldIfNotNull('mag', mag);
+            if (mag > 500)
+                toneOn();
+            else
+                toneOff();
             updateFieldIfNotNull('Accelerometer_x', event.acceleration.x);
             updateFieldIfNotNull('Accelerometer_y', event.acceleration.y);
             updateFieldIfNotNull('Accelerometer_z', event.acceleration.z);
@@ -60,8 +71,7 @@
         }
 
         let is_running = false;
-        let demo_button = document.getElementById("start_demo");
-        demo_button.onclick = function (e) {
+        function start(e) {
             e.preventDefault();
             // Request permission for iOS 13+ devices
             if (
@@ -84,6 +94,13 @@
                 is_running = true;
             }
         };
+
+        $(document).ready(() => {
+            $("#start").click(start);
+            $("#beep").click(() => {
+                beep();
+            })
+        })
 
     </script>
 </body>
