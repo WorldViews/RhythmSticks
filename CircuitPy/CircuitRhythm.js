@@ -51,11 +51,13 @@ class LineParser {
 }
 
 class RhythmStick {
-  constructor() {
+  constructor(opts) {
+    opts = opts || {};
     this.port = null;
     this.numMatches = 0;
     this.numMisses = 0;
     this.lineParser = new LineParser(this);
+    this.taikoBox = opts.taikoBox;
   }
 
   async read(port) {
@@ -107,7 +109,15 @@ class RhythmStick {
       this.handleMatch(parts);
     if (com == "miss")
       this.handleMiss(parts);
+    if (com == "tap")
+      this.handleTap(parts);
     //console.log(parts)
+  }
+
+  handleTap(parts) {
+    var taikoBox = window.TAIKO_BOX;
+    if (taikoBox)
+      taikoBox.strikeDrum("center");
   }
 
   handleStrike(parts) {
@@ -161,6 +171,8 @@ class RhythmStick {
   }
 }
 
+
+/*
 let stick = null;
 let stick2 = null;
 
@@ -174,4 +186,5 @@ $(document).ready(() => {
       stick2.setup();
   });
 });
+*/
 

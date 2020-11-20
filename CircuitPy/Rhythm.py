@@ -8,6 +8,7 @@ TAP = "TAP"
 # modes
 PLAY = "PLAY"       # we have some melody or sequence to play
 LISTEN = "LISTEN"   # We are just watching for beats
+SILENT = "SILENT"
 
 # Note that time.time() only returns an int, not
 # a float with fractional seconds, so we must use this
@@ -16,37 +17,15 @@ def nstime():
 
 QDUR = .25
 
-"""
-class Song:
-    def __init__(self, notes):
-        qdir = .25
-        self.notes = notes
-        self.tMax = 4
-    
-    def setNotes(self, str):
-        parts = str.split()
-        t = 0
-        for part in parts:
-            
-    def update(self, pt):
-        t = pt % self.tMax
-        note = None
-        for nt in self.notes:
-            if t >= nt['t'] and t < nt['t'] + nt['dur']:
-                note = nt
-                break
-        return t, note
-"""
-
 SONGS = [
     Song("C D E F G A B C5"),
 
     Song("""
 don  su   don  su  don kara ka ka |
- don  don  su   don don kara ka ka |
- su   don  su   don don kara ka ta |
- doko su   kara don don kara ka ta |
- doko kara don  don don kara ka ta"""),
+don  don  su   don don kara ka ka |
+su   don  su   don don kara ka ta |
+doko su   kara don don kara ka ta |
+doko kara don  don don kara ka ta"""),
 
     Song("C D E/2 F/2 G A B C5"),
 
@@ -107,7 +86,13 @@ class RhythmTool:
         b_val = self.cp.button_b
         if b_val != self.b_val:
             if b_val:
-                self.setMode(LISTEN)
+                mode = self.mode
+                if mode == PLAY:
+                    self.setMode(LISTEN)
+                elif mode == LISTEN:
+                    self.setMode(SILENT)
+                elif mode == SILENT:
+                    self.setMode(PLAY)
         self.b_val = b_val
 
         x, y, z = self.cp.acceleration  # read the accelerometer values
@@ -183,7 +168,7 @@ class RhythmTool:
     def reset(self):
         print("reset")
         self.setState(STILL)
-        if self.mode == LISTEN:
+        if self.mode == LISTEN or self.mode == SILENT:
             self.setColor((0,0,0))
             self.setTone(None)
     
@@ -191,4 +176,5 @@ class RhythmTool:
         print("tap")
         if self.mode == LISTEN:
             self.setTone(600)
+        if self.mode == LISTEN or self.mode == SILENT:
             self.setColor((100,100,0))

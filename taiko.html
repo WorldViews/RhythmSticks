@@ -32,6 +32,10 @@
                 <button id="ff1">Fast and Furious 1</button>
                 <button id="ff2">Fast and Furious 2</button>
                 <button id="matsuri">Matsuri</button>
+                &nbsp; &nbsp;
+                <button id="stick">Arduino</button>
+                &nbsp; &nbsp;
+                <span id="tab">&nbsp; &nbsp;</span>
                 <div id="midiControl">
                 </div>
             </div>
@@ -87,11 +91,14 @@
 
     <script src="js/MidiPlayTool.js"></script>
     <script src="https://unpkg.com/@tonejs/midi"></script>
+    <script src="CircuitPy/CircuitRhythm.js"></script>
 
     <script>
 
         var gtool;
         var garden;
+        var stick;
+        var TAIKO_BOX;
 
         $(document).ready(function () {
             gtool = new TaikoTool("taikoCanvas");
@@ -101,6 +108,9 @@
             var gardenName = getParameterByName("garden", "taikogarden");
             var gardenURL = sprintf("gardens/%s.json", gardenName)
             garden = gtool.loadGardenFile(gardenURL);
+            stick = new RhythmStick({taikoBox: TAIKO_BOX});
+
+            $("#stick").click(() => stick.setup());
         });
 
     </script>

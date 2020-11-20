@@ -14,14 +14,27 @@
     <button id="send3002">Send 3002</button>
     <button id="send3015">Send 3015</button>
     <p>
-        <button id="start">Connect</button><br>
+        <button id="start1">Connect1</button><br>
         <button id="start2">Connect2</button><br>
         <span id="score"></span><br>
     <div id="tab" style="width:300px;height:50px"></div>
     Log:<br>
     <pre id="log">...</pre>
     <script>
+
+        var stick1, stick2;
+
         $(document).ready(() => {
+
+            stick1 = new RhythmStick();
+            stick2 = new RhythmStick();
+            $("#start1").click(() => {
+                stick1.setup();
+            });
+            $("#start2").click(() => {
+                stick2.setup();
+            });
+
             $("#send0").click(() => sendValue(0));
             $("#send100").click(() => sendValue(100));
             $("#send1024").click(() => sendValue(1024));

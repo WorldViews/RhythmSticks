@@ -161,6 +161,7 @@ class TaikoBox extends MidiBox {
         $("#ff1").click(e => inst.playFastAndFurious1());
         $("#ff2").click(e => inst.playFastAndFurious2());
         $("#matsuri").click(e => inst.playMatsuri());
+        window.TAIKO_BOX = this;
     }
 
     playFastAndFurious1() {
@@ -305,12 +306,28 @@ class TaikoBox extends MidiBox {
         ctx.restore();
     }
 
-    onClick() {
+    onClick(e) {
+        console.log("onClick", e);
         if (!this.started) {
             //this.startSong();
             this.playMySong();
+            this.started = true;
+        }
+        else {
+            this.strikeDrum("center");
         }
     };
+
+    strikeDrum(pos) {
+            var midi = MIDI;
+            var channel = 0;
+            var pitch = 36;
+            var v = 127;
+            var t = 0;
+            var dur = .2;
+            midi.noteOn(channel, pitch, v, t);
+            midi.noteOff(channel, pitch, v, t);
+    }
 
 
     async playMySong() {

@@ -59,7 +59,6 @@ class MidiReader {
         console.log(midiObj);
         console.log("=================================================");
         return midiObj;
-
     }
 
     ticksToTime(ticks) {
