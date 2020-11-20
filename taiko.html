@@ -33,12 +33,12 @@
                 <button id="ff2">Fast and Furious 2</button>
                 <button id="matsuri">Matsuri</button>
                 &nbsp; &nbsp;
+                <button id="sensors">Sensors</button>
+                &nbsp; &nbsp;
                 <button id="stick">Arduino</button>
                 &nbsp; &nbsp;
                 <span id="tab">&nbsp; &nbsp;</span>
                 <div id="midiControl">
-                &nbsp; &nbsp;
-                <button id="phone">phone</button>
                 </div>
             </div>
         </div>
@@ -94,6 +94,7 @@
     <script src="js/MidiPlayTool.js"></script>
     <script src="https://unpkg.com/@tonejs/midi"></script>
     <script src="CircuitPy/CircuitRhythm.js"></script>
+    <script src="js/phonesensors.js"></script>
 
     <script>
 
@@ -101,6 +102,7 @@
         var garden;
         var stick;
         var TAIKO_BOX;
+        var sensors = null;
 
         $(document).ready(function () {
             gtool = new TaikoTool("taikoCanvas");
@@ -113,6 +115,10 @@
             stick = new RhythmStick({taikoBox: TAIKO_BOX});
 
             $("#stick").click(() => stick.setup());
+            $("#sensors").click(() => {
+                sensors = new Sensors();
+                sensors.start();
+            });
         });
 
     </script>

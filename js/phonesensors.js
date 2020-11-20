@@ -3,20 +3,16 @@
 class Sensors {
     constructor() {
         this.is_running = false;
-    }
-
-    incrementEventCount() {
-        let counterElement = document.getElementById("num-observed-events")
-        let eventCount = parseInt(counterElement.innerHTML)
-        counterElement.innerHTML = eventCount + 1;
+        this.eventCount = 0;
     }
 
     show(fieldName, value, precision = 10) {
         if (value != null)
-            document.getElementById(fieldName).innerHTML = value.toFixed(precision);
+            $("#"+fieldName).html(value.toFixed(precision));
     }
 
     motionHandler(event) {
+        this.eventCount++;
         var acc = event.accelerationIncludingGravity;
         var { x, y, z } = acc;
         var mag = x * x + y * y + z * z;
@@ -24,11 +20,16 @@ class Sensors {
         this.show('Accelerometer_gy', y);
         this.show('Accelerometer_gz', z);
         this.show('mag', mag);
+        var taikoBox = window.TAIKO_BOX;
         if (mag > 500) {
-            toneOn();
+            if (taikoBox)
+                taikoBox.strikeDrum("center");
+            else
+                toneOn();
         }
         else {
-            toneOff();
+            if (!taikoBox)
+                toneOff();
         }
         this.show('Accelerometer_x', event.acceleration.x);
         this.show('Accelerometer_y', event.acceleration.y);
@@ -36,7 +37,8 @@ class Sensors {
 
         this.show('Accelerometer_i', event.interval, 2);
 
-        this.incrementEventCount();
+        this.show("num-observed-events", this.eventCount);
+
     }
 
 
