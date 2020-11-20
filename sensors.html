@@ -6,6 +6,7 @@
     <title>Demo - Smartphone Sensors</title>
     <script src="js/libs/jquery-3.1.0.min.js"></script>
     <script src="js/libs/tone/13.8.17/Tone.js"></script>
+    <script src="js/phonesensors.js"></script>
     <script src="js/beep.js"></script>
 
 </head>
@@ -37,71 +38,13 @@
         </div>
     </main>
     <script>
-
-        function incrementEventCount() {
-            let counterElement = document.getElementById("num-observed-events")
-            let eventCount = parseInt(counterElement.innerHTML)
-            counterElement.innerHTML = eventCount + 1;
-        }
-
-        function updateFieldIfNotNull(fieldName, value, precision = 10) {
-            if (value != null)
-                document.getElementById(fieldName).innerHTML = value.toFixed(precision);
-        }
-
-        function handleMotion(event) {
-            var acc = event.accelerationIncludingGravity;
-            var { x, y, z } = acc;
-            var mag = x * x + y * y + z * z;
-            updateFieldIfNotNull('Accelerometer_gx', x);
-            updateFieldIfNotNull('Accelerometer_gy', y);
-            updateFieldIfNotNull('Accelerometer_gz', z);
-            updateFieldIfNotNull('mag', mag);
-            if (mag > 500)
-                toneOn();
-            else
-                toneOff();
-            updateFieldIfNotNull('Accelerometer_x', event.acceleration.x);
-            updateFieldIfNotNull('Accelerometer_y', event.acceleration.y);
-            updateFieldIfNotNull('Accelerometer_z', event.acceleration.z);
-
-            updateFieldIfNotNull('Accelerometer_i', event.interval, 2);
-
-            incrementEventCount();
-        }
-
-        let is_running = false;
-        function start(e) {
-            e.preventDefault();
-            // Request permission for iOS 13+ devices
-            if (
-                DeviceMotionEvent &&
-                typeof DeviceMotionEvent.requestPermission === "function"
-            ) {
-                DeviceMotionEvent.requestPermission();
-            }
-            if (is_running) {
-                window.removeEventListener("devicemotion", handleMotion);
-                demo_button.innerHTML = "Start demo";
-                demo_button.classList.add('btn-success');
-                demo_button.classList.remove('btn-danger');
-                is_running = false;
-            } else {
-                window.addEventListener("devicemotion", handleMotion);
-                document.getElementById("start_demo").innerHTML = "Stop demo";
-                demo_button.classList.remove('btn-success');
-                demo_button.classList.add('btn-danger');
-                is_running = true;
-            }
-        };
-
+        let sensors = new Sensors();
         $(document).ready(() => {
-            $("#start").click(start);
+            $("#start").click(() => sensors.start());
             $("#beep").click(() => {
                 beep();
             })
         })
-
     </script>
 </body>
 
