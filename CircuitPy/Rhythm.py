@@ -1,5 +1,6 @@
 
 import time
+import supervisor
 from Song import Song
 # states of motion
 STILL = "STILL"
@@ -75,6 +76,11 @@ class RhythmTool:
         self.playTime += self.speed * dt
         mag0 = 450
 
+        if supervisor.runtime.serial_bytes_available:
+            print("getting input..")
+            str = input().strip()
+            self.handleInput(str)
+
         # check button a
         a_val = self.cp.button_a
         if a_val != self.a_val:
@@ -127,10 +133,20 @@ class RhythmTool:
                 self.setColor((0,0,0))
                 self.setTone(None)
 
+    def handleInput(self, str):
+        print("got input", str)
+        parts = str.split()
+        print("parts", parts)
+        if len(parts) < 2:
+            print("not enough parts.  parts:", parts)
+            return
+        if parts[0] == "mode":
+            self.setMode(parts[1])
+
     def setMode(self, mode):
         #if mode == self.mode:
         #    return
-        print("mode", mode)
+        print("setMode", mode)
         self.mode = mode
         if mode == PLAY:
             self.songNum += 1

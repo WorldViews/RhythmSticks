@@ -8,6 +8,7 @@ else {
   alert("Cannot access serial");
 }
 
+// sent data value to webhook for adafruit data feed
 function sendValue(val) {
   console.log("sendValue", val);
   //$("#status").html(val);
@@ -17,6 +18,19 @@ function sendValue(val) {
   $.post(url, obj, val => {
     console.log("receieved", val)
   });
+}
+
+function strToByteArray(str) {
+  console.log("strToByteArray", str);
+  var bytes = []; // char codes
+  for (var i = 0; i < str.length; ++i) {
+    var code = str.charCodeAt(i);
+    bytes = bytes.concat([code]);
+  }
+  console.log(" bytes:", bytes);
+  const data = new Uint8Array(bytes); // hello
+  console.log(" data:", data);
+  return data;
 }
 
 // see https://smartsensordevices.com/%E2%80%8Bplotting-real-time-graph-from-bluetooth-5-0-device-to-google-chrome/
@@ -54,6 +68,7 @@ class RhythmStick {
   constructor(opts) {
     opts = opts || {};
     this.port = null;
+    this.writer = null;
     this.numMatches = 0;
     this.numMisses = 0;
     this.lineParser = new LineParser(this);
@@ -82,6 +97,15 @@ class RhythmStick {
       $("#log").append(str);
       inst.lineParser.transform(str);
     }
+  }
+
+  async write(str) {
+    if (!this.writer) {
+      console.log("Cannot write without a writer");
+      return;
+    }
+    var data = strToByteArray(str+"\r");
+    await this.writer.write(data);
   }
 
   handleLine(line) {
@@ -167,13 +191,15 @@ class RhythmStick {
     //await port.open({ baudRate: 9600 });
     await port.open({ baudRate: 115200 });
     console.log("opened")
+    this.writer = port.writable.getWriter();
     this.read(port);
+    this.write("mode SILENT");
   }
 }
 
 
 /*
-let stick = null;
+let stick = null
 let stick2 = null;
 
 $(document).ready(() => {
