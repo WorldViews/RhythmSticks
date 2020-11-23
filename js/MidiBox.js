@@ -1,6 +1,8 @@
 
 "use strict"
 
+var turles = 3;
+
 class MPlayer {
     constructor(opts) {
         opts = opts || {};
@@ -61,6 +63,10 @@ class MPlayer {
 }
 
 //
+// This is a class for accessing midi devices via web API.
+// We use it to receive midi messages from MIDI controllers
+// like drumsticks or keyboards
+//
 // based on example at https://codepen.io/Koenie/pen/qBEQJyK
 //
 var MMSG = null;
@@ -114,12 +120,17 @@ class MTool {
 }
 
 
-class MidiBox extends Garden {
+class MidiBox extends CanvasTool.RectGraphic {
     constructor(opts) {
+        super(opts);
+        this.name = opts.name;
+        this.gtool = gtool;
+        this.font = "100px Arial";
+        this.textStyle = "white";
+        this.textAlign = "center";
         opts.width = opts.width || 70;
         opts.height = opts.height || 100;
         opts.fillStyle = null;
-        super(opts);
         this.targetURL = opts.targetURL;
         this.x0 = opts.x0 || 0;
         this.y0 = opts.y0 || 0;

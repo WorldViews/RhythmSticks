@@ -48,33 +48,6 @@ class Circle extends CanvasTool.Graphic {
   }
 }
 
-var PICS = [
-  {
-    id: 'don', url: 'images/penguin.svg', x: 50, y: 0, width: 20, height: 30,
-    targetURL: 'http://worldviews.club/don'
-  },
-  {
-    id: 'shawna', url: 'images/penguin2.svg', x: 100, y: 50, width: 20, height: 30,
-    targetURL: 'http://worldviews.club/shawna'
-  },
-  {
-    id: 'manami', url: 'images/mamaP.jpg', x: 200, y: -50, width: 40, height: 50,
-    targetURL: 'http://www.dancevita.com/'
-  },
-  {
-    id: 'taiko', url: 'images/taiko.svg', x: 150, y: -100, width: 50, height: 50,
-    targetURL: 'http://taiko.org'
-  },
-  {
-    id: 'candle', url: 'images/animated-candle-image-0022.gif', x: 250, y: -200, width: 30, height: 60,
-    targetURL: 'http://taiko.org'
-  },
-  {
-    id: 'candle', url: 'images/transFlower.png', x: -50, y: 150, width: 60, height: 60,
-    targetURL: 'http://taiko.org'
-  }
-];
-
 
 class TaikoTool extends CanvasTool {
   constructor(name, opts) {
@@ -101,40 +74,21 @@ class TaikoTool extends CanvasTool {
       this.addJitsi();
   }
 
-  addJitsi(parentId) {
-    if (this.jitsi) {
-      console.log("Already have jitsi");
-      return;
+  addTaiko() {
+    var opts = {
+      "type": "TaikoBox",
+      "id": "taiko",
+      "name": "Taiko Box",
+      "lineWidth": 4,
+      "fillStyle": "brown",
+      "width": 300,
+      "height": 300,
+      "x": 0,
+      "y": 0
     }
-    this.jitsi = new GardenJitsi(this, {parentId});;
+    var tb = new TaikoBox(opts);
+    this.addItem(opts);
   }
-
-  addHUD(parentName) {
-    if (this.hudDisplay)
-      return;
-     this.hudDisplay = new Display(this, parentName);
-  }
-
-  xresize() {
-    //console.log("resizing the canvas...");
-    var view = this.getView();
-    console.log("view:", view);
-    /*
-    let canvasWidth = this.canvas.clientWidth;
-    let canvasHeight = this.canvas.clientHeight;
-    let maxCanvasSize = 800;
-    if (canvasWidth > maxCanvasSize) {
-        canvasWidth = maxCanvasSize;
-    }
-    this.canvas.width = canvasWidth;
-    this.canvas.height = canvasWidth;
-    this.canvas.width = canvasWidth;
-    this.canvas.height = canvasHeight;
-    */
-    this.setView(view);
-    this.draw();
-  }
-
 
   clear() {
     super.clear();
@@ -143,7 +97,6 @@ class TaikoTool extends CanvasTool {
 
   initGUI() {
     var inst = this;
-    $("#jitsi").click(e => inst.addJitsi());
     $("#save").click(e => inst.downloadGardenObj());
     var dropzone = "#" + this.canvasName;
     $(dropzone).on('dragover', (e) => {
@@ -193,63 +146,9 @@ class TaikoTool extends CanvasTool {
   mouseMove(e) {
     if (this.muse) {
       var cpt = this.getMousePosCanv(e);
-      this.muse.sendMessage({type: 'mousePosition', cpt});
+      this.muse.sendMessage({ type: 'mousePosition', cpt });
     }
     super.mouseMove(e);
-  }
-
-  loadPics(pics) {
-    var inst = this;
-    pics.forEach(pic => inst.addPic(pic));
-  }
-
-  addFlowers(numFlowers) {
-    console.log("addFlowers " + numFlowers);
-    for (var i = 0; i < numFlowers; i++)
-      this.addFlower();
-  }
-
-  async addFlower(opts) {
-    opts = opts || {};
-    if (opts.x == null)
-      opts.x = uniform(-100, 100);
-    if (opts.y == null)
-      opts.y = uniform(-100, 100);
-    var f;
-    if (opts.type) {
-      f = await createObject(opts);
-      if (f) {
-        console.log("Created object", f, opts);
-      }
-      else {
-        alert("Couldn't create flower");
-        console.log("couldn't create flower for", opts);
-      }
-    }
-    else {
-      f = new Flower(opts);
-    }
-    this.addGraphic(f);
-    this.flowers.push(f);
-    return f;
-  }
-
-  getFlower(id) {
-    return this.getGraphic(id);
-  }
-
-  removeFlower(f) {
-    this.removeGraphic(f);
-    arrayRemove(this.flowers, f);
-  }
-
-  getNumFlowers() {
-    return this.flowers.length;
-  }
-
-  addPic(opts) {
-    var imgGraphic = new Pic(opts);
-    this.addGraphic(imgGraphic);
   }
 
   async addItem(item) {
@@ -301,49 +200,19 @@ class TaikoTool extends CanvasTool {
     }
   }
 
-  async loadGardenFile(url) {
-    var gardenName = "garden0";
-    if (url == null) {
-      gardenName = getParameterByName("garden");
-      if (gardenName)
-        url = gardenName + ".json"
-    }
-    url = url || "garden.json";
-    console.log("Reading garden file " + url);
-    try {
-      var obj = await loadJSON(url);
-    }
-    catch (e) {
-      var errStr = "Failed to load garden "+url;
-      console.log(errStr);
-      alert(errStr);
-    }
-    console.log("got garden data: " + JSON.stringify(obj));
-    return await this.loadGarden(obj);
-    return garden;
-  }
-
-  // load flowers from a JSON object
-  async loadGarden(obj) {
-    console.log("loadGarden");
-    var garden = new Garden({ name: "garden0", gtool: this });
-    garden.load(obj);
-    return garden;
-  }
-
   async initFirebase() {
     var inst = this;
     if (inst.firebase)
       return;
-      var firebaseConfig = {
-        apiKey: "AIzaSyABtA6MxppX03tvzqsyO7Mddc606DsHLT4",
-        authDomain: "gardendatabase-1c073.firebaseapp.com",
-        databaseURL: "https://gardendatabase-1c073.firebaseio.com",
-        projectId: "gardendatabase-1c073",
-        storageBucket: "gardendatabase-1c073.appspot.com",
-        messagingSenderId: "601117522914",
-        appId: "1:601117522914:web:90b28c88b798e45f5fd7bb"
-      };
+    var firebaseConfig = {
+      apiKey: "AIzaSyABtA6MxppX03tvzqsyO7Mddc606DsHLT4",
+      authDomain: "gardendatabase-1c073.firebaseapp.com",
+      databaseURL: "https://gardendatabase-1c073.firebaseio.com",
+      projectId: "gardendatabase-1c073",
+      storageBucket: "gardendatabase-1c073.appspot.com",
+      messagingSenderId: "601117522914",
+      appId: "1:601117522914:web:90b28c88b798e45f5fd7bb"
+    };
 
     // Initialize Firebase
     //TODO: move firebase initialization to early place before we
@@ -352,11 +221,6 @@ class TaikoTool extends CanvasTool {
     inst.firebase = firebase;
     var db = firebase.database();
     inst.firebaseDB = db;
-    var dbRef = db.ref('/userState');
-    //console.log("Got dbRef", dbRef);
-    dbRef.on('value', snap => {
-      inst.noticeUserStates(snap);
-    });
 
     firebase.auth().onAuthStateChanged(user => {
       console.log("authStateChange", user);
@@ -387,76 +251,6 @@ class TaikoTool extends CanvasTool {
     });
   }
 
-  noticeUserStates(snap) {
-    //console.log("noticeUserStates Got", snap);
-    var obj = snap.val();
-    //console.log("obj", obj);
-    var jstr = JSON.stringify(obj, null, 3);
-    //console.log("userState", jstr);
-  }
-
-
-  async produceHeartBeat() {
-    var uid = this.user.uid;
-    var email = this.user.email;
-    var t = getClockTime();
-    console.log("heartbeat tick...", uid, email, t);
-    var userState = {
-      email, uid, lastUpdate: t
-    }
-    //console.log("userState", userState);
-    var dbRef = this.firebaseDB.ref();
-    //await dbRef.child("/userState/" + uid).set(userState);
-    await dbRef.child("/user/state/" + uid + "/login").set(userState);
-    //console.log("Successfully updated");
-  }
-
-  async getObjFromDB(path, db) {
-    console.log("getObjFromDB", path);
-    var inst = this;
-    await this.initFirebase();
-    db = db || this.firebaseDB;
-    console.log("db:", db);
-    var dbRef = db.ref(path);
-    console.log("Got dbRef", dbRef);
-    return new Promise((res, rej) => {
-      try {
-        dbRef.once('value').then(snap => {
-          console.log("Got", snap);
-          var obj = snap.val();
-          console.log("obj", obj);
-          var jstr = JSON.stringify(obj, null, 3);
-          res(obj);
-        });
-      }
-      catch (e) {
-        console.log("Error tring to get path", path);
-        rej(e);
-      }
-    });
-  }
-
-
-  async addURL(url) {
-    var obj = { 'type': 'URL', url };
-    return await this.addTopic(obj);
-  }
-
-  async addTopic(obj) {
-    console.log("addTopic", obj);
-    if (!obj.id) {
-      obj.id = genUniqueId();
-    }
-    var dbRef = this.firebaseDB.ref();
-    var ret = await dbRef.child("/topics/urls/" + obj.id).set(obj);
-    console.log("topic added");
-    return ret;
-  }
-
-  async loadFromFirebase() {
-    var garden = new ProjectGarden({ name: "projects", gtool, dbName: "foo" });
-  }
-
   handleDrop(e) {
     var inst = this;
     console.log("handleDrop", e);
@@ -482,7 +276,7 @@ class TaikoTool extends CanvasTool {
         var data = JSON.parse(jstr);
         console.log("data", data);
         inst.clear();
-        inst.loadGarden(data);
+        //inst.loadGarden(data);
       };
       var txt = reader.readAsText(file);
     }
@@ -492,7 +286,7 @@ class TaikoTool extends CanvasTool {
       lines.forEach(async line => {
         console.log("*** line", line);
         var url = line;
-        await inst.addURL(url);
+        //await inst.addURL(url);
       });
     }
   }
