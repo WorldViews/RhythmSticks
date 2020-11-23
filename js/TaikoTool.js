@@ -1,7 +1,4 @@
 
-// Some of this code is based on flower samples from
-// https://www.html5canvastutorials.com/advanced/html5-canvas-blooming-flowers-effect/
-
 "use strict";
 
 
@@ -53,8 +50,6 @@ class TaikoTool extends CanvasTool {
   constructor(name, opts) {
     super(name, opts);
     opts = opts || {};
-    this.numStartupFlowers = getVal(opts.numStartupFlowers, 10);
-    this.maxNumWildFlowers = getVal(opts.maxNumWildFlowers, 10);
     var ctx = this.ctx;
     ctx.strokeStyle = "white";
     ctx.shadowBlur = 5;
@@ -62,16 +57,9 @@ class TaikoTool extends CanvasTool {
     ctx.shadowOffsetY = 2;
     ctx.shadowColor = "#333";
     ctx.globalAlpha = .85;
-    this.flowers = [];
     this.user = null;
     this.plantOnClick = false;
     this.initGUI();
-    if (getBooleanParameterByName("muse"))
-      this.setupMUSE();
-    if (getBooleanParameterByName("hud"))
-      this.addHUD();
-    if (getBooleanParameterByName("jitsi"))
-      this.addJitsi();
   }
 
   addTaiko() {
@@ -86,13 +74,12 @@ class TaikoTool extends CanvasTool {
       "x": 0,
       "y": 0
     }
-    var tb = new TaikoBox(opts);
-    this.addItem(opts);
+    var taikoBox = new TaikoBox(opts);
+    this.addGraphic(taikoBox);
   }
 
   clear() {
     super.clear();
-    this.flowers = [];
   }
 
   initGUI() {
@@ -108,46 +95,14 @@ class TaikoTool extends CanvasTool {
       e.stopPropagation();
     });
     $(dropzone).on('drop', (e) => inst.handleDrop(e));
-    $("#login").click(e => inst.handleLogin());
-  }
-
-  handleLogin() {
-    // window.open('./PlayAuth/auth.html');
-    if (this.user) {
-      firebase.auth().signOut().then(function () {
-        // Sign-out successful.
-      }).catch(function (error) {
-        // An error happened.
-      });
-    }
-    else {
-      window.location = './PlayAuth/authGarden.html';
-    }
   }
 
   start() {
     var inst = this;
-    this.flowers = [];
     super.start();
   }
 
-  setupMUSE() {
-    if (this.muse)
-      return;
-    this.muse = new MUSEControl();
-    var inst = this;
-    this.muse.setMessageHandler(msg => inst.handleMUSEMessage(msg));
-  }
-
-  handleMUSEMessage(msg) {
-    console.log("msg", msg);
-  }
-
   mouseMove(e) {
-    if (this.muse) {
-      var cpt = this.getMousePosCanv(e);
-      this.muse.sendMessage({ type: 'mousePosition', cpt });
-    }
     super.mouseMove(e);
   }
 
@@ -173,12 +128,6 @@ class TaikoTool extends CanvasTool {
     var x = e.clientX;
     var y = e.clientY;
     var pt = this.getMousePos(e);
-    if (!this.plantOnClick)
-      return;
-    console.log("new flower ", pt);
-    var f = new Flower(pt);
-    this.addGraphic(f);
-    this.flowers.push(f);
   }
 
   clearCanvas() {

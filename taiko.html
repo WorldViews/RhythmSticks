@@ -45,17 +45,10 @@
     </div>
 
     <script src="js/libs/jquery-3.1.0.min.js"></script>
-    <script src="js/libs/socket.io-1.4.5.js"></script>
     <script src="js/libs/sprintf.js"></script>
     <script src="js/CanvasTool.js"></script>
     <script src="js/TaikoTool.js"></script>
-
     <script src="js/util.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/7.15.5/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/7.15.5/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/7.15.5/firebase-database.js"></script>
-    <script src='https://meet.jit.si/external_api.js'></script>
-    <script src="js/MUSEControl.js"></script>
 
     <!-- Beginning of midi scripts -->
     <!-- shims -->
@@ -97,7 +90,7 @@
 
         var gtool;
         var garden;
-        var stick;
+        var stick1, stick2;
         var TAIKO_BOX;
         var sensors = null;
 
@@ -106,9 +99,9 @@
             gtool.start();
             gtool.setView(0, 0, 800);
             gtool.addTaiko();
-            stick = new RhythmStick({taikoBox: TAIKO_BOX});
+            stick1 = new RhythmStick({taikoBox: TAIKO_BOX});
 
-            $("#stick").click(() => stick.setup());
+            $("#stick").click(() => stick1.setup());
             $("#sensors").click(() => {
                 sensors = new Sensors();
                 sensors.start();
