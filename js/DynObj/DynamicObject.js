@@ -137,7 +137,6 @@ class DynamicObject {
 
 
 if (typeof exports !== 'undefined') {
-    //console.log("MUSEPortal setting up exports");
     exports.DynamicObject = DynamicObject;
 }
 

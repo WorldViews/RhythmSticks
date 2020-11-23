@@ -170,7 +170,6 @@ class DynamicObjectDB {
 
 
 if (typeof exports !== 'undefined') {
-    //console.log("MUSEPortal setting up exports");
     exports.DynamicObjectDB = DynamicObjectDB;
 }
 
