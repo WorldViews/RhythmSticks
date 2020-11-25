@@ -5,6 +5,10 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+function splitStr(str) {
+    return str.split(/(\s+)/).filter( function(e) { return e.trim().length > 0; } );
+}
+
 // This class is for constructiong a midi event sequence
 // from a given Kuchi Shoga song string
 class TaikoMidi {
@@ -18,11 +22,58 @@ class TaikoMidi {
         this.events = [];
     }
 
-    addKuchiShoga(str) {
+    addKuchiShogaOLD(str) {
 
         console.log("adding for kuchi shoga", str);
         str = str.replace(/\r?\n|\r/g, " ");
         str = str.replace(/  /g, " ");
+        this.reset();
+        this.setInstruments([116, 115]);
+        var parts = str.split(/[ ,]+/);
+        console.log("parts", parts);
+        for (var i = 0; i < parts.length; i++) {
+            var part = parts[i];
+            if (part == '')
+                continue;
+            if (part == '|')
+                continue;
+            //console.log("part", part);
+            if (part == "don") {
+                this.addNote(1);
+                continue;
+            }
+            if (part == "doko") {
+                this.addNote(0.5);
+                this.addNote(0.5);
+                continue;
+            }
+            if (part == "ka" || part == "ta") {
+                this.addNote(1, "rim");
+                continue;
+            }
+            if (part == "kara" || part == "kata") {
+                this.addNote(0.5, "rim");
+                this.addNote(0.5, "rim");
+                continue;
+            }
+            if (part == "su" || part == '_' || part == '-') {
+                //console.log("su add", this.beatDur);
+                this.t += this.beatDur;
+                continue;
+            }
+            alert("bad kuchi shoga part: '" + part + "'");
+            return;
+        }
+    }
+
+    addKuchiShoga(str) {
+
+        console.log("adding for kuchi shoga", str);
+        var parts = splitStr(str);
+        str = parts.join(" ");
+        $("#kuchiShoga").val(str);
+        //str = str.replace(/\r?\n|\r/g, " ");
+        //str = str.replace(/  /g, " ");
         this.reset();
         this.setInstruments([116, 115]);
         var parts = str.split(/[ ,]+/);
@@ -130,6 +181,15 @@ class TaikoMidi {
     }
 }
 
+const MATSURI = `
+su   su   su   su |
+
+don  su   don  su  don kara ka ka |
+don  don  su   don don kara ka ka |
+su   don  su   don don kara ka ta |
+doko su   kara don don kara ka ta |
+doko kara don  don don kara ka ta |
+`;
 
 class TaikoBox extends MidiBox {
 
@@ -138,7 +198,9 @@ class TaikoBox extends MidiBox {
         opts.instrument = "harpsichord";
         opts.instrument = "acoustic_grand_piano";
         super(opts);
-        this.fillStyle = "salmon";
+        //this.fillStyle = "beige";
+        this.fillStyle = null;
+        //this.strokeStyle = null;
         var inst = this;
         //this.player = PLAYER;
         this.player = new MidiPlayTool();
@@ -155,12 +217,12 @@ class TaikoBox extends MidiBox {
         var taikoMidi = new TaikoMidi();
         window.taikoMidi = taikoMidi;
         this.taikoMidi = taikoMidi;
-        taikoMidi.addKuchiShoga("don don don kara kata don don su don don kara kata");
         //taikoMidi.dump();
         $("#kuchiShoga").change(e => inst.noticeNewKuchiShoga());
         $("#ff1").click(e => inst.playFastAndFurious1());
         $("#ff2").click(e => inst.playFastAndFurious2());
         $("#matsuri").click(e => inst.playMatsuri());
+        this.playKuchiShoga(MATSURI, true);
         window.TAIKO_BOX = this;
     }
 
@@ -186,16 +248,7 @@ class TaikoBox extends MidiBox {
     }
 
     playMatsuri() {
-        var matsuri = `
- su   su   su   su |
-
- don  su   don  su  don kara ka ka |
- don  don  su   don don kara ka ka |
- su   don  su   don don kara ka ta |
- doko su   kara don don kara ka ta |
- doko kara don  don don kara ka ta |
-        `;
-        this.playKuchiShoga(matsuri);
+        this.playKuchiShoga(MATSURI);
     }
 
     noticeNewKuchiShoga() {
@@ -204,15 +257,18 @@ class TaikoBox extends MidiBox {
         this.playKuchiShoga(kuchiShoga);
     }
 
-    async playKuchiShoga(kuchiShoga) {
+    async playKuchiShoga(kuchiShoga, paused) {
         kuchiShoga = kuchiShoga.trim();
-        $("#kuchiShoga").val(kuchiShoga);
+        //$("#kuchiShoga").val(kuchiShoga);
         this.player.pausePlaying();
         await sleep(0.5);
         this.taikoMidi.addKuchiShoga(kuchiShoga);
-        var midiObj = this.taikoMidi.getMidiObj();
-        await sleep(0.5);
-        this.player.playMidiObj(midiObj, true);
+
+        if (!paused) {
+            var midiObj = this.taikoMidi.getMidiObj();
+            await sleep(0.5);
+            this.player.playMidiObj(midiObj, true);
+        }
     }
 
     observeNote(ch, pitch, v, t, dur) {
@@ -319,14 +375,19 @@ class TaikoBox extends MidiBox {
     };
 
     strikeDrum(pos) {
-            var midi = MIDI;
-            var channel = 0;
-            var pitch = 36;
-            var v = 127;
-            var t = 0;
-            var dur = .2;
-            midi.noteOn(channel, pitch, v, t);
-            midi.noteOff(channel, pitch, v, t);
+        var midi = MIDI;
+        var channel = 0;
+        var pitch = 36;
+        if (pos == "center")
+            pitch = 36;
+        else
+            pitch = 42;
+        var v = 127;
+        var t = 0;
+        var dur = .2;
+        console.log("strikeDrum", pos, pitch);
+        midi.noteOn(channel, pitch, v, t);
+        midi.noteOff(channel, pitch, v, t + dur);
     }
 
 
@@ -357,9 +418,11 @@ class TaikoBox extends MidiBox {
         console.log("TaikoBox.addItems");
         var x = this.x + 20;
         var y = this.y - 40;
-        var opts = { x, y, width: 200, height: 200,
+        var opts = {
+            x, y, width: 200, height: 200,
             url: "images/taiko.svg",
-            id: "taikobox1" };
+            id: "taikobox1"
+        };
         this.taiko = new Pic(opts);
         //this.gtool.addGraphic(this.taiko);
         x -= 8;

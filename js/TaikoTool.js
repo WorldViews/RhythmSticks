@@ -3,48 +3,7 @@
 
 
 class Pic extends CanvasTool.ImageGraphic {
-  constructor(opts) {
-    super(opts);
-    this.targetURL = opts.targetURL;
-  }
-
-  onClick(e) {
-    if (!this.targetURL)
-      return true;
-    this.tool.showPage(this.targetURL);
-    //$("#webView").src = this.targetURL;
-    //window.open(this.targetURL, "webView");
-    return true;
-  }
 }
-
-//TODO: modify draw method of this to produce nice frame.
-class FramedPic extends Pic {
-  constructor(opts) {
-    super(opts);
-    this.fillStyle = "brown";
-  }
-  draw(canvas, ctx) {
-    var bd = 4;
-    this.drawRect(canvas, ctx,
-      this.x, this.y,
-      this.width + 2 * bd, this.height + 2 * bd);
-    if (!this.image)
-      return;
-    ctx.drawImage(
-      this.image,
-      this.x - this.width / 2.0, this.y - this.height / 2.0,
-      this.width, this.height);
-  }
-}
-
-class Circle extends CanvasTool.Graphic {
-  constructor(opts) {
-    super(opts);
-    console.log("Circle ", opts);
-  }
-}
-
 
 class TaikoTool extends CanvasTool {
   constructor(name, opts) {
@@ -69,8 +28,8 @@ class TaikoTool extends CanvasTool {
       "name": "Taiko Box",
       "lineWidth": 4,
       "fillStyle": "brown",
-      "width": 300,
-      "height": 300,
+      "width": 500,
+      "height": 500,
       "x": 0,
       "y": 0
     }
@@ -147,57 +106,6 @@ class TaikoTool extends CanvasTool {
       ctx.strokeRect(0, 0, canvas.width, canvas.height);
       //ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
-  }
-
-  async initFirebase() {
-    var inst = this;
-    if (inst.firebase)
-      return;
-    var firebaseConfig = {
-      apiKey: "AIzaSyABtA6MxppX03tvzqsyO7Mddc606DsHLT4",
-      authDomain: "gardendatabase-1c073.firebaseapp.com",
-      databaseURL: "https://gardendatabase-1c073.firebaseio.com",
-      projectId: "gardendatabase-1c073",
-      storageBucket: "gardendatabase-1c073.appspot.com",
-      messagingSenderId: "601117522914",
-      appId: "1:601117522914:web:90b28c88b798e45f5fd7bb"
-    };
-
-    // Initialize Firebase
-    //TODO: move firebase initialization to early place before we
-    // go to fetch data.
-    firebase.initializeApp(firebaseConfig);
-    inst.firebase = firebase;
-    var db = firebase.database();
-    inst.firebaseDB = db;
-
-    firebase.auth().onAuthStateChanged(user => {
-      console.log("authStateChange", user);
-      inst.user = user;
-      if (user) {
-        // User is signed in.
-        var displayName = user.displayName;
-        var email = user.email;
-        var emailVerified = user.emailVerified;
-        var photoURL = user.photoURL;
-        var isAnonymous = user.isAnonymous;
-        var uid = user.uid;
-        var providerData = user.providerData;
-        $("#userInfo").html(user.displayName + " " + user.email);
-        $("#login").html("signout");
-        inst.heartBeater = setInterval(() => inst.produceHeartBeat(), 15000);
-        // ...
-      } else {
-        // User is signed out.
-        // ...
-        $("#userInfo").html("guest");
-        $("#login").html("login");
-        if (inst.heartBeater) {
-          clearInterval(inst.heartBeater);
-          inst.heartBeater = null;
-        }
-      }
-    });
   }
 
   handleDrop(e) {

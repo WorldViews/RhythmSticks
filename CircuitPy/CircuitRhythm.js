@@ -139,9 +139,16 @@ class RhythmStick {
   }
 
   handleTap(parts) {
+    console.log("tap", parts);
     var taikoBox = window.TAIKO_BOX;
-    if (taikoBox)
-      taikoBox.strikeDrum("center");
+    var ay = Number(parts[2])
+    console.log("ay", ay);
+    if (taikoBox) {
+      if (ay > 0)
+        taikoBox.strikeDrum("center");
+      else
+        taikoBox.strikeDrum("rim");
+    }
   }
 
   handleStrike(parts) {

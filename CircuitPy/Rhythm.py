@@ -67,6 +67,8 @@ class RhythmTool:
         self.b_val = None
         self.note = None
         self.noteMatched = False
+        self.strikeMag = 0
+        self.strikeAy = 0
 
     def tick(self):
         self.n += 1
@@ -104,8 +106,10 @@ class RhythmTool:
         x, y, z = self.cp.acceleration  # read the accelerometer values
         mag = x*x + y*y + z*z
         if mag > mag0:
-            #print ("strike", self.n, rt, mag, x, y, z)
+            print ("strike", self.n, mag, x, y, z)
             #print("t: %.3f   rt: %.3f" % (t, rt))
+            self.strikeMag = mag
+            self.strikeAy = y
             self.setState(TAP)
         else:
             self.setState(STILL)
@@ -189,8 +193,11 @@ class RhythmTool:
             self.setTone(None)
     
     def tap(self):
-        print("tap")
+        print("tap", self.strikeMag, self.strikeAy)
         if self.mode == LISTEN:
-            self.setTone(600)
+            if self.strikeAy > 0:
+                self.setTone(600)
+            else:
+                self.setTone(800)
         if self.mode == LISTEN or self.mode == SILENT:
             self.setColor((100,100,0))

@@ -4,6 +4,46 @@
 <head>
     <meta charset="UTF-8">
     <title>WorldViews Taiko Rhythm Games</title>
+    <link rel="stylesheet" type="text/css" href="css/xgarden.css">
+    <style>
+        #taikoDiv {
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            xposition: absolute
+        }
+
+        #midiControl {
+            border-style: none;
+            border-width: 2px;
+            border-color: red;
+            xwidth: 90%;
+            height: 200px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="gardenDiv" style="width: 100%; height: 100%">
+        <div id="gardenPanel" style="width: 100%; height: 100%; float: left; background: green; position: relative">
+
+            <div id="taikoDiv">
+                Kuchi Shoga: <input style="width: 95%" id="kuchiShoga" type="text" value="don don doko don"><br>
+                <button id="ff1">Fast and Furious 1</button>
+                <button id="ff2">Fast and Furious 2</button>
+                <button id="matsuri">Matsuri</button>
+                &nbsp; &nbsp;
+                <button id="sensors">Sensors</button>
+                &nbsp; &nbsp;
+                <button id="stick">Arduino</button>
+                &nbsp; &nbsp;
+                <span id="tab">&nbsp; &nbsp;</span>
+                <div id="midiControl">
+                </div>
+            </div>
+            <canvas id="taikoCanvas" style="height:100%"></canvas>
+        </div>
+    </div>
 
     <script src="js/libs/jquery-3.1.0.min.js"></script>
     <script src="js/libs/sprintf.js"></script>
@@ -47,68 +87,8 @@
     <script src="CircuitPy/CircuitRhythm.js"></script>
     <script src="js/phonesensors.js"></script>
 
-    <style>
-        body {
-            margin: 0;
-            overflow: hidden;
-            height: 100vh;
-            background-color: rgb(241, 239, 230);
-        }
-
-        .buttons {
-            padding: 10px 10px;
-        }
-
-        .stats {
-            height: 30px;
-        }
-
-        #taikoCanvas {
-            width: 100%;
-            xheight: 93%;
-            background: #f1dcba;
-        }
-
-        #taikoDiv {
-            top: 10px;
-            left: 10px;
-            right: 10px;
-            margin: 10px;
-            xposition: absolute
-        }
-
-        #midiControl {
-            border-style: none;
-            border-width: 2px;
-            border-color: red;
-            xwidth: 90%;
-            height: 200px;
-        }
-    </style>
-
-</head>
-
-<body>
-
-    <div id="gardenDiv" style="width: 100%; height: 100%">
-        <canvas id="taikoCanvas" xstyle="height:100%"></canvas>
-        <div id="taikoDiv">
-            <div id="midiControl">
-            </div>
-            Kuchi Shoga: <input style="width: 95%" id="kuchiShoga" type="text" value="don don doko don"><br>
-            <button id="ff1">Fast and Furious 1</button>
-            <button id="ff2">Fast and Furious 2</button>
-            <button id="matsuri">Matsuri</button>
-            &nbsp; &nbsp;
-            <button id="sensors">Sensors</button>
-            &nbsp; &nbsp;
-            <button id="stick">Arduino</button>
-            &nbsp; &nbsp;
-            <span id="tab">&nbsp; &nbsp;</span>
-        </div>
-    </div>
-
     <script>
+
         var gtool;
         var garden;
         var stick1, stick2;
@@ -118,7 +98,7 @@
         $(document).ready(function () {
             gtool = new TaikoTool("taikoCanvas");
             gtool.start();
-            gtool.setView(0, 0, 1020);
+            gtool.setView(0, 0, 800);
             gtool.addTaiko();
             stick1 = new RhythmStick({ taikoBox: TAIKO_BOX });
 
