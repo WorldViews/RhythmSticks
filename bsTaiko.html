@@ -71,7 +71,7 @@
         #taikoCanvas {
             width: 100%;
             xheight: 100%;
-            height: 500px;
+            height: 600px;
             background: #f1dcba;
         }
 
@@ -108,7 +108,7 @@
         $(document).ready(function () {
             gtool = new TaikoTool("taikoCanvas");
             gtool.start();
-            gtool.setView(0, 0, 1020);
+            gtool.setView(0, 0, 600);
             gtool.addTaiko();
             stick1 = new RhythmStick({ taikoBox: TAIKO_BOX });
 
