@@ -19,6 +19,8 @@ class TaikoTool extends CanvasTool {
     this.user = null;
     this.plantOnClick = false;
     this.initGUI();
+    this.lockZoom = true;
+    this.lockPan = true;
   }
 
   addTaiko() {

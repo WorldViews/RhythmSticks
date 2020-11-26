@@ -112,6 +112,8 @@ class CanvasTool {
     }
 
     handleMousePan(e) {
+        it (this.lockPan)
+            return;
         var tr = this.mouseDownTrans;
         var dx = e.clientX - this.mouseDownPt.x;
         var dy = e.clientY - this.mouseDownPt.y;
@@ -214,6 +216,7 @@ class CanvasTool {
         this.zf = .95;
         this.aspectRatio = 1;
         this.lockZoom = false;
+        this.lockPan = false;
     }
 
     clear() {

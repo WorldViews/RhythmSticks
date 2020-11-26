@@ -16,7 +16,7 @@ class MidiReader {
             return 9;
         var inst = MIDI.GM.byName[instName];
         if (!inst) {
-            alert("No instrument named "+instName);
+            alert("No instrument named " + instName);
             return 0;
         }
         return inst.program;
@@ -82,7 +82,7 @@ class MidiReader {
             channels.push(track.channel);
             track.notes.forEach(note => {
                 var t = this.ticksToTime(note.ticks);
-                var v = Math.floor(note.velocity*127);
+                var v = Math.floor(note.velocity * 127);
                 var event = [t, [
                     {
                         channel,
@@ -852,17 +852,30 @@ class MidiPlayTool {
             console.log("*** no midiControlDiv found ****");
             return;
         }
-        var str = '<button onclick="_MIDI_PLAYER.toggleTracks()">&nbsp;</button>\n' +
-            '<button onclick="_MIDI_PLAYER.rewind()">|&#60; </button>\n' +
-            '<button id="midiTogglePlaying" onclick="_MIDI_PLAYER.togglePlaying()" style="width:60px;">Play</button>\n' +
-            '&nbsp;&nbsp;<select id="midiCompositionSelection"></select>\n' +
-            '&nbsp;&nbsp;Time: <input type="text" id="midiTime" size="5"></input>\n' +
-            '&nbsp;&nbsp;BPM: <input type="text" id="midiBPM" size="4"></input>\n' +
-            '&nbsp;&nbsp;TPS: <input type="text" id="midiTPS" size="4"></input>\n' +
-            '&nbsp;&nbsp;TPB: <input type="text" id="midiTPB" size="4"></input>\n' +
-            '<div id="midiTrackInfo">\n' +
-            'No Tracks Loaded<br>\n' +
-            '</div>\n';
+        var str = `
+        <button onclick="_MIDI_PLAYER.toggleTracks()">&nbsp;</button>
+        <button onclick="_MIDI_PLAYER.rewind()">|&#60; </button>
+        <button id="midiTogglePlaying" onclick="_MIDI_PLAYER.togglePlaying()" style="width:60px;">Play</button>
+        &nbsp;&nbsp;<select id="midiCompositionSelection"></select>
+        &nbsp;&nbsp;Time: <input type="text" id="midiTime" size="5"></input>
+        &nbsp;&nbsp;BPM: <input type="text" id="midiBPM" size="4"></input>
+        &nbsp;&nbsp;TPS: <input type="text" id="midiTPS" size="4"></input>
+        &nbsp;&nbsp;TPB: <input type="text" id="midiTPB" size="4"></input>
+        <div id="midiTrackInfo">
+        No Tracks Loaded<br>
+        </div>`;
+
+        var str = `
+        <button onclick="_MIDI_PLAYER.toggleTracks()">&nbsp;</button>
+        <button onclick="_MIDI_PLAYER.rewind()">|&#60; </button>
+        <button id="midiTogglePlaying" onclick="_MIDI_PLAYER.togglePlaying()" xstyle="width:60px;">Play</button>
+        &nbsp;&nbsp;Time: <input type="text" id="midiTime" size="5"></input>
+        &nbsp;&nbsp;BPM: <input type="text" id="midiBPM" size="4"></input>
+        <div id="midiTrackInfo">
+        No Tracks Loaded<br>
+        </div>`;
+
+
         $("#midiControl").html(str);
         //
         $("#midiCompositionSelection").change(e => player.compositionChanged(e));
