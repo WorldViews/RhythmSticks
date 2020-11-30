@@ -30,10 +30,10 @@ class TaikoTool extends CanvasTool {
       "name": "Taiko Box",
       "lineWidth": 4,
       "fillStyle": "brown",
-      "width": 500,
-      "height": 500,
+      "width": 800,
+      "height": 800,
       "x": 0,
-      "y": 0
+      "y": -60
     }
     var taikoBox = new TaikoBox(opts);
     this.addGraphic(taikoBox);
@@ -46,10 +46,10 @@ class TaikoTool extends CanvasTool {
       "name": "Piano Box",
       "lineWidth": 4,
       "fillStyle": "brown",
-      "width": 500,
-      "height": 500,
+      "width": 800,
+      "height": 800,
       "x": 0,
-      "y": 0
+      "y": -100
     }
     var pianoBox = new PianoBox(opts);
     this.addGraphic(pianoBox);

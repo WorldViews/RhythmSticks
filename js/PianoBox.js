@@ -16,13 +16,15 @@ class PianoBox extends MidiBox {
         opts.instrument = "harpsichord";
         opts.instrument = "acoustic_grand_piano";
         super(opts);
-        this.fillStyle = "salmon";
+        //this.fillStyle = "salmon";
+        this.fillStyle = null;
+        this.strokeStyle = null;
         var inst = this;
         //this.player = PLAYER;
         this.player = new MidiPlayTool();
         window.MPLAYER = this.player;
         var player = this.player;
-        player.midiPrefix = "/rhythm/midi/";
+        player.midiPrefix = opts.midiPrefix || "midi/";
         //player.scene = this;
         this.notes = [];
         player.setupTrackInfo();
@@ -45,7 +47,7 @@ class PianoBox extends MidiBox {
         ctx.save();
         if (this.clipNotes) {
             ctx.rect(this.x-this.width/2, this.y-this.height/2, this.width, this.height);
-            ctx.stroke();
+            //ctx.stroke();
             ctx.clip();
         }
         //console.log("pt", pt);

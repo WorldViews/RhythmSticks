@@ -67,7 +67,6 @@ class TaikoMidi {
     }
 
     addKuchiShoga(str) {
-
         console.log("adding for kuchi shoga", str);
         var parts = splitStr(str);
         str = parts.join(" ");
@@ -200,7 +199,7 @@ class TaikoBox extends MidiBox {
         super(opts);
         //this.fillStyle = "beige";
         this.fillStyle = null;
-        //this.strokeStyle = null;
+        this.strokeStyle = null;
         var inst = this;
         //this.player = PLAYER;
         this.player = new MidiPlayTool();
@@ -272,7 +271,7 @@ class TaikoBox extends MidiBox {
     }
 
     observeNote(ch, pitch, v, t, dur) {
-        console.log("observeNote", ch, pitch, v, dur, t);
+        //console.log("observeNote", ch, pitch, v, dur, t);
         let target = this.targets[ch];
         target.on = true;
         setTimeout(() => {
@@ -285,6 +284,7 @@ class TaikoBox extends MidiBox {
         super.draw(canvas, ctx);
         if (this.taiko)
             this.taiko.draw(canvas, ctx);
+        ctx.save();
         for (var ch in this.targets) {
             var target = this.targets[ch];
             if (!target.on)
@@ -296,6 +296,7 @@ class TaikoBox extends MidiBox {
             ctx.fill();
             ctx.stroke();
         }
+        ctx.restore();
         //console.log("Adding note graphics...");
         var player = this.player;
         var midiTrack = player.midiObj;
@@ -306,12 +307,13 @@ class TaikoBox extends MidiBox {
         //ctx.strokeStyle = null;
         this.clipNotes = true;
         var ystrike = this.y + 60;
-        this.drawPolyLine(canvas, ctx,
-            [{ x: this.x - 100, y: ystrike }, { x: this.x + 100, y: ystrike }]);
         ctx.save();
+        ctx.strokeStyle = "black";
+        this.drawPolyLine(canvas, ctx,
+            [{ x: this.x - 150, y: ystrike }, { x: this.x + 150, y: ystrike }]);
         if (this.clipNotes) {
             ctx.rect(this.x - this.width / 2, this.y - this.height / 2, this.width, this.height);
-            ctx.stroke();
+            //ctx.stroke();
             ctx.clip();
         }
         //console.log("pt", pt);

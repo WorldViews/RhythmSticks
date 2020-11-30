@@ -151,27 +151,6 @@ class MidiBox extends CanvasTool.RectGraphic {
     }
 
     addItems() {
-        var numItems = 10;
-        console.log("addItems", numItems);
-        var inst = this;
-        var ncols = this.ncols;
-        var spacing = this.spacing;
-        var xLeft = this.x0 - (ncols - 1) * spacing / 2.0;
-        var y0 = this.y0;
-        var col, row;
-        for (var i = 0; i < numItems; i++) {
-            col = i % ncols;
-            row = Math.floor(i / ncols);
-            var name = "note" + i;
-            console.log(row, col, "name:", name);
-            var opts = { x: xLeft + col * spacing, y: y0 + row * spacing };
-            opts.id = sprintf("xmidi%s", i);
-            inst.gtool.addFlower(opts);
-        }
-        this.width = spacing * (ncols + 1) - spacing;
-        this.height = spacing * (row + 1);
-        this.x = this.x0;
-        this.y = y0 + this.height / 2.0 - spacing + spacing / 4;
     }
 }
 
