@@ -39,6 +39,22 @@ class TaikoTool extends CanvasTool {
     this.addGraphic(taikoBox);
   }
 
+  addPiano() {
+    var opts = {
+      "type": "PianoBox",
+      "id": "piano1",
+      "name": "Piano Box",
+      "lineWidth": 4,
+      "fillStyle": "brown",
+      "width": 500,
+      "height": 500,
+      "x": 0,
+      "y": 0
+    }
+    var pianoBox = new PianoBox(opts);
+    this.addGraphic(pianoBox);
+  }
+
   clear() {
     super.clear();
   }

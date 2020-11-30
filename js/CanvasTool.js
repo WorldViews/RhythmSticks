@@ -45,21 +45,6 @@ class CanvasTool {
             return false;
         });
 
-        /*
-        this.canvas.addEventListener("mousedown", e => {
-            var hit = this.getHit(e);
-            if (hit) {
-                var v = hit.onClick(e);
-                if (v)
-                    return;
-            }
-            inst.mouseDownPt = { x: e.clientX, y: e.clientY };
-            inst.mouseDownTrans = { tx: inst.tx, ty: inst.ty };
-            inst.handleMouseDown(e);
-            //console.log("down", e, this.mouseDownPt);
-        });
-        */
-
         this.canvas.addEventListener("mousedown", e => {
             var hits = this.getHits(e);
             if (hits.length > 1)
@@ -73,6 +58,7 @@ class CanvasTool {
             inst.mouseDownPt = { x: e.clientX, y: e.clientY };
             inst.mouseDownTrans = { tx: inst.tx, ty: inst.ty };
             inst.handleMouseDown(e);
+            e.preventDefault();
             //console.log("down", e, this.mouseDownPt);
         });
 
@@ -171,44 +157,49 @@ class CanvasTool {
 
     mouseOver(e) {
         var pt = this.getMousePos(e);
-        //console.log("mouseOver", pt);
-        for (var id in this.graphics) {
-            var g = this.graphics[id];
-            if (g.contains(pt)) {
-               // console.log("Over id", id);
+        this.traverse(g => {
+            if (g.contains(pt))
                 g.onOver(e);
-            }
-        }
+        });
+    }
+
+    // traverse all nodes of a tree, and apply function to each
+    traverse(fun) {
+        this.traverseItems(fun, this.graphicsList)
+    }
+
+    traverseItems(fun, items) {
+        var inst = this;
+        items.forEach(item => {
+            fun(item);
+            if (item.graphicsList)
+                inst.traverseItems(fun, item.graphicsList);
+        });
     }
 
     getHits(e) {
         var pt = this.getMousePos(e);
         //console.log("mouseOver", pt);
         var hits = [];
-        for (var id in this.graphics) {
-            var g = this.graphics[id];
+        this.traverse(g => {
             if (g.contains(pt)) {
-                console.log("hits Over id", id);
+                //console.log("hits Over id", g.id);
                 hits.push(g);
             }
-        }
+        })
         return hits;
     }
 
     getHit(e) {
-        var pt = this.getMousePos(e);
-        //console.log("mouseOver", pt);
-        var hits = [];
-        for (var id in this.graphics) {
-            var g = this.graphics[id];
-            if (g.contains(pt))
-                return g;
-        }
+        var hits = this.getHits(e);
+        if (hits.length)
+            return hits[0];
         return null;
     }
 
     init() {
         this.graphics = {};
+        this.graphicsList = [];
         this.sx = 1;
         this.sy = 1;
         this.tx = 0;
@@ -331,13 +322,9 @@ class CanvasTool {
         var ctx = this.ctx;
         this.setTransform(ctx);
         var canvas = this.canvas;
-        for (var id in this.graphics) {
-            //console.log("draw id", id);
-            var graphics = this.graphics[id];
-            if (graphics !== undefined) {
-                graphics.draw(canvas, ctx);
-            }
-        }
+        this.traverse(graphic => {
+            graphic.draw(canvas, ctx);
+        })
     }
 
     draw() {
@@ -382,6 +369,7 @@ class CanvasTool {
     addGraphic(graphic) {
         graphic.tool = this;
         this.graphics[graphic.id] = graphic;
+        this.graphicsList.push(graphic);
     }
 
     getGraphic(id) {
@@ -399,9 +387,7 @@ class CanvasTool {
     tick() {
         //console.log("tick...");
         this.tickTime = getClockTime();
-        for (var id in this.graphics) {
-            this.graphics[id].tick();
-        }
+        this.traverse(g => g.tick());
         this.draw();
     }
 
@@ -452,9 +438,16 @@ CanvasTool.Graphic = class {
         this.radius = opts.radius || .1;
         this.alpha = 0.333;
         this.clickable = false;
+        this.graphicsList = null;
     }
 
     tick() {
+    }
+
+    addGraphic(g) {
+        if (this.graphicsList == null)
+            this.graphicsList = [];
+        this.graphicsList.push(g);
     }
 
     draw(canvas, ctx) {
