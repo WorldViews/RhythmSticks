@@ -98,7 +98,7 @@ class CanvasTool {
     }
 
     handleMousePan(e) {
-        it (this.lockPan)
+        if (this.lockPan)
             return;
         var tr = this.mouseDownTrans;
         var dx = e.clientX - this.mouseDownPt.x;
@@ -380,7 +380,9 @@ class CanvasTool {
         if (id instanceof CanvasTool.Graphic)
             id = id.id;
         //console.log('removing graphic with id ' + id);
+        var g = this.graphics[id];
         delete this.graphics[id];
+        arrayRemove(this.graphicsList, g);
         this.draw();
     }
 
@@ -448,6 +450,12 @@ CanvasTool.Graphic = class {
         if (this.graphicsList == null)
             this.graphicsList = [];
         this.graphicsList.push(g);
+    }
+
+    removeGraphic(g) {
+        if (graphicsList == null)
+            return;
+        arrayRemove(this.graphicsList, g);
     }
 
     draw(canvas, ctx) {
