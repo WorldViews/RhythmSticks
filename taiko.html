@@ -8,7 +8,7 @@
     <script src="js/libs/jquery-3.1.0.min.js"></script>
     <script src="js/libs/sprintf.js"></script>
     <script src="js/CanvasTool.js"></script>
-    <script src="js/TaikoTool.js"></script>
+    <script src="js/MusicTool.js"></script>
     <script src="js/util.js"></script>
 
     <!-- Beginning of midi scripts -->
@@ -96,6 +96,7 @@
     <div id="gardenDiv" style="width: 100%; height: 100%">
         <canvas id="taikoCanvas" xstyle="height:100%"></canvas>
         <div id="taikoDiv">
+            <span id="scoreStats">xxx</span>
             <div id="midiControl">
             </div>
             Kuchi Shoga: <input style="width: 95%" id="kuchiShoga" type="text" value="don don doko don"><br>
@@ -119,7 +120,7 @@
         var sensors = null;
 
         $(document).ready(function () {
-            gtool = new TaikoTool("taikoCanvas");
+            gtool = new MusicTool("taikoCanvas");
             gtool.start();
             gtool.setView(0, 0, 1020);
             gtool.addTaiko();

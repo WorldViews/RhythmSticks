@@ -2,10 +2,7 @@
 "use strict";
 
 
-class Pic extends CanvasTool.ImageGraphic {
-}
-
-class TaikoTool extends CanvasTool {
+class MusicTool extends CanvasTool {
   constructor(name, opts) {
     super(name, opts);
     opts = opts || {};
@@ -21,6 +18,7 @@ class TaikoTool extends CanvasTool {
     this.initGUI();
     this.lockZoom = true;
     this.lockPan = true;
+    this.taikoBox = null;
   }
 
   addTaiko() {
@@ -36,7 +34,9 @@ class TaikoTool extends CanvasTool {
       "y": -60
     }
     var taikoBox = new TaikoBox(opts);
+    this.taikoBox = taikoBox;
     this.addGraphic(taikoBox);
+    taikoBox.addScorer();
   }
 
   addPiano() {
@@ -81,6 +81,13 @@ class TaikoTool extends CanvasTool {
 
   mouseMove(e) {
     super.mouseMove(e);
+  }
+
+  tick() {
+    super.tick();
+    //console.log("MusicTool.tick");
+    if (this.taikoBox)
+      this.taikoBox.tick();
   }
 
   async addItem(item) {

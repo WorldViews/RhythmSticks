@@ -22,26 +22,27 @@ class Scorer {
 
     observePlayedNote(note) {
         this.dumpStats();
-        //console.log("scorer observe playedNote", note);
+        console.log("scorer observe playedNote", note);
         this.playedNotes.push(note);
     }
 
     // this is called every frame and tries to match
     // notes played from the score, and user played notes.
-    update()
+    update(t)
     {
         //this.dump();
         let inst = this;
-        var t = getClockTime();
+        if (t == null)
+            t = getClockTime();
         var MAX_DELAY = 1.0;
         var MAX_TIME_ERROR = 0.5;
         var tMin = t - MAX_DELAY;
         this.prune(this.playedNotes, tMin, note => {
-            console.log("** missed note", note);
+            //console.log("** missed note", note);
             inst.missedNotes++
         });
         this.prune(this.userNotes, tMin, note => {
-            console.log("** extraneous note", note);
+            //console.log("** extraneous note", note);
             inst.extraneousNotes++;
         });
         for (var i=0; i<this.playedNotes.length; i++) {
@@ -58,6 +59,7 @@ class Scorer {
                 break;
             }
         }
+        this.dumpStats();
     }
 
     removeNote(notes, note) {
@@ -94,9 +96,9 @@ class Scorer {
     }
 
     dumpStats() {
-        console.log("extra notes:", this.extraneousNotes);
-        console.log("missed notes: ", this.missedNotes);
-        console.log("matched notes:", this.matchedNotes);
+        //console.log("extra notes:", this.extraneousNotes);
+        //console.log("missed notes: ", this.missedNotes);
+        //console.log("matched notes:", this.matchedNotes);
         var str = sprintf("extra: %d missed: %d matched: %d",
             this.extraneousNotes, this.missedNotes, this.matchedNotes);
         $("#scoreStats").html(str);

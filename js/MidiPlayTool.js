@@ -155,7 +155,7 @@ class MidiPlayTool {
         player.soundfontUrl = "soundfont/"
         player.prevPt = null;
         player.midiDivInitialized = false;
-
+        player.stateObserver = null;
         player.compositions = [
             "Bach/wtc0",
             "Bach/passac",
@@ -188,7 +188,6 @@ class MidiPlayTool {
             player.update();
         }
         render();
-
     }
 
     startPlaying() {
@@ -200,6 +199,8 @@ class MidiPlayTool {
         $("#midiTogglePlaying").text("Pause");
         this.setupInstruments();
         this.playSync(this.midiObj);
+        if (this.stateObserver)
+            this.stateObserver('play');
     }
 
     pausePlaying() {
@@ -207,6 +208,8 @@ class MidiPlayTool {
         this.isPlaying = false;
         this.setPlayTime(this.getPlayTime());
         $("#midiTogglePlaying").text("Play");
+        if (this.stateObserver)
+            this.stateObserver('stop');
     }
 
     stopPlaying() {

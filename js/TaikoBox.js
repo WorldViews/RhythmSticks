@@ -22,50 +22,6 @@ class TaikoMidi {
         this.events = [];
     }
 
-    addKuchiShogaOLD(str) {
-
-        console.log("adding for kuchi shoga", str);
-        str = str.replace(/\r?\n|\r/g, " ");
-        str = str.replace(/  /g, " ");
-        this.reset();
-        this.setInstruments([116, 115]);
-        var parts = str.split(/[ ,]+/);
-        console.log("parts", parts);
-        for (var i = 0; i < parts.length; i++) {
-            var part = parts[i];
-            if (part == '')
-                continue;
-            if (part == '|')
-                continue;
-            //console.log("part", part);
-            if (part == "don") {
-                this.addNote(1);
-                continue;
-            }
-            if (part == "doko") {
-                this.addNote(0.5);
-                this.addNote(0.5);
-                continue;
-            }
-            if (part == "ka" || part == "ta") {
-                this.addNote(1, "rim");
-                continue;
-            }
-            if (part == "kara" || part == "kata") {
-                this.addNote(0.5, "rim");
-                this.addNote(0.5, "rim");
-                continue;
-            }
-            if (part == "su" || part == '_' || part == '-') {
-                //console.log("su add", this.beatDur);
-                this.t += this.beatDur;
-                continue;
-            }
-            alert("bad kuchi shoga part: '" + part + "'");
-            return;
-        }
-    }
-
     addKuchiShoga(str) {
         console.log("adding for kuchi shoga", str);
         var parts = splitStr(str);
@@ -212,7 +168,8 @@ class TaikoBox extends MidiBox {
         player.setupTrackInfo();
         player.loadInstrument("taiko_drum");
         player.startUpdates();
-        player.noteObserver = (ch, pitch, v, dur, t) => this.observeNote(ch, pitch, v, dur, t);
+        player.noteObserver = (ch, pitch, v, dur, t) => inst.observeNote(ch, pitch, v, dur, t);
+        player.stateObserver = (state => inst.observeState(state));
         var taikoMidi = new TaikoMidi();
         window.taikoMidi = taikoMidi;
         this.taikoMidi = taikoMidi;
@@ -223,6 +180,22 @@ class TaikoBox extends MidiBox {
         $("#matsuri").click(e => inst.playMatsuri());
         this.playKuchiShoga(MATSURI, true);
         window.TAIKO_BOX = this;
+        this.scorer = null;
+    }
+
+    getTime() {
+        //return this.player.getPlayTime();
+        return getClockTime();
+    }
+
+    addScorer(scorer) {
+        this.scorer = scorer || new Scorer(this.tool);
+    }
+
+    tick() {
+        //console.log("TaikoBox.tick");
+        if (this.scorer)
+            this.scorer.update(this.getTime());
     }
 
     playFastAndFurious1() {
@@ -270,6 +243,7 @@ class TaikoBox extends MidiBox {
         }
     }
 
+    // This is called when the midi player plays a note
     observeNote(ch, pitch, v, t, dur) {
         //console.log("observeNote", ch, pitch, v, dur, t);
         let target = this.targets[ch];
@@ -278,6 +252,15 @@ class TaikoBox extends MidiBox {
             //console.log("set style", i, prevStyle);
             target.on = false;
         }, dur * 1000);
+        if (this.scorer) {
+            var note = {t: this.getTime()};
+            this.scorer.observePlayedNote(note);
+        }
+    }
+
+    observeState(state) {
+        if (state == "play")
+            this.scorer.reset();
     }
 
     draw(canvas, ctx) {
@@ -376,6 +359,9 @@ class TaikoBox extends MidiBox {
         }
     };
 
+    // this is called when an event has been detected, such
+    // as arduino tap or midi input event, which should cause
+    // a drum strike.
     strikeDrum(pos) {
         var midi = MIDI;
         var channel = 0;
@@ -390,8 +376,11 @@ class TaikoBox extends MidiBox {
         console.log("strikeDrum", pos, pitch);
         midi.noteOn(channel, pitch, v, t);
         midi.noteOff(channel, pitch, v, t + dur);
+        if (this.scorer) {
+            var note = {t: this.getTime()};
+            this.scorer.observeUserNote(note);
+        }
     }
-
 
     async playMySong() {
         this.player.loadMidiFile("midi/sakura.mid");
@@ -425,7 +414,7 @@ class TaikoBox extends MidiBox {
             url: "images/taiko.svg",
             id: "taikobox1"
         };
-        this.taiko = new Pic(opts);
+        this.taiko = new CanvasTool.ImageGraphic(opts);
         //this.gtool.addGraphic(this.taiko);
         x -= 8;
         y -= 55;
