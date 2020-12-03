@@ -108,8 +108,8 @@ class MidiReader {
         };
         return midiObj;
     }
-
 }
+
 
 var instMap = {
     0: "acoustic_grand_piano",
@@ -593,15 +593,17 @@ class MidiPlayTool {
         }
     }
 
+    // an event group is [t, events]
+    // events could have several types.  For type "note" they look like
+    // {channel, dur, pitch, t0, track, type, v}
     handleEventGroup(eventGroup) {
         var player = this;
         var t0 = eventGroup[0];
         var events = eventGroup[1];
+        window.EVGRP = eventGroup;
         //console.log("handleEventGroup");
         for (var k = 0; k < events.length; k++) {
             var event = events[k];
-            if (player.muted[event.track])
-                continue;
             var etype = event.type;
             var t0_ = event.t0;
             var t = 0;
@@ -620,6 +622,8 @@ class MidiPlayTool {
                 continue;
             }
             if (etype == "note") {
+                if (player.muted[event.channel])
+                    continue;
                 var note = event;
                 //console.log("note: "+JSON.stringify(note));
                 var pitch = note.pitch;
@@ -818,7 +822,8 @@ class MidiPlayTool {
         //var val = $("#"+mute_id).is(":checked");
         val = eval(val);
         console.log("mute_id: " + id + " ch: " + ch + "  val: " + val);
-        this.muted[trackNo] = val;
+        //this.muted[trackNo] = val;
+        this.muted[ch] = val;
     }
 
     instrumentChanged(e, select_id) {

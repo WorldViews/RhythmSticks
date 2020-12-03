@@ -16,13 +16,13 @@ class Scorer {
     }
 
     observeUserNote(note) {
-        console.log("scorer observer userPlayedNote", note);
+        //console.log("scorer observer userPlayedNote", note);
         this.userNotes.push(note);
     }
 
     observePlayedNote(note) {
         this.dumpStats();
-        console.log("scorer observe playedNote", note);
+        //console.log("scorer observe playedNote", note);
         this.playedNotes.push(note);
     }
 
