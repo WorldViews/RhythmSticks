@@ -6,6 +6,7 @@
 class PianoKey extends CanvasTool.RectGraphic {
     onClick() {
         this.pianoBox.mplayer.playMidiNote(this.midiId);
+        this.pianoBox.highlightKey(this.midiId - 40);
         return true;
     }
 }
@@ -31,6 +32,7 @@ class PianoBox extends MidiBox {
         player.loadInstrument("acoustic_grand_piano");
         player.startUpdates();
         player.noteObserver = (ch, pitch, v, dur, t) => this.observeNote(ch,pitch, v, dur, t);
+        window.MIDI_BOX = this;
     }
 
     draw(canvas, ctx) {
@@ -118,22 +120,34 @@ class PianoBox extends MidiBox {
     }
 
     onClick() {
-        if (!this.started) {
-            this.startSong();
-        }
+        this.init();
     };
 
-    async startSong() {
+    async init() {
+        if (this.started)
+            return;
         this.started = true;
         this.player.playMelody("Bach/wtc0");
     }
 
 
-
+    // this is called by the sequencer when a note gets played from
+    // the score.
     observeNote(channel, pitch, vel, t, dur) {
         var inst = this;
         //console.log("play note", channel, pitch, vel, dur, t);
         var i = pitch - 40;
+        this.highlightKey(i, dur);
+    }
+
+    onMidiMessage(midiId, dsId, vel, sound) {
+        super.onMidiMessage(midiId, dsId, vel, sound);
+        console.log("PianoBox.onMidiMessage", dsId, vel, sound);
+        var i = dsId - 41;
+        this.highlightKey(i, 0.5);
+    }
+
+    highlightKey(i, dur) {
         let key = this.keys[i];
         if (!key) {
             console.log("no note for", pitch);
@@ -143,10 +157,7 @@ class PianoBox extends MidiBox {
         setTimeout(() => {
             //console.log("set style", i, prevStyle);
             key.fillStyle = key.color;
-        }, dur*1000)    ;   
-    }
-
-    highlightKey() {
+        }, 500)    ;   
     }
 
     async addItems() {

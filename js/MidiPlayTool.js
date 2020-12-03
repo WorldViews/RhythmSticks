@@ -190,8 +190,10 @@ class MidiPlayTool {
         render();
     }
 
-    startPlaying() {
+    async startPlaying() {
         console.log("startPlaying");
+        if (window.MIDI_BOX)
+            await window.MIDI_BOX.init();
         if (this.midiObj == null) {
             console.log("No midi loaded");
             return;

@@ -1,8 +1,11 @@
 
 "use strict"
 
-var turles = 3;
 
+// There is also a class called MidiPlayTool that the
+// subclasses of MidiBox use.   The methods in here could
+// probably be replaced by methods in MidiPlayTool, and this
+// class could be eliminated.
 class MPlayer {
     constructor(opts) {
         opts = opts || {};
@@ -12,6 +15,7 @@ class MPlayer {
         this.buffers = {};
         this.context = null;
         this.tStart = getClockTime();
+        this.midiBox = opts.midiBox;
         MIDI.loader = new sketch.ui.Timer;
         //this.loadInstrument("harpsichord");
         this.loadInstrument(instrument);
@@ -119,7 +123,9 @@ class MTool {
     }
 }
 
-
+// This is a base class for canvas based GUI objects for using MIDI.
+// By default it draws as a rectangle, but a midi box for a given
+// instrument or application can override the draw method.
 class MidiBox extends CanvasTool.RectGraphic {
     constructor(opts) {
         super(opts);
@@ -131,6 +137,7 @@ class MidiBox extends CanvasTool.RectGraphic {
         opts.width = opts.width || 70;
         opts.height = opts.height || 100;
         opts.fillStyle = null;
+        opts.midiTool = this;
         this.targetURL = opts.targetURL;
         this.x0 = opts.x0 || 0;
         this.y0 = opts.y0 || 0;
@@ -142,10 +149,16 @@ class MidiBox extends CanvasTool.RectGraphic {
     }
 
     onClick() {
+        console.log("MidiBox.onClick");
         this.mplayer.playNote();
     }
 
+    // should override
+    async init() {
+    }
+
     onMidiMessage(midiId, dsId, vel, sound) {
+        console.log("MidiBox.onMidiMessage", dsId, vel, sound);
         if (vel != 64)
             this.mplayer.playMidiNote(dsId);
     }

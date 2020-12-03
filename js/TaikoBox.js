@@ -6,7 +6,7 @@ function sleep(ms) {
 }
 
 function splitStr(str) {
-    return str.split(/(\s+)/).filter( function(e) { return e.trim().length > 0; } );
+    return str.split(/(\s+)/).filter(function (e) { return e.trim().length > 0; });
 }
 
 // This class is for constructiong a midi event sequence
@@ -180,6 +180,7 @@ class TaikoBox extends MidiBox {
         $("#matsuri").click(e => inst.playMatsuri());
         this.playKuchiShoga(MATSURI, true);
         window.TAIKO_BOX = this;
+        window.MIDI_BOX = this;
         this.scorer = null;
     }
 
@@ -253,7 +254,7 @@ class TaikoBox extends MidiBox {
             target.on = false;
         }, dur * 1000);
         if (this.scorer) {
-            var note = {t: this.getTime()};
+            var note = { t: this.getTime() };
             this.scorer.observePlayedNote(note);
         }
     }
@@ -349,15 +350,16 @@ class TaikoBox extends MidiBox {
 
     onClick(e) {
         console.log("onClick", e);
-        if (!this.started) {
-            //this.startSong();
-            this.playMySong();
-            this.started = true;
-        }
-        else {
-            this.strikeDrum("center");
-        }
-    };
+        this.init();
+        this.strikeDrum("center");
+    }
+
+    async init() {
+        if (this.started)
+            return;
+        this.started = true;
+        this.playMySong();
+    }
 
     // this is called when an event has been detected, such
     // as arduino tap or midi input event, which should cause
@@ -377,7 +379,7 @@ class TaikoBox extends MidiBox {
         midi.noteOn(channel, pitch, v, t);
         midi.noteOff(channel, pitch, v, t + dur);
         if (this.scorer) {
-            var note = {t: this.getTime()};
+            var note = { t: this.getTime() };
             this.scorer.observeUserNote(note);
         }
     }
@@ -388,6 +390,7 @@ class TaikoBox extends MidiBox {
         //this.taikoMidi.dump();
         var midiObj = this.taikoMidi.getMidiObj();
         this.player.playMidiObj(midiObj, true);
+        //this.player.playMidiObj(midiObj, false);
     }
 
     async playMidiFile() {
