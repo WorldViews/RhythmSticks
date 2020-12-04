@@ -34,7 +34,6 @@
     <script src="js/RhythmTool.js"></script>
     <script src="js/DynObj/DynamicObject.js"></script>
     <script src="js/DynObj/DynamicObjectDB.js"></script>
-    <script src="js/MidiTool.js"></script>
     <script src="js/SoundPlayer.js"></script>
     <script src="js/RhythmScorer.js"></script>
     <script src="js/MidiBox.js"></script>
@@ -51,7 +50,7 @@
     <style>
         body {
             margin: 0;
-            overflow: hidden;
+            xoverflow: hidden;
             height: 100vh;
             background-color: rgb(241, 239, 230);
         }
@@ -72,21 +71,26 @@
             background: #f1dcba;
         }
 
+        #playControls {
+            top: 5px;
+            left: 5px;
+            right: 10px;
+            xmargin: 5px;
+            position: absolute
+        }
+
         #taikoDiv {
             top: 10px;
             left: 10px;
             right: 10px;
             margin: 10px;
+            font-size: 24px;
+            overflow: auto;
             xposition: absolute
         }
 
-        #midiControl {
-            border-style: none;
-            border-width: 2px;
-            border-color: red;
+        select {
             font-size: 24px;
-            xwidth: 90%;
-            xheight: 200px;
         }
     </style>
 
@@ -96,14 +100,29 @@
 
     <div id="gardenDiv" style="width: 100%; height: 100%">
         <canvas id="musicCanvas" xstyle="height:100%"></canvas>
+        <div id="playControls">
+            <button onclick="_MIDI_PLAYER.rewind()">|&#60; </button>
+            <button id="midiTogglePlaying" onclick="_MIDI_PLAYER.togglePlaying()"
+                style="width:90px; xheight:35px">Play</button>
+        </div>
         <div id="taikoDiv">
-            <div id="midiControl">
-            </div>
+
+            <button onclick="_MIDI_PLAYER.toggleTracks()">&nbsp;</button>
+            &nbsp;&nbsp;
+            &nbsp;&nbsp;Time: <input type="text" id="midiTime" size="5"></input>
+            &nbsp;&nbsp;BPM: <input type="text" id="midiBPM" size="4"></input>
+
+            <p></p>
+            <select id="midiCompositionSelection" style="overflow:scroll"></select>
+            <br>
             <button id="sensors">Sensors</button>
             &nbsp; &nbsp;
             <button id="stick">Arduino</button>
             &nbsp; &nbsp;
             <span id="tab">&nbsp; &nbsp;</span>
+            <div id="midiTrackInfo">
+                No Tracks Loaded<br>
+            </div>
         </div>
     </div>
 

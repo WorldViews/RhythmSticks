@@ -5,8 +5,8 @@
 
 class PianoKey extends CanvasTool.RectGraphic {
     onClick() {
-        this.pianoBox.mplayer.playMidiNote(this.midiId);
-        this.pianoBox.highlightKey(this.midiId - 40);
+        this.pianoBox.playMidiNote(this.midiId);
+        //this.pianoBox.highlightKey(this.midiId - 40);
         return true;
     }
 }
@@ -23,7 +23,6 @@ class PianoBox extends MidiBox {
         var inst = this;
         //this.player = PLAYER;
         this.player = new MidiPlayTool();
-        window.MPLAYER = this.player;
         var player = this.player;
         player.midiPrefix = opts.midiPrefix || "midi/";
         //player.scene = this;
@@ -32,7 +31,9 @@ class PianoBox extends MidiBox {
         player.loadInstrument("acoustic_grand_piano");
         player.startUpdates();
         player.noteObserver = (ch, pitch, v, dur, t) => this.observeNote(ch,pitch, v, dur, t);
+        // for easier debugging in console
         window.MIDI_BOX = this;
+        window.MPLAYER = this.player;
     }
 
     draw(canvas, ctx) {
@@ -130,7 +131,10 @@ class PianoBox extends MidiBox {
         this.player.playMelody("Bach/wtc0");
     }
 
-
+    playMidiNote(id) {
+        super.playMidiNote(id);
+        this.highlightKey(id - 40);
+    }
     // this is called by the sequencer when a note gets played from
     // the score.
     observeNote(channel, pitch, vel, t, dur) {
@@ -150,7 +154,7 @@ class PianoBox extends MidiBox {
     highlightKey(i, dur) {
         let key = this.keys[i];
         if (!key) {
-            console.log("no note for", pitch);
+            console.log("no note for", i);
             return;
         }
         key.fillStyle = key.highlightColor;
@@ -210,7 +214,7 @@ class PianoBox extends MidiBox {
                 key = new PianoKey(opts);
                 key.color = color;
                 key.highlightColor = "brown";
-                console.log("add piano key", id);
+                //console.log("add piano key", id);
                 bkeys.push(key);
             }
             key.midiId = i+40;

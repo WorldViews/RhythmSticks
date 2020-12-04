@@ -5,152 +5,10 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-function splitStr(str) {
-    return str.split(/(\s+)/).filter(function (e) { return e.trim().length > 0; });
-}
-
-// This class is for constructiong a midi event sequence
-// from a given Kuchi Shoga song string
-class TaikoMidi {
-    constructor() {
-        this.beatDur = 200;
-        this.reset();
-    }
-
-    reset() {
-        this.t = 200;
-        this.events = [];
-    }
-
-    addKuchiShoga(str) {
-        console.log("adding for kuchi shoga", str);
-        var parts = splitStr(str);
-        str = parts.join(" ");
-        $("#kuchiShoga").val(str);
-        //str = str.replace(/\r?\n|\r/g, " ");
-        //str = str.replace(/  /g, " ");
-        this.reset();
-        this.setInstruments([116, 115]);
-        var parts = str.split(/[ ,]+/);
-        console.log("parts", parts);
-        for (var i = 0; i < parts.length; i++) {
-            var part = parts[i];
-            if (part == '')
-                continue;
-            if (part == '|')
-                continue;
-            //console.log("part", part);
-            if (part == "don") {
-                this.addNote(1);
-                continue;
-            }
-            if (part == "doko") {
-                this.addNote(0.5);
-                this.addNote(0.5);
-                continue;
-            }
-            if (part == "ka" || part == "ta") {
-                this.addNote(1, "rim");
-                continue;
-            }
-            if (part == "kara" || part == "kata") {
-                this.addNote(0.5, "rim");
-                this.addNote(0.5, "rim");
-                continue;
-            }
-            if (part == "su" || part == '_' || part == '-') {
-                //console.log("su add", this.beatDur);
-                this.t += this.beatDur;
-                continue;
-            }
-            alert("bad kuchi shoga part: '" + part + "'");
-            return;
-        }
-    }
-
-    setInstruments(instruments) {
-        var event = [this.t, []];
-        for (var i = 0; i < instruments.length; i++) {
-            event[1].push({
-                channel: i,
-                instrument: instruments[i],
-                type: 'programChange',
-                t0: this.t
-            })
-        }
-        this.events.push(event);
-    }
-
-    addNote(beats, target, v) {
-        target = target || "center";
-        if (v == null)
-            v = 120;
-        var ch = 0;
-        var pitch = 60;
-        if (target == "rim") {
-            pitch = 62;
-            ch = 1;
-        }
-        if (beats == null)
-            beats = 1;
-        var event = [
-            this.t,
-            [
-                {
-                    "pitch": pitch,
-                    "t0": this.t,
-                    "v": v,
-                    "dur": 30,
-                    "type": "note",
-                    "channel": ch
-                }
-            ]
-        ];
-        this.events.push(event);
-        this.t += beats * this.beatDur;
-    }
-
-    getMidiObj() {
-        var midiObj = {
-            format: 0,
-            channels: [0, 1],
-            instruments: [116, 115],
-            resolution: 384,
-            type: "MidiObj",
-            loop: true,
-            tracks: [
-                {
-                    channels: [0, 1],
-                    seq: []
-                }
-            ]
-        };
-        midiObj.tracks[0].seq = this.events;
-        return midiObj;
-    }
-
-    dump() {
-        var midiObj = this.getMidiObj();
-        var jstr = JSON.stringify(midiObj, null, 3);
-        console.log("midiObj", jstr);
-    }
-}
-
-const MATSURI = `
-su   su   su   su |
-
-don  su   don  su  don kara ka ka |
-don  don  su   don don kara ka ka |
-su   don  su   don don kara ka ta |
-doko su   kara don don kara ka ta |
-doko kara don  don don kara ka ta |
-`;
-
 class TaikoBox extends MidiBox {
 
     constructor(opts) {
         opts = opts || {};
-        opts.instrument = "harpsichord";
         opts.instrument = "acoustic_grand_piano";
         super(opts);
         //this.fillStyle = "beige";
@@ -159,7 +17,6 @@ class TaikoBox extends MidiBox {
         var inst = this;
         //this.player = PLAYER;
         this.player = new MidiPlayTool();
-        window.MPLAYER = this.player;
         var player = this.player;
         player.midiPrefix = "midi/";
         //player.scene = this;
@@ -170,18 +27,19 @@ class TaikoBox extends MidiBox {
         player.startUpdates();
         player.noteObserver = (ch, pitch, v, dur, t) => inst.observeNote(ch, pitch, v, dur, t);
         player.stateObserver = (state => inst.observeState(state));
-        var taikoMidi = new TaikoMidi();
-        window.taikoMidi = taikoMidi;
-        this.taikoMidi = taikoMidi;
-        //taikoMidi.dump();
+        this.midiParser = new MidiParser();
+        //taikoParser.dump();
         $("#kuchiShoga").change(e => inst.noticeNewKuchiShoga());
         $("#ff1").click(e => inst.playFastAndFurious1());
         $("#ff2").click(e => inst.playFastAndFurious2());
         $("#matsuri").click(e => inst.playMatsuri());
         this.playKuchiShoga(MATSURI, true);
+        this.scorer = null;
+        // for debugging
         window.TAIKO_BOX = this;
         window.MIDI_BOX = this;
-        this.scorer = null;
+        window.MPLAYER = this.player;
+        window.midiParser = this.midiParser;
     }
 
     getTime() {
@@ -235,10 +93,9 @@ class TaikoBox extends MidiBox {
         //$("#kuchiShoga").val(kuchiShoga);
         this.player.pausePlaying();
         await sleep(0.5);
-        this.taikoMidi.addKuchiShoga(kuchiShoga);
-
+        this.midiParser.addKuchiShoga(kuchiShoga);
         if (!paused) {
-            var midiObj = this.taikoMidi.getMidiObj();
+            var midiObj = this.midiParser.getMidiObj();
             await sleep(0.5);
             this.player.playMidiObj(midiObj, true);
         }
@@ -386,9 +243,8 @@ class TaikoBox extends MidiBox {
 
     async playMySong() {
         this.player.loadMidiFile("midi/sakura.mid");
-        //var midiObj = await this.getMidiObj();
-        //this.taikoMidi.dump();
-        var midiObj = this.taikoMidi.getMidiObj();
+        //this.taikoParser.dump();
+        var midiObj = this.midiParser.getMidiObj();
         this.player.playMidiObj(midiObj, true);
         //this.player.playMidiObj(midiObj, false);
     }
@@ -398,13 +254,14 @@ class TaikoBox extends MidiBox {
         console.log("playMidiFile returned", obj);
     }
 
+    /*
     async getMidiObj(name) {
         //var melodyUrl = "play/xxx.mid.json";
         var melodyUrl = "play/taiko0.mid.json";
         var obj = await loadJSON(melodyUrl);
         return obj;
     }
-
+    */
 
     async addItems() {
         //await requirePackage("Taiko");
@@ -418,7 +275,6 @@ class TaikoBox extends MidiBox {
             id: "taikobox1"
         };
         this.taiko = new CanvasTool.ImageGraphic(opts);
-        //this.gtool.addGraphic(this.taiko);
         x -= 8;
         y -= 55;
         this.targets = {

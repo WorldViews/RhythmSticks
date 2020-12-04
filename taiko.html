@@ -34,10 +34,11 @@
     <script src="js/RhythmTool.js"></script>
     <script src="js/DynObj/DynamicObject.js"></script>
     <script src="js/DynObj/DynamicObjectDB.js"></script>
-    <script src="js/MidiTool.js"></script>
     <script src="js/SoundPlayer.js"></script>
     <script src="js/RhythmScorer.js"></script>
     <script src="js/MidiBox.js"></script>
+    <script src="js/MidiReader.js"></script>
+    <script src="js/MidiParser.js"></script>
     <script src="js/TaikoBox.js"></script>
     <script src="js/RhythmCanvasGUI.js"></script>
     <script src="js/GamePad.js"></script>
@@ -50,7 +51,7 @@
     <style>
         body {
             margin: 0;
-            overflow: hidden;
+            xoverflow: hidden;
             height: 100vh;
             background-color: rgb(241, 239, 230);
         }
@@ -71,44 +72,69 @@
             background: #f1dcba;
         }
 
+        #playControls {
+            top: 5px;
+            left: 5px;
+            right: 10px;
+            xmargin: 5px;
+            position: absolute
+        }
+
+        #scoreStats {
+            top: 5px;
+            xleft: 5px;
+            right: 10px;
+            xmargin: 5px;
+            position: absolute
+        }
+
         #taikoDiv {
             top: 10px;
             left: 10px;
             right: 10px;
             margin: 10px;
-            xposition: absolute
-        }
-
-        #midiControl {
-            border-style: none;
-            border-width: 2px;
-            border-color: red;
             font-size: 24px;
-            xwidth: 90%;
-            xheight: 200px;
+            xposition: absolute
         }
     </style>
 
 </head>
 
 <body>
-
     <div id="gardenDiv" style="width: 100%; height: 100%">
         <canvas id="taikoCanvas" xstyle="height:100%"></canvas>
+        <div id="playControls">
+            <button onclick="_MIDI_PLAYER.rewind()">|&#60; </button>
+            <button id="midiTogglePlaying" onclick="_MIDI_PLAYER.togglePlaying()"
+            style="width:90px; xheight:35px">Play</button>
+        </div>
         <div id="taikoDiv">
             <span id="scoreStats">xxx</span>
-            <div id="midiControl">
-            </div>
-            Kuchi Shoga: <input style="width: 95%" id="kuchiShoga" type="text" value="don don doko don"><br>
+            <p></p>
+            Kuchi Shoga: <textarea
+             style="width: 95%; height: 100px; font-size: 18px" id="kuchiShoga">don don doko don"</textarea><br>
             <button id="ff1">Fast and Furious 1</button>
             <button id="ff2">Fast and Furious 2</button>
             <button id="matsuri">Matsuri</button>
-            &nbsp; &nbsp;
+            <p></p>
+            <!--
             <button id="sensors">Sensors</button>
             &nbsp; &nbsp;
-            <button id="stick">Arduino</button>
             &nbsp; &nbsp;
             <span id="tab">&nbsp; &nbsp;</span>
+            -->
+            <button id="sensors">Sensors</button>
+            &nbsp;
+            <button id="stick">Arduino</button>
+            &nbsp;
+            <span id="tab">&nbsp; &nbsp;</span>
+
+           <p>
+            </p>
+            <div id="midiTrackInfo">
+                No Tracks Loaded<br>
+            </div>
+
         </div>
     </div>
 
