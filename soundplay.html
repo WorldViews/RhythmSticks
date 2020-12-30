@@ -126,6 +126,7 @@
   </style>
   <script>
     var mouseIsDown = false; //DGK
+    var ppad = null;
     var curProg = 0;
     var curOct = 0;
     var curNote = 60;
@@ -138,7 +139,8 @@
       kb = document.getElementById("kb");
       kb.addEventListener("change", KeyIn);
       var sh = document.getElementById("shot");
-      var ppad = document.getElementById("ppad");
+      ppad = document.getElementById("ppad");
+      ppad.height = 300; // not sure why this is needed -- the canvas is specified as 300px
       synth.ready().then(() => {
         sh.addEventListener("mousedown", function () {
           synth.send([0x90 + curMidi, curNote, 100], 0);
@@ -153,7 +155,7 @@
         });
         ppad.addEventListener("mouseup", function (e) {
           console.log("*** ppad up", e);
-          mouseIsDown = true;
+          mouseIsDown = false;
           UpdateFromPad(e);
         });
         ppad.addEventListener("mousemove", function (e) {
@@ -229,6 +231,7 @@
       var x = e.offsetX;
       var y = e.offsetY;
       console.log("UpdateFromPad", x, y);
+      console.log("canvas", ppad.width, ppad.height);
       var nx = x / 300;
       var ny = y / 300;
       //synth.masterVol = nx;
@@ -237,6 +240,19 @@
         document.getElementById("t1").value = 5*nx;
         document.getElementById("v1").value = 5*nx;
         Edit();
+        var ctx = ppad.getContext("2d");
+        ctx.fillStyle = "pink";
+        ctx.setTransform(1, 0, 0, 1, 0, 0);
+        ctx.globalAlpha = 1;
+        ctx.clearRect(0, 0, ppad.width, ppad.height);
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = "black";
+        ctx.fillStyle = "red";
+        var r = 10;
+        ctx.beginPath();
+        ctx.arc(x, y, r, 0, 2 * Math.PI);
+        ctx.fill();
+        ctx.stroke();
 
     }
     function Ctrl() {
@@ -824,7 +840,7 @@
         Patch : <input id="patch" size="80">
       </div>
       <p></p>
-      <div id="ppad" style="width: 100%; height: 300px; background-color: rgb(164, 156, 200)"></div>
+      <canvas id="ppad" style="width: 300px; height: 300px; background-color: rgb(164, 156, 200)"></canvas> 
       <hr>
     </div>
   </div>
