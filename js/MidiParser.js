@@ -5,7 +5,7 @@ function splitStr(str) {
     return str.split(/(\s+)/).filter(function (e) { return e.trim().length > 0; });
 }
 
-const MATSURI = `
+const MATSURI_OLD = `
 su   su   su   su |
 
 don  su   don  su  don kara ka ka |
@@ -13,6 +13,16 @@ don  don  su   don don kara ka ka |
 su   don  su   don don kara ka ta |
 doko su   kara don don kara ka ta |
 doko kara don  don don kara ka ta |
+`;
+
+const MATSURI = `
+su   su   su   su |
+
+don   -   don   -  don kara ka ka |
+don  don  su   don don kara ka ka |
+su   don  su   don don kara ka ka |
+doro  -   kara don don kara ka ka |
+doro kara don  don don kara ka ka |
 `;
 
 // This class is for constructiong a midi event sequence
@@ -51,7 +61,7 @@ class MidiParser {
                 this.addNote(1);
                 continue;
             }
-            if (part == "doko") {
+            if (part == "doko" || part == "doro") {
                 this.addNote(0.5);
                 this.addNote(0.5);
                 continue;
@@ -60,12 +70,12 @@ class MidiParser {
                 this.addNote(1, "rim");
                 continue;
             }
-            if (part == "kara" || part == "kata") {
+            if (part == "kara" || part == "kata" || part == "kaka") {
                 this.addNote(0.5, "rim");
                 this.addNote(0.5, "rim");
                 continue;
             }
-            if (part == "su" || part == '_' || part == '-') {
+            if (part == "su" || part == "rest" || part == '_' || part == '-') {
                 //console.log("su add", this.beatDur);
                 this.t += this.beatDur;
                 continue;

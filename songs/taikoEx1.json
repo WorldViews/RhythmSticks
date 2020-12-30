@@ -1,0 +1,24 @@
+{
+   "tracks": [
+      {
+         "name": "count"
+      },
+      {
+         "name": "nihongo"
+      },
+      {
+         "name": "cowbell",
+         "beats": "0 0 0 1  0 0 0 1  0 0 0 1  0 0 0 1"
+      },
+      {
+         "name": "taiko L",
+         "sound": "taiko",
+         "beats": "1 1 1 0  1 1 1 0  1 1 1 0  1 1 1 0"
+      },
+      {
+         "name": "taiko R",
+         "sound": "taiko",
+         "beats": "1 1 1 0   1 1 1 0  1 1 1 0  1 1 1 0"
+      }
+   ]
+}

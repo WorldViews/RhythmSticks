@@ -1,0 +1,28 @@
+{
+   "name": "Taiko Exercise 4",
+   "HALFBEATS": true,
+   "beatsPerMeasure": 16,
+   "numMeasures": 1,
+   "tracks": [
+      {
+         "name": "count"
+      },
+      {
+         "name": "nihongo"
+      },
+      {
+         "name": "cowbell",
+         "beats": "1 0 0 0  0 0 0 0  1 0 0 0  0 0 0 0"
+      },
+      {
+         "name": "taiko L",
+         "sound": "taiko",
+         "beats": "1 0 0 0  0 0 0 0  1 0 0 0  0 0 0 0"
+      },
+      {
+         "name": "taiko R",
+         "sound": "taiko",
+         "beats": "0 0 0 1   0 0 0 0  0 0 0 1  0 0 0 0"
+      }
+   ]
+}

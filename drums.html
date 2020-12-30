@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Beats</title>
+    <style>
+        body {
+            background: #CCF;
+            padding: 10px;
+        }
+
+        .controls button {
+            margin-right: 10px;
+            width: 80px;
+            height: 40px;
+        }
+
+        .beatsbutton {
+            margin-right: 4px;
+            margin-left: 4px;
+            width: 32px;
+            height: 24px;
+            border-style: solid;
+            border-width: 4px;
+            border-color: green;
+        }
+
+        #beatsDiv {
+            border-style: solid;
+            border-width: 2px;
+            display: inline-block;
+        }
+    </style>
+</head>
+
+<body>
+    <b><span id="songTitle">Random Drum Pattern</span></b>
+    <br>
+    <div id="rhythmTools"></div>
+    <!--
+    <div id="beatsDiv"></div>
+    -->
+    <p></p>
+    <div class="controls" xxstyle="border-width:3;border:solid">
+        <button id="clear">Clear</button>
+        <button id="random">Random</button>
+        <button id="save">Save</button>
+        <button id="download">Download</button>
+        <button id="playButton">Play</button>
+        &nbsp;&nbsp;
+        <button id="beat">Beat</button>
+    </div>
+    <div id="songs">
+        <select id="songSelect" style="padding:8px;margin-top:4px">
+            <option>Song Selection</option>
+        </select>
+    </div>
+    <div id="scoreStats"></div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="js/libs/jquery-3.1.0.min.js"></script>
+    <script src="js/libs/sprintf.js"></script>
+    <script src="js/RhythmTool.js"></script>
+    <script src="js/DynObj/DynamicObject.js"></script>
+    <script src="js/DynObj/DynamicObjectDB.js"></script>
+    <script src="js/MidiTool.js"></script>
+    <script src="js/SoundPlayer.js"></script>
+    <script src="js/RhythmScorer.js"></script>
+    <script src="js/CanvasTool.js"></script>
+    <script src="js/RhythmCanvasGUI.js"></script>
+    <script src="js/GamePad.js"></script>
+    <script src="js/libs/dat.gui.js"></script>
+    <script>
+        var rt = new RhythmTool({ guiClass: RhythmCanvasGUI, allowMutations: true });
+        let taikoControl = new TaikoControl(rt);
+        let midiTool = new MidiTool(rt);
+        rt.start();
+        //let rp = new RhythmPlayer();
+    </script>
+
+</body>
+
+</html>
