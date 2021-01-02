@@ -1,46 +1,6 @@
 
 "use strict";
 
-var HIRAGANA_CHARS = `
-あ A
-い I
-う U
-え E
-お O
-か KA
-き KI
-く KU
-け KE
-こ KO
-さ SA
-し SHI
-す SU
-せ SE
-そ SO
-た TA
-ち CHI
-つ TSU
-て TE
-と TO
-な NA
-に NI
-ぬ NU
-ね NE
-の NO
-は HA
-ひ HI
-ふ FU
-へ HE
-ほ HO
-ま MA
-み MI
-む MU
-め ME
-も MO
-や YA
-ゆ YU
-よ YO
-`;
 
 var HK_CHARS =
     `
@@ -62,33 +22,9 @@ class HiraganaPractice {
         this.idx = 0;
     }
 
-    init0() {
-        var inst = this;
-        inst.hiragana = [];
-        inst.romanji = [];
-        inst.rToH = {};
-        inst.hToR = {};
-        inst.selected = {};
-        var hchrs = HIRAG0ANA_CHARS.trim();
-        //console.log("hchrs", hchrs);
-        var pairs = hchrs.split("\n");
-        console.log("pairs", pairs);
-        this.hiragana = [];
-        pairs.forEach(pair => {
-            var [h, romanji] = pair.split(" ");
-            romanji = romanji.toLowerCase();
-            //console.log("h,r", h, romanji);
-            inst.hToR[h] = romanji;
-            inst.rToH[romanji] = h;
-            inst.hiragana.push(h);
-            inst.romanji.push(romanji);
-        });
-        $("#userInput").change(e => inst.noticeInput());
-        this.initTable();
-    }
-
     init() {
         var inst = this;
+        inst.charType = "Hiragana";
         inst.hiragana = [];
         inst.katakana = [];
         inst.romanji = [];
@@ -125,8 +61,13 @@ class HiraganaPractice {
                 this.kToR[kat] = hir;
             }
         }
-        $("#userInput").change(e => inst.noticeInput());
+        $("#userInput").change(e => inst.noticeChange());
+        $("#userInput").on('input', e => inst.noticeInput(e));
         this.initTable();
+        $("#charType").click(e => inst.toggleCharType());
+        $("#selectAll").click(e => inst.selectAll(true));
+        $("#selectNone").click(e => inst.selectAll(null));
+        $("#start").click(e => inst.startTrials());
     }
 
     initTable() {
@@ -152,6 +93,41 @@ class HiraganaPractice {
             tab.append(tr);
         });
         $("td").click(e => inst.click(e, $(this)));
+
+    }
+
+    updateTable() {
+        var inst = this;
+        this.romanji.forEach(rom => {
+            var id = "td_" + rom;
+            var chr = inst.getChar(rom, inst.charType);
+            $("#" + id).html(chr);
+        })
+    }
+
+    toggleCharType() {
+        var ctype = $("#charType").html();
+        if (ctype == "Hiragana") {
+            ctype = "Katakana";
+        }
+        else if (ctype == "Katakana") {
+            ctype = "Both";
+        }
+        else {
+            ctype = "Hiragana";
+        }
+        $("#charType").html(ctype);
+        this.charType = ctype;
+        this.updateTable();
+    }
+
+    getChar(rom, ctype) {
+        var chr = this.rToH[rom];
+        if (ctype == "Katakana")
+            chr = this.rToK[rom];
+        else if (ctype == "Both")
+            chr = this.rToH[rom] + " " + this.rToK[rom];
+        return chr;
     }
 
     click(e, item) {
@@ -170,13 +146,24 @@ class HiraganaPractice {
 
     }
 
+    selectAll(val) {
+        var inst = this;
+        this.romanji.forEach(rom => inst.select(rom, val));
+    }
+
     select(rom, val) {
         console.log("select", rom);
+        var selStyle = "#FFEEEE";
         if (val)
             this.selected[rom] = true;
         else
             delete this.selected[rom];
-        $("#td_" + rom).css("background-color", val ? "pink" : "white");
+        $("#td_" + rom).css("background-color", val ? selStyle : "white");
+    }
+
+    startTrials() {
+        this.reset();
+        this.nextTrial();
     }
 
     reset() {
@@ -185,15 +172,27 @@ class HiraganaPractice {
         this.numTries = 0;
         this.numCorrect = 0;
         this.numErrors = 0;
+        this.trials = [];
+        this.showStats("");
     }
 
-    noticeInput() {
-        console.log("noticeInput");
+    noticeInput(e) {
+        console.log("input", e);
         var v = $("#userInput").val();
+        if (v == " " || v == "")
+            this.noticeChange();
+        window.E = e;
+    }
+
+    noticeChange() {
+        console.log("noticeInput");
+        var v = $("#userInput").val().toLowerCase();
         $("#userInput").val("");
         this.numTries++;
-        var label = "good"
-        if (v.toLowerCase() == this.currentRomanji.toLowerCase()) {
+        this.currentTrial.tries.push(v);
+        var label = "good";
+        var rom = this.currentTrial.rom.toLowerCase();
+        if (v.toLowerCase() == rom) {
             this.numCorrect++;
         }
         else {
@@ -201,29 +200,75 @@ class HiraganaPractice {
             label = "ooops";
         }
         if (v == "" || v == " ") {
-            $("#r1").html(this.currentRomanji)
+            $("#r1").html(rom)
         }
-        $("#stats").html(label + " " + this.numCorrect + " / " + this.numTries);
+        this.showStats(label);
         if (label == "good")
             this.nextTrial();
     }
 
-    nextTrial() {
+    showStats(label) {
+        $("#stats").html(label + " " + this.numCorrect + " / " + this.numTries);
+    }
+
+    // Get probabilities for selecting a given rom
+    getProbs(romanjis) {
+        var f = [];
+        var sum = 0;
+        for (var i=0; i<romanjis.length; i++) {
+            f[i] = 1;
+            sum += f[i];
+        }
+        for (var i=0; i<romanjis.length; i++) {
+            f[i] /= sum;
+        }
+        return f;
+    }
+
+    // Select an index from the vector, with probabilities
+    // proportional to prob in vector
+    selectRandIndex(pv) {
+        var p = Math.random();
+        var s = 0;
+        for (var i=0; i<pv.length; i++) {
+            var f = pv[i];
+            if (p < s+f)
+                return i;
+            s += f;
+        }
+        return pv.length-1;
+    }
+
+    chooseRomanji() {
+        console.log("romanjis", romanjis);
         var romanjis = Object.keys(this.selected);
         if (romanjis.length == 0)
             romanjis = this.romanji;
-        console.log("romanjis", romanjis);
-        var rom = romanjis[this.idx];
+        var CYCLE = false;
+        if (CYCLE) {
+            this.idx = this.idx % romanjis.length;
+            var rom = romanjis[this.idx];
+            this.idx++;
+        }
+        else {
+            var pv = this.getProbs(romanjis);
+            var i = this.selectRandIndex(pv);
+            var rom = romanjis[i];            
+        }
+        return rom;
+    }
+
+    nextTrial() {
+        var rom = this.chooseRomanji();
         var hir = this.rToH[rom];
         var kat = this.rToK[rom];
-        this.currentHiragana = hir;
-        this.currentRomanji = rom;
-        this.currentKatakana = kat;
+        var trial = { rom, hir, kat, tries: [] };
         console.log("update", this.idx, rom, hir, kat);
-        this.numTrials++;
-        this.idx = (this.idx + 1) % romanjis.length;
+        this.currentTrial = trial;
+        this.trials.push(trial);
+        var chr = this.getChar(rom, this.charType);
         //document.getElementById("h1").innerHTML = h;
-        $("#h1").html(hir+" "+kat);
+        $("#h1").html(chr);
         $("#r1").html("");
         //document.getElementById("r1").innerHTML = this.currentRomanji;
     }
@@ -234,6 +279,13 @@ class HiraganaPractice {
         var inst = this;
         this.nextTrial();
         //setInterval(() => inst.update(), 2000);
+    }
+
+    dump() {
+        for (var i = 0; i < this.trials.length; i++) {
+            var trial = this.trials[i];
+            console.log("trial", i, trial.rom, trial.tries);
+        }
     }
 }
 
