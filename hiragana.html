@@ -1,0 +1,42 @@
+<head>
+    <script src="./js/libs/jquery-3.1.0.min.js"></script>
+    <script src="./js/JLearn.js" charset="utf-8"></script>
+    <script>
+
+        "use strict";
+
+        var hp = null;
+
+        $(document).ready(() => {
+            hp = new HiraganaPractice();
+            hp.run();
+        })
+    </script>
+    <style>
+        table {
+            border-style:solid;
+        }
+        td {
+            font-size:36px;
+            padding: 10px;
+            border-style: solid;
+            border-width: 1px;
+        }
+    </style>
+</head>
+
+<body style="font-size:40px">
+    <div id="box1" style="border-style: plain; border-width: 2;">
+        <span id="h1"></span>
+        <br>
+        <span id="r1"></span>
+        <br>
+        <input id="userInput" type="text">
+        <br>
+        <span id="stats"></span>
+    </div>
+    <p></p>
+    <table id="htab">
+    </table>
+
+</body>
