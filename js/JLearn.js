@@ -209,7 +209,11 @@ class HiraganaPractice {
     }
 
     nextTrial() {
-        var rom = this.romanji[this.idx];
+        var romanjis = Object.keys(this.selected);
+        if (romanjis.length == 0)
+            romanjis = this.romanji;
+        console.log("romanjis", romanjis);
+        var rom = romanjis[this.idx];
         var hir = this.rToH[rom];
         var kat = this.rToK[rom];
         this.currentHiragana = hir;
@@ -217,7 +221,7 @@ class HiraganaPractice {
         this.currentKatakana = kat;
         console.log("update", this.idx, rom, hir, kat);
         this.numTrials++;
-        this.idx = (this.idx + 1) % this.hiragana.length;
+        this.idx = (this.idx + 1) % romanjis.length;
         //document.getElementById("h1").innerHTML = h;
         $("#h1").html(hir+" "+kat);
         $("#r1").html("");
