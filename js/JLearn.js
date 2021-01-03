@@ -70,19 +70,20 @@ class HiraganaPractice {
         $("#start").click(e => inst.startTrials());
     }
 
-    initTable() {
+    // create a table vertically arranged
+    initTableV() {
         var inst = this;
         var tab = $("#htab");
-        var tweaks = { "tu": "tsu", "si": "shi", "ti": "chi", "hu": "fu" };
+        //var tweaks = { "tu": "tsu", "si": "shi", "ti": "chi", "hu": "fu" };
         var vowels = ["a", "i", "u", "e", "o"];
-        var groups = ["", "k", "s", "t", "n", "h", "y"];
+        var groups = ["", "k", "s", "t", "n", "h", "y", "r", "w"];
         groups.forEach(g => {
             var tr = $("<tr>");
             vowels.forEach(v => {
                 var td = $("<td>");
                 var rom = g + v;
-                if (tweaks[rom]) {
-                    rom = tweaks[rom];
+                if (this.tweaks[rom]) {
+                    rom = this.tweaks[rom];
                 }
                 var hir = this.rToH[rom];
                 var id = "td_" + rom;
@@ -93,7 +94,32 @@ class HiraganaPractice {
             tab.append(tr);
         });
         $("td").click(e => inst.click(e, $(this)));
+    }
 
+    // create a table horizontally arranged
+    initTable() {
+        var inst = this;
+        var tab = $("#htab");
+        //var tweaks = { "tu": "tsu", "si": "shi", "ti": "chi", "hu": "fu" };
+        var vowels = ["a", "i", "u", "e", "o"];
+        var groups = ["", "k", "s", "t", "n", "h", "y", "r", "w"];
+        vowels.forEach(v => {
+            var tr = $("<tr>");
+            groups.forEach(g => {
+                var td = $("<td>");
+                var rom = g + v;
+                if (this.tweaks[rom]) {
+                    rom = this.tweaks[rom];
+                }
+                var hir = this.rToH[rom];
+                var id = "td_" + rom;
+                td.attr("id", id);
+                td.html(hir);
+                tr.append(td);
+            });
+            tab.append(tr);
+        });
+        $("td").click(e => inst.click(e, $(this)));
     }
 
     updateTable() {
@@ -188,24 +214,26 @@ class HiraganaPractice {
         console.log("noticeInput");
         var v = $("#userInput").val().toLowerCase();
         $("#userInput").val("");
-        this.numTries++;
+        if (v != "")
+            this.numTries++;
         this.currentTrial.tries.push(v);
         var label = "good";
         var rom = this.currentTrial.rom.toLowerCase();
-        if (v.toLowerCase() == rom) {
+        if (v == rom) {
             this.numCorrect++;
         }
-        else {
+        else if (v != "") {
             this.numErrors++;
             label = "ooops";
         }
-        if (v == "" || v == " ") {
+        if (v == " ") {
             $("#r1").html(rom)
         }
         this.showStats(label);
-        if (label == "good")
+        if (label == "good" && v != "")
             this.nextTrial();
     }
+
 
     showStats(label) {
         $("#stats").html(label + " " + this.numCorrect + " / " + this.numTries);
@@ -215,11 +243,14 @@ class HiraganaPractice {
     getProbs(romanjis) {
         var f = [];
         var sum = 0;
-        for (var i=0; i<romanjis.length; i++) {
+        for (var i = 0; i < romanjis.length; i++) {
+            var rom = romanjis[i];
             f[i] = 1;
+            if (this.currentTrial && this.currentTrial.rom == rom)
+                f[i] = 0;
             sum += f[i];
         }
-        for (var i=0; i<romanjis.length; i++) {
+        for (var i = 0; i < romanjis.length; i++) {
             f[i] /= sum;
         }
         return f;
