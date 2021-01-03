@@ -2,7 +2,7 @@
 "use strict";
 
 
-var HK_CHARS =
+var HK_CHARS0 =
     `
 *    –	    k	    s    	t	   n	   h	   m	   y	   r	 w
 a	あア	かカ	さサ	たタ	なナ	はハ	まマ	やヤ	らラ	わワ
@@ -10,6 +10,56 @@ i	いイ	きキ	しシ	ちチ	にニ	ひヒ	みミ	※	   りリ	   ゐヰ
 u	うウ	くク	すス	つツ	ぬヌ	ふフ	むム	ゆユ	るル	※
 e	えエ	けケ	せセ	てテ	ねネ	へヘ	めメ	※	   れレ	   ゑヱ
 o	おオ	こコ	そソ	とト	のノ	ほホ	もモ	よヨ	ろロ	をヲ
+`;
+
+var HK_CHARS =
+    `
+*    –	  k	    s    	t	   n	   h	   m	   y	   r	 w      g     d     b     p    z
+a  あア	 かカ	さサ	たタ	なナ	はハ	まマ	やヤ	らラ	わワ    がガ  だダ  ばバ  ぱパ  ざザ
+i  いイ	 きキ	しシ	ちチ	にニ	ひヒ	みミ	※	   りリ	   ゐヰ    ぎギ  ぢヂ  びビ  ぴピ  じジ
+u  うウ	 くク	すス	つツ	ぬヌ	ふフ	むム	ゆユ	るル	※      ぐグ  づヅ  ぶブ  ぷプ  ずズ
+e  えエ	 けケ	せセ	てテ	ねネ	へヘ	めメ	※	   れレ	   ゑヱ    げゲ  でデ  べベ  ぺペ  ぜゼ
+o  おオ	 こコ	そソ	とト	のノ	ほホ	もモ	よヨ	ろロ	をヲ    ごゴ  どド  ぼボ  ぽポ  ぞゾ
+`;
+
+var XX = `
+g	が	ぎ	ぐ	げ	ご
+g	ガ	ギ	グ	ゲ	ゴ
+d	だ	ぢ	づ	で	ど
+d	ダ	ヂ	ヅ	デ	ド
+b	ば	び	ぶ	べ	ぼ
+b	バ	ビ	ブ	ベ	ボ
+p	ぱ	ぴ	ぷ	ぺ	ぽ
+p	パ	ピ	プ	ペ	ポ
+z	ざ	じ	ず	ぜ	ぞ
+z	ザ	ジ	ズ	ゼ	ゾ
+`;
+
+var HXX = `
+∅	あ	い	う	え	お
+k	か	き	く	け	こ
+g	が	ぎ	ぐ	げ	ご
+s	さ	し	す	せ	そ
+z	ざ	じ	ず	ぜ	ぞ
+t	た	ち	つ	て	と
+d	だ	ぢ	づ	で	ど
+n	な	に	ぬ	ね	の
+h	は	ひ	ふ	へ	ほ
+b	ば	び	ぶ	べ	ぼ
+p	ぱ	ぴ	ぷ	ぺ	ぽ
+m	ま	み	む	め	も
+`;
+
+var KXX = `
+g	ガ	ギ	グ	ゲ	ゴ
+s	サ	シ	ス	セ	ソ
+z	ザ	ジ	ズ	ゼ	ゾ
+t	タ	チ	ツ	テ	ト
+d	ダ	ヂ	ヅ	デ	ド
+n	ナ	ニ	ヌ	ネ	ノ
+h	ハ	ヒ	フ	ヘ	ホ
+b	バ	ビ	ブ	ベ	ボ
+p	パ	ピ	プ	ペ	ポ
 `;
 
 var HK_NO = "んン";
@@ -34,19 +84,25 @@ class HiraganaPractice {
         inst.kToR = {};
         inst.selected = {};
         var parts = HK_CHARS.trim().split(RE_WHITESPACE);
-        var tweaks = { "tu": "tsu", "si": "shi", "ti": "chi", "hu": "fu" };
+        var tweaks = { "tu": "tsu", "si": "shi", "ti": "chi", "hu": "fu", "di": "ji" };
+        var labtweaks = { "zi": "ji", "du": "zu" };
         this.tweaks = tweaks;
-        var cols = ["", "k", "s", "t", "n", "h", "m", "y", "r", "w"];
-        var rows = ["a", "i", "u", "e", "o"];
-        for (var i = 0; i < 5; i++) {
+        this.vowels = ["a", "i", "u", "e", "o"];
+        //var groups = ["", "k", "s", "t", "n", "h", "y", "r", "w", "g", "d", "b", "p"];
+        var cols = ["", "k", "s", "t", "n", "h", "m", "y", "r", "w", "g", "d", "b", "p", "z"];
+        this.groups = cols;
+        var rows = this.vowels;
+        var ncols = cols.length;
+        var nrows = rows.length;
+        for (var i = 0; i < nrows; i++) {
             var v = rows[i];
-            for (var j = 0; j < 10; j++) {
+            for (var j = 0; j < ncols; j++) {
                 var c = cols[j];
                 var rom = c + v;
                 if (tweaks[rom]) {
                     rom = tweaks[rom];
                 }
-                var part = parts[(i + 1) * 11 + (j + 1)];
+                var part = parts[(i + 1) * (ncols + 1) + (j + 1)];
                 if (part.length < 2)
                     continue;
                 var hir = part[0];
@@ -74,9 +130,8 @@ class HiraganaPractice {
     initTableV() {
         var inst = this;
         var tab = $("#htab");
-        //var tweaks = { "tu": "tsu", "si": "shi", "ti": "chi", "hu": "fu" };
-        var vowels = ["a", "i", "u", "e", "o"];
-        var groups = ["", "k", "s", "t", "n", "h", "y", "r", "w"];
+        var vowels = this.vowels;
+        var groups = this.groups;
         groups.forEach(g => {
             var tr = $("<tr>");
             vowels.forEach(v => {
@@ -100,10 +155,8 @@ class HiraganaPractice {
     initTable() {
         var inst = this;
         var tab = $("#htab");
-        //var tweaks = { "tu": "tsu", "si": "shi", "ti": "chi", "hu": "fu" };
-        var vowels = ["a", "i", "u", "e", "o"];
-        var groups = ["", "k", "s", "t", "n", "h", "y", "r", "w"];
-        vowels.forEach(v => {
+        var groups = this.groups;
+        this.vowels.forEach(v => {
             var tr = $("<tr>");
             groups.forEach(g => {
                 var td = $("<td>");
@@ -120,6 +173,7 @@ class HiraganaPractice {
             tab.append(tr);
         });
         $("td").click(e => inst.click(e, $(this)));
+        this.updateTable();
     }
 
     updateTable() {
@@ -127,7 +181,8 @@ class HiraganaPractice {
         this.romanji.forEach(rom => {
             var id = "td_" + rom;
             var chr = inst.getChar(rom, inst.charType);
-            $("#" + id).html(chr);
+            var str = chr + '<br><span class="romlab">' + rom + '</span>';
+            $("#" + id).html(str);
         })
     }
 
@@ -184,7 +239,8 @@ class HiraganaPractice {
             this.selected[rom] = true;
         else
             delete this.selected[rom];
-        $("#td_" + rom).css("background-color", val ? selStyle : "white");
+        //$("#td_" + rom).css("background-color", val ? selStyle : "white");
+        $("#td_" + rom).css("border-color", val ? "red" : "black");
     }
 
     startTrials() {
@@ -261,13 +317,13 @@ class HiraganaPractice {
     selectRandIndex(pv) {
         var p = Math.random();
         var s = 0;
-        for (var i=0; i<pv.length; i++) {
+        for (var i = 0; i < pv.length; i++) {
             var f = pv[i];
-            if (p < s+f)
+            if (p < s + f)
                 return i;
             s += f;
         }
-        return pv.length-1;
+        return pv.length - 1;
     }
 
     chooseRomanji() {
@@ -284,7 +340,7 @@ class HiraganaPractice {
         else {
             var pv = this.getProbs(romanjis);
             var i = this.selectRandIndex(pv);
-            var rom = romanjis[i];            
+            var rom = romanjis[i];
         }
         return rom;
     }
