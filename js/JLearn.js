@@ -66,26 +66,106 @@ var HK_NO = "んン";
 var RE_WHITESPACE = /\s+/;
 var HK_PARTS = HK_CHARS.trim().split(RE_WHITESPACE);
 
-class Counter {
-    constructor(name) {
-        this.name = name;
-        this.numRight = 0;
-        this.numWrong = 0;
+class Counters {
+    constructor(names, db) {
+        this.names = names;
+        this.db = db;
     }
 
-    probRight() {
+    async init() {
+        var names = this.names;
+        var data = {};
+        names.forEach(name => {
+            data[name] = { numRight: 0, numWrong: 0 };
+        })
+        this.data = data;
+        await this.load();
+    }
+
+    dumpDB() {
+        console.log("dumpDB");
+        this.db.allDocs({ include_docs: true, descending: true }, (err, doc) => {
+            console.log(doc.rows);
+        });
+    }
+
+    async save() {
+        console.log("saving counters");
+        var doc = await this.db.get('counters');
+        var rev = doc.rev;
+        console.log("rev", rev);
+        await this.db.remove(doc);
+        //var row = { _id: 'counters', _rev: doc.rev, vals: this.data };
+        var row = { _id: 'counters', vals: this.data };
+        this.db.put(row, {force: true}, (err, result) => {
+            if (!err) {
+                console.log("saved");
+                //console.log("Posted row", row);
+            }
+            else {
+                console.log("Error saving counters", err);
+            }
+        });
+        //this.dumpDB();
+    }
+
+    async load() {
+        console.log("Loading counters from db")
+        try {
+            var obj = await this.db.get('counters');
+            console.log("obj", obj);
+            var counters = obj.vals;
+            console.log("counters", counters);
+            if (counters) {
+                console.log("Setting counters to", counters);
+                this.data = counters;
+            }
+            this.dump();
+        }
+        catch (e) {
+            console.log("*** Error loading counters from DB", e);
+        }
+    }
+
+    reset() {
+        return;
+        var data = this.data;
+        for (var name in data) {
+            data[name].numRight = 0;
+            data[name].numWrong = 0;
+        }
+    }
+
+    dump() {
+        console.log("dump counters");
+        for (var name in this.data) {
+            console.log(name, this.data[name]);
+        }
+    }
+
+    noticeRight(name) {
+        this.data[name].numRight++;
+        this.save();
+    }
+
+    noticeWrong(name) {
+        this.data[name].numWrong++;
+        this.save();
+    }
+
+    probRight(name) {
+        var c = this.data[name];
         var f = 1;
-        return (this.numRight + f) / (this.numRight + this.numWrong + 2*f);
+        return (c.numRight + f) / (c.numRight + c.numWrong + 2 * f);
     }
 }
 
 class HiraganaPractice {
     constructor() {
-        this.init();
-        this.idx = 0;
+        //this.init();
     }
 
-    init() {
+    async init() {
         var inst = this;
         inst.charType = "Hiragana";
         inst.hiragana = [];
@@ -96,7 +176,7 @@ class HiraganaPractice {
         inst.rToK = {};
         inst.kToR = {};
         inst.selected = {};
-        inst.counters = {};
+        inst.counters = null;
         var parts = HK_CHARS.trim().split(RE_WHITESPACE);
         var tweaks = { "tu": "tsu", "si": "shi", "ti": "chi", "hu": "fu", "di": "ji" };
         var labtweaks = { "zi": "ji", "du": "zu" };
@@ -138,6 +218,34 @@ class HiraganaPractice {
         $("#selectAll").click(e => inst.selectAll(true));
         $("#selectNone").click(e => inst.selectAll(null));
         $("#start").click(e => inst.startTrials());
+        this.initDB();
+        this.counters = new Counters(this.romanji, this.db);
+        await this.counters.init();
+        this.updateTable();
+        this.idx = 0;
+    }
+
+    dumpDB() {
+        console.log("dumpDB");
+        this.db.allDocs({ include_docs: true, descending: true }, (err, doc) => {
+            console.log(doc.rows);
+        });
+    }
+
+    addRecDB(id, obj) {
+        var row = { _id: id, vals: obj };
+        this.db.put(row, (err, result) => {
+            if (!err) {
+                console.log("Posted row", row);
+            }
+        })
+    }
+
+    async initDB() {
+        var db = new PouchDB('jlearn');
+        this.db = db;
+        this.addRecDB('user', { name: 'Don', size: 'big' });
+        this.dumpDB();
     }
 
     // create a table vertically arranged
@@ -197,14 +305,14 @@ class HiraganaPractice {
             var chr = inst.getChar(rom, inst.charType);
             var str = chr + '<br><span class="romlab">' + rom + '</span>';
             $("#" + id).html(str);
-            if (inst.counters && inst.counters[rom]) {
-                var p = inst.counters[rom].probRight();
-                var h = 200*p;
-                var c = 'hsl('+h+",40%,80%)";
+            if (inst.counters) {
+                var p = inst.counters.probRight(rom);
+                var h = 200 * p;
+                var c = 'hsl(' + h + ",40%,80%)";
                 //c = 'pink';
                 //c = "#FFEEEE";
-                console.log(rom, c);
-                $("#"+id).css('background-color', c);
+                //console.log(rom, c);
+                $("#" + id).css('background-color', c);
             }
         })
     }
@@ -265,7 +373,7 @@ class HiraganaPractice {
         var selCss = { 'border-color': 'red', 'border-width': '3px' };
         var defCss = { 'border-color': 'black', 'border-width': '1px' };
         //$("#td_" + rom).css("background-color", val ? selStyle : "white");
-        $("#td_" + rom).css( val ? selCss : defCss);
+        $("#td_" + rom).css(val ? selCss : defCss);
     }
 
     startTrials() {
@@ -280,14 +388,12 @@ class HiraganaPractice {
         this.numCorrect = 0;
         this.numErrors = 0;
         this.trials = [];
-        var counters = {};
-        this.counters = counters;
-        this.romanji.forEach(rom => counters[rom] = new Counter(rom));
+        this.counters.reset();
         this.showStats("");
     }
 
     noticeInput(e) {
-        console.log("input", e);
+        //console.log("input", e);
         var v = $("#userInput").val();
         if (v == " " || v == "")
             this.noticeChange();
@@ -295,7 +401,7 @@ class HiraganaPractice {
     }
 
     noticeChange() {
-        console.log("noticeInput");
+        console.log("noticeChange");
         var v = $("#userInput").val().toLowerCase();
         $("#userInput").val("");
         if (v != "")
@@ -305,12 +411,12 @@ class HiraganaPractice {
         var rom = this.currentTrial.rom.toLowerCase();
         if (v == rom) {
             this.numCorrect++;
-            this.counters[rom].numRight++;
+            this.counters.noticeRight(rom);
         }
         else if (v != "") {
             this.numErrors++;
             label = "ooops";
-            this.counters[rom].numWrong++;
+            this.counters.noticeWrong(rom);
         }
         if (v == " ") {
             $("#r1").html(rom)
@@ -358,7 +464,6 @@ class HiraganaPractice {
     }
 
     chooseRomanji() {
-        console.log("romanjis", romanjis);
         var romanjis = Object.keys(this.selected);
         if (romanjis.length == 0)
             romanjis = this.romanji;
@@ -405,9 +510,7 @@ class HiraganaPractice {
             var trial = this.trials[i];
             console.log("trial", i, trial.rom, trial.tries);
         }
-        this.romanji.forEach(rom => {
-            console.log(rom, inst.counters[rom].probRight())
-        })
+        this.counters.dump();
     }
 }
 
