@@ -66,6 +66,19 @@ var HK_NO = "んン";
 var RE_WHITESPACE = /\s+/;
 var HK_PARTS = HK_CHARS.trim().split(RE_WHITESPACE);
 
+class Counter {
+    constructor(name) {
+        this.name = name;
+        this.numRight = 0;
+        this.numWrong = 0;
+    }
+
+    probRight() {
+        var f = 1;
+        return (this.numRight + f) / (this.numRight + this.numWrong + 2*f);
+    }
+}
+
 class HiraganaPractice {
     constructor() {
         this.init();
@@ -83,6 +96,7 @@ class HiraganaPractice {
         inst.rToK = {};
         inst.kToR = {};
         inst.selected = {};
+        inst.counters = {};
         var parts = HK_CHARS.trim().split(RE_WHITESPACE);
         var tweaks = { "tu": "tsu", "si": "shi", "ti": "chi", "hu": "fu", "di": "ji" };
         var labtweaks = { "zi": "ji", "du": "zu" };
@@ -183,6 +197,15 @@ class HiraganaPractice {
             var chr = inst.getChar(rom, inst.charType);
             var str = chr + '<br><span class="romlab">' + rom + '</span>';
             $("#" + id).html(str);
+            if (inst.counters && inst.counters[rom]) {
+                var p = inst.counters[rom].probRight();
+                var h = 200*p;
+                var c = 'hsl('+h+",40%,80%)";
+                //c = 'pink';
+                //c = "#FFEEEE";
+                console.log(rom, c);
+                $("#"+id).css('background-color', c);
+            }
         })
     }
 
@@ -239,8 +262,10 @@ class HiraganaPractice {
             this.selected[rom] = true;
         else
             delete this.selected[rom];
+        var selCss = { 'border-color': 'red', 'border-width': '3px' };
+        var defCss = { 'border-color': 'black', 'border-width': '1px' };
         //$("#td_" + rom).css("background-color", val ? selStyle : "white");
-        $("#td_" + rom).css("border-color", val ? "red" : "black");
+        $("#td_" + rom).css( val ? selCss : defCss);
     }
 
     startTrials() {
@@ -255,6 +280,9 @@ class HiraganaPractice {
         this.numCorrect = 0;
         this.numErrors = 0;
         this.trials = [];
+        var counters = {};
+        this.counters = counters;
+        this.romanji.forEach(rom => counters[rom] = new Counter(rom));
         this.showStats("");
     }
 
@@ -277,10 +305,12 @@ class HiraganaPractice {
         var rom = this.currentTrial.rom.toLowerCase();
         if (v == rom) {
             this.numCorrect++;
+            this.counters[rom].numRight++;
         }
         else if (v != "") {
             this.numErrors++;
             label = "ooops";
+            this.counters[rom].numWrong++;
         }
         if (v == " ") {
             $("#r1").html(rom)
@@ -288,6 +318,7 @@ class HiraganaPractice {
         this.showStats(label);
         if (label == "good" && v != "")
             this.nextTrial();
+        this.updateTable();
     }
 
 
@@ -369,10 +400,14 @@ class HiraganaPractice {
     }
 
     dump() {
+        var inst = this;
         for (var i = 0; i < this.trials.length; i++) {
             var trial = this.trials[i];
             console.log("trial", i, trial.rom, trial.tries);
         }
+        this.romanji.forEach(rom => {
+            console.log(rom, inst.counters[rom].probRight())
+        })
     }
 }
 
