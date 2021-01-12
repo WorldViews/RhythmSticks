@@ -1,32 +1,20 @@
+<html>
+
 <head>
     <script src="./js/libs/jquery-3.1.0.min.js"></script>
+    <script src="./js/util.js"></script>
     <script src="./js/JLearn.js" charset="utf-8"></script>
     <script src="https://cdn.jsdelivr.net/npm/pouchdb@7.1.1/dist/pouchdb.min.js"></script>
-    <script>
-
-        "use strict";
-
-        var hp = null;
-
-        async function start() {
-            hp = new HiraganaPractice();
-            await hp.init();
-            hp.run();
-        }
-
-        $(document).ready(() => start());
-
-    </script>
     <style>
         table {
-            border-style: solid;
+            xborder-style: solid;
         }
 
         td {
-            font-size: 32px;
+            font-size: 30px;
             padding: 10px;
             border-style: solid;
-            border-width: 1px;
+            border-width: 3px;
         }
 
         .romlab {
@@ -35,7 +23,7 @@
     </style>
 </head>
 
-<body style="font-size:40px">
+<body style="font-size:36px">
     <div id="box1" style="border-style: plain; border-width: 2;">
         <span id="h1"></span>
         <br>
@@ -47,11 +35,32 @@
         <br>
         <button id="start">start</button>
     </div>
-    <p></p>
-    <h3 id="charType">Hiragana</h3>
+    <span id="charType">Hiragana</span>
     <table id="htab">
     </table>
     <button id="selectAll">select all</button> &nbsp;
     <button id="selectNone">select none</button>
 
+    <p>
+    </p>
+    <button id="save">save</button>
+    <button id="load">load</button>
+    <button id="reset">reset</button>
+    <script>
+
+        "use strict";
+
+        var pt = null;
+
+        async function start() {
+            pt = new PracticeTool();
+            pt.run();
+        }
+
+        $(document).ready(() => start());
+
+    </script>
+
 </body>
+
+</html>

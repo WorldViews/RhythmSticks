@@ -62,12 +62,16 @@ b	バ	ビ	ブ	ベ	ボ
 p	パ	ピ	プ	ペ	ポ
 `;
 
-var HK_NO = "んン";
+var HK_N = "んン";
+var H_N = "ん";
+var K_N = "ン";
 var RE_WHITESPACE = /\s+/;
 var HK_PARTS = HK_CHARS.trim().split(RE_WHITESPACE);
+var NO_INIT_FROM_DB = false;  // used if schema changes
 
 class Counters {
-    constructor(names, db) {
+    constructor(name, names, db) {
+        this.name = name;
         this.names = names;
         this.db = db;
     }
@@ -79,25 +83,27 @@ class Counters {
             data[name] = { numRight: 0, numWrong: 0 };
         })
         this.data = data;
+        if (NO_INIT_FROM_DB)
+            return;
         await this.load();
-    }
-
-    dumpDB() {
-        console.log("dumpDB");
-        this.db.allDocs({ include_docs: true, descending: true }, (err, doc) => {
-            console.log(doc.rows);
-        });
     }
 
     async save() {
         console.log("saving counters");
-        var doc = await this.db.get('counters');
-        var rev = doc.rev;
-        console.log("rev", rev);
-        await this.db.remove(doc);
+        // first delete if already there.  We can probably
+        // figure out how to avoid this.
+        try {
+            var doc = await this.db.get(this.name);
+            //var rev = doc.rev;
+            //console.log("rev", rev);
+            await this.db.remove(doc);
+        }
+        catch (e) {
+            console.log(e);
+        }
         //var row = { _id: 'counters', _rev: doc.rev, vals: this.data };
-        var row = { _id: 'counters', vals: this.data };
-        this.db.put(row, {force: true}, (err, result) => {
+        var row = { _id: this.name, vals: this.data };
+        this.db.put(row, { force: true }, (err, result) => {
             if (!err) {
                 console.log("saved");
                 //console.log("Posted row", row);
@@ -106,13 +112,12 @@ class Counters {
                 console.log("Error saving counters", err);
             }
         });
-        //this.dumpDB();
     }
 
     async load() {
         console.log("Loading counters from db")
         try {
-            var obj = await this.db.get('counters');
+            var obj = await this.db.get(this.name);
             console.log("obj", obj);
             var counters = obj.vals;
             console.log("counters", counters);
@@ -128,7 +133,7 @@ class Counters {
     }
 
     reset() {
-        return;
+        console.log("counters reset", this.name);
         var data = this.data;
         for (var name in data) {
             data[name].numRight = 0;
@@ -137,7 +142,7 @@ class Counters {
     }
 
     dump() {
-        console.log("dump counters");
+        console.log("dump counters", this.name);
         for (var name in this.data) {
             console.log(name, this.data[name]);
         }
@@ -158,9 +163,116 @@ class Counters {
         var f = 1;
         return (c.numRight + f) / (c.numRight + c.numWrong + 2 * f);
     }
+
+    weight(name) {
+        var c = this.data[name];
+        return (c.numRight + c.numWrong);
+    }
 }
 
-class HiraganaPractice {
+class Table {
+    constructor(tool) {
+        this.tool = tool;
+        this.vowels = tool.vowels;
+        this.groups = tool.groups;
+        this.init();
+        $("#charType").click(e => tool.toggleCharType());
+    }
+
+    // create a table vertically arranged
+    // (not tested recently)
+    initV() {
+        var inst = this;
+        var tool = inst.tool;
+        var tab = $("#htab");
+        var vowels = this.vowels.slice(0);
+        vowels.push("x");
+        var groups = this.groups;
+        groups.forEach(g => {
+            var tr = $("<tr>");
+            vowels.forEach(v => {
+                var td = $("<td>");
+                var rom = g + v;
+                if (this.tweaks[rom]) {
+                    rom = this.tweaks[rom];
+                }
+                var hir = this.rToH[rom];
+                var id = "td_" + rom;
+                td.attr("id", id);
+                td.html(hir);
+                tr.append(td);
+            });
+            tab.append(tr);
+        });
+        $("td").click(e => inst.clickCell(e, $(this)));
+    }
+
+    // create a table horizontally arranged
+    init() {
+        var inst = this;
+        var tool = inst.tool;
+        var tab = $("#htab");
+        var vowels = this.vowels.slice(0);
+        vowels.push('');
+        vowels.forEach(v => {
+            var tr = $("<tr>");
+            this.groups.forEach(g => {
+                var td = $("<td>");
+                var rom = g + v;
+                if (tool.tweaks[rom]) {
+                    rom = tool.tweaks[rom];
+                }
+                var hir = tool.rToH[rom];
+                var id = "td_" + rom;
+                td.attr("id", id);
+                if (v == "" && g != 'n') {
+                    td.css('border-width', 0);
+                }
+                td.html(hir);
+                tr.append(td);
+            });
+            tab.append(tr);
+        });
+        $("td").click(e => inst.clickCell(e, $(this)));
+        this.update();
+    }
+
+    update() {
+        var inst = this;
+        var tool = inst.tool;
+        tool.romanji.forEach(rom => {
+            var id = "td_" + rom;
+            var chr = tool.getChar(rom, tool.charType);
+            var str = chr + '<br><span class="romlab">' + rom + '</span>';
+            $("#" + id).html(str);
+            if (tool.counters) {
+                var p = tool.counters.probRight(rom);
+                var n = tool.counters.weight(rom);
+                var h = 200 * p;
+                var s = 100 * (n / (n + 1));
+                var l = 80;
+                var c = 'hsl(' + h + ","+s+"%,"+l+"%)";
+                $("#" + id).css('background-color', c);
+            }
+        })
+    }
+
+    clickCell(e, item) {
+        window.E = e;
+        window.ITEM = item;
+        console.log("click... this", e, item);
+        // i must not have used $(this) correction.
+        var item = $(e.target);
+        console.log("item", item);
+        window.IT = item;
+        var id = item.attr("id");
+        var rom = id.slice(3);
+        this.tool.select(rom, !this.tool.selected[rom]);
+    }
+}
+
+
+class PracticeTool {
     constructor() {
         //this.init();
     }
@@ -211,18 +323,38 @@ class HiraganaPractice {
                 this.kToR[kat] = hir;
             }
         }
+        // n is a special case
+        this.romanji.push('n');
+        this.rToH['n'] = H_N;
+        this.rToK['n'] = K_N;
+        this.kToR[K_N] = 'n';
+        this.hToR[H_N] = 'n';
         $("#userInput").change(e => inst.noticeChange());
         $("#userInput").on('input', e => inst.noticeInput(e));
-        this.initTable();
-        $("#charType").click(e => inst.toggleCharType());
+        this.table = new Table(this);
+        //this.initTable();
+
         $("#selectAll").click(e => inst.selectAll(true));
         $("#selectNone").click(e => inst.selectAll(null));
         $("#start").click(e => inst.startTrials());
+
+        $("#save").click(e => inst.download());
+        $("#load").click(e => inst.load());
+        $("#reset").click(e => inst.resetScores());
         this.initDB();
-        this.counters = new Counters(this.romanji, this.db);
-        await this.counters.init();
+        this.hcounters = new Counters("hiraganaCounters", this.romanji, this.db);
+        this.kcounters = new Counters("katakanaCounters", this.romanji, this.db);
+        this.bothCounters = new Counters("bothCounters", this.romanji, this.db);
+        await this.hcounters.init();
+        await this.kcounters.init();
+        await this.bothCounters.init();
+        this.counters = this.kcounters;
         this.updateTable();
         this.idx = 0;
+    }
+
+    updateTable() {
+        this.table.update();
     }
 
     dumpDB() {
@@ -248,85 +380,19 @@ class HiraganaPractice {
         this.dumpDB();
     }
 
-    // create a table vertically arranged
-    initTableV() {
-        var inst = this;
-        var tab = $("#htab");
-        var vowels = this.vowels;
-        var groups = this.groups;
-        groups.forEach(g => {
-            var tr = $("<tr>");
-            vowels.forEach(v => {
-                var td = $("<td>");
-                var rom = g + v;
-                if (this.tweaks[rom]) {
-                    rom = this.tweaks[rom];
-                }
-                var hir = this.rToH[rom];
-                var id = "td_" + rom;
-                td.attr("id", id);
-                td.html(hir);
-                tr.append(td);
-            });
-            tab.append(tr);
-        });
-        $("td").click(e => inst.click(e, $(this)));
-    }
-
-    // create a table horizontally arranged
-    initTable() {
-        var inst = this;
-        var tab = $("#htab");
-        var groups = this.groups;
-        this.vowels.forEach(v => {
-            var tr = $("<tr>");
-            groups.forEach(g => {
-                var td = $("<td>");
-                var rom = g + v;
-                if (this.tweaks[rom]) {
-                    rom = this.tweaks[rom];
-                }
-                var hir = this.rToH[rom];
-                var id = "td_" + rom;
-                td.attr("id", id);
-                td.html(hir);
-                tr.append(td);
-            });
-            tab.append(tr);
-        });
-        $("td").click(e => inst.click(e, $(this)));
-        this.updateTable();
-    }
-
-    updateTable() {
-        var inst = this;
-        this.romanji.forEach(rom => {
-            var id = "td_" + rom;
-            var chr = inst.getChar(rom, inst.charType);
-            var str = chr + '<br><span class="romlab">' + rom + '</span>';
-            $("#" + id).html(str);
-            if (inst.counters) {
-                var p = inst.counters.probRight(rom);
-                var h = 200 * p;
-                var c = 'hsl(' + h + ",40%,80%)";
-                //c = 'pink';
-                //c = "#FFEEEE";
-                //console.log(rom, c);
-                $("#" + id).css('background-color', c);
-            }
-        })
-    }
-
     toggleCharType() {
         var ctype = $("#charType").html();
         if (ctype == "Hiragana") {
             ctype = "Katakana";
+            this.counters = this.kcounters;
         }
         else if (ctype == "Katakana") {
             ctype = "Both";
+            this.counters = this.bothCounters;
         }
         else {
             ctype = "Hiragana";
+            this.counters = this.hcounters;
         }
         $("#charType").html(ctype);
         this.charType = ctype;
@@ -342,22 +408,6 @@ class HiraganaPractice {
         return chr;
     }
 
-    click(e, item) {
-        window.E = e;
-        window.ITEM = item;
-        console.log("click... this", e, item);
-        // i must not have used $(this) correction.
-        var item = $(e.target);
-        console.log("item", item);
-        window.IT = item;
-        var id = item.attr("id");
-        var rom = id.slice(3);
-        this.select(rom, !this.selected[rom]);
-        //if (this.selected[rom])
-        //    item.css("background-color", "#FFEEEE");
-
-    }
-
     selectAll(val) {
         var inst = this;
         this.romanji.forEach(rom => inst.select(rom, val));
@@ -371,7 +421,7 @@ class HiraganaPractice {
         else
             delete this.selected[rom];
         var selCss = { 'border-color': 'red', 'border-width': '3px' };
-        var defCss = { 'border-color': 'black', 'border-width': '1px' };
+        var defCss = { 'border-color': 'black', 'border-width': '3px' };
         //$("#td_" + rom).css("background-color", val ? selStyle : "white");
         $("#td_" + rom).css(val ? selCss : defCss);
     }
@@ -434,11 +484,14 @@ class HiraganaPractice {
 
     // Get probabilities for selecting a given rom
     getProbs(romanjis) {
+        console.log("getProbs");
         var f = [];
         var sum = 0;
         for (var i = 0; i < romanjis.length; i++) {
             var rom = romanjis[i];
-            f[i] = 1;
+            //f[i] = 1;
+            f[i] = - Math.log(this.counters.probRight(rom));
+            f[i] = Math.pow(f[i], 3);
             if (this.currentTrial && this.currentTrial.rom == rom)
                 f[i] = 0;
             sum += f[i];
@@ -446,12 +499,16 @@ class HiraganaPractice {
         for (var i = 0; i < romanjis.length; i++) {
             f[i] /= sum;
         }
+        for (var i = 0; i < romanjis.length; i++) {
+            console.log(i, romanjis[i], f[i]);
+        }
         return f;
     }
 
     // Select an index from the vector, with probabilities
     // proportional to prob in vector
     selectRandIndex(pv) {
+        console.log("selectRandIndex");
         var p = Math.random();
         var s = 0;
         for (var i = 0; i < pv.length; i++) {
@@ -496,8 +553,9 @@ class HiraganaPractice {
         //document.getElementById("r1").innerHTML = this.currentRomanji;
     }
 
-    run() {
+    async run() {
         console.log("run...");
+        await this.init();
         this.reset();
         var inst = this;
         this.nextTrial();
@@ -511,6 +569,47 @@ class HiraganaPractice {
             console.log("trial", i, trial.rom, trial.tries);
         }
         this.counters.dump();
+    }
+
+    // This downloads the scores
+    download(text, filename) {
+        filename = "scores.json";
+        var data = this.hcounters.data;
+        var obj = {
+            'hcounters': this.hcounters.data,
+            'kcounters': this.kcounters.data
+        };
+        var text = JSON.stringify(obj, null, 3);
+        var element = document.createElement('a');
+        element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+        element.setAttribute('download', filename);
+
+        element.style.display = 'none';
+        document.body.appendChild(element);
+
+        element.click();
+
+        document.body.removeChild(element);
+    }
+
+    async load(url) {
+        url = url || "scores.json";
+        var obj = await loadJSON(url);
+        console.log("scores", obj);
+        this.hcounters.data = obj.hcounters;
+        this.kcounters.data = obj.kcounters;
+        await this.hcounters.save();
+        await this.kcounters.save();
+        this.updateTable();
+    }
+
+    async resetScores() {
+        console.log("reset scores");
+        this.hcounters.reset();
+        await this.hcounters.save();
+        this.kcounters.reset();
+        await this.kcounters.save();
+        this.updateTable();
     }
 }
 
