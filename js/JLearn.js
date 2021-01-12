@@ -2,16 +2,6 @@
 "use strict";
 
 
-var HK_CHARS0 =
-    `
-*    –	    k	    s    	t	   n	   h	   m	   y	   r	 w
-a	あア	かカ	さサ	たタ	なナ	はハ	まマ	やヤ	らラ	わワ
-i	いイ	きキ	しシ	ちチ	にニ	ひヒ	みミ	※	   りリ	   ゐヰ
-u	うウ	くク	すス	つツ	ぬヌ	ふフ	むム	ゆユ	るル	※
-e	えエ	けケ	せセ	てテ	ねネ	へヘ	めメ	※	   れレ	   ゑヱ
-o	おオ	こコ	そソ	とト	のノ	ほホ	もモ	よヨ	ろロ	をヲ
-`;
-
 var HK_CHARS =
     `
 *    –	  k	    s    	t	   n	   h	   m	   y	   r	 w      g     d     b     p    z
@@ -196,7 +186,7 @@ class Table {
                 if (this.tweaks[rom]) {
                     rom = this.tweaks[rom];
                 }
-                var hir = this.rToH[rom];
+                var hir = this.kidToHiragana[rom];
                 var id = "td_" + rom;
                 td.attr("id", id);
                 td.html(hir);
@@ -222,7 +212,7 @@ class Table {
                 if (tool.tweaks[rom]) {
                     rom = tool.tweaks[rom];
                 }
-                var hir = tool.rToH[rom];
+                var hir = tool.kidToHiragana[rom];
                 var id = "td_" + rom;
                 td.attr("id", id);
                 if (v == "" && g != 'n') {
@@ -240,14 +230,17 @@ class Table {
     update() {
         var inst = this;
         var tool = inst.tool;
-        tool.romanji.forEach(rom => {
-            var id = "td_" + rom;
-            var chr = tool.getChar(rom, tool.charType);
-            var str = chr + '<br><span class="romlab">' + rom + '</span>';
+        tool.kids.forEach(kid => {
+            //console.log("kid", kid);
+            var id = "td_" + kid;
+            var chrStr = tool.getCharStr(kid, tool.charType);
+            var rom = tool.getRom(kid);
+            var str = chrStr + '<br><span class="romlab">' + rom + '</span>';
             $("#" + id).html(str);
             if (tool.counters) {
-                var p = tool.counters.probRight(rom);
-                var n = tool.counters.weight(rom);
+                console.log("update getting probRight", kid);
+                var p = tool.counters.probRight(kid);
+                var n = tool.counters.weight(kid);
                 var h = 200 * p;
                 var s = 100 * (n / (n + 1));
                 var l = 80;
@@ -271,7 +264,27 @@ class Table {
     }
 }
 
+/*
+This is tool to help learn kana, which are the Japanese syllabic sounds.
+They can be represented as katakana, hiragana, or romanji.
+The katakana and hiragana match up one to one, but it is a little more
+subtle for the romanji, because a few different sounds map to the same
+romanji.
 
+For convenience to english speaker, we use a set of strongs we call kana ids,
+or kids, which are in correspondence with katakana and hiragana.   Each kid
+consist of a consonant sound and a vowel sound.  So the full set of kids can
+be produced from a list of consanants (called groups here) and vowels.   There
+is one exception, which is 'n', that has no vowel.
+
+Given a kid, we can map it to a hiragana, a katakana or a romanji.   All scores
+and table cells, etc, are indexed by kids.
+
+The names of the kids are mostly the same as the romanji, except that
+the kid du maps to romanji zu
+and kids di and zi map to romanji ji.
+
+*/
 class PracticeTool {
     constructor() {
         //this.init();
@@ -282,16 +295,17 @@ class PracticeTool {
         inst.charType = "Hiragana";
         inst.hiragana = [];
         inst.katakana = [];
-        inst.romanji = [];
-        inst.rToH = {};
-        inst.hToR = {};
-        inst.rToK = {};
-        inst.kToR = {};
+        inst.kids = [];
+        inst.kidToHiragana = {};
+        inst.hiraganaToKid = {};
+        inst.kidToKatakana = {};
+        inst.kataKanaToKid = {};
         inst.selected = {};
         inst.counters = null;
         var parts = HK_CHARS.trim().split(RE_WHITESPACE);
-        var tweaks = { "tu": "tsu", "si": "shi", "ti": "chi", "hu": "fu", "di": "ji" };
-        var labtweaks = { "zi": "ji", "du": "zu" };
+        //var tweaks = { "tu": "tsu", "si": "shi", "ti": "chi", "hu": "fu", "di": "ji" , "zi": "ji"};
+        var tweaks = { "tu": "tsu", "si": "shi", "ti": "chi", "hu": "fu"};
+        this.labtweaks = { "di": "ji", "zi": "ji", "du": "zu" };
         this.tweaks = tweaks;
         this.vowels = ["a", "i", "u", "e", "o"];
         //var groups = ["", "k", "s", "t", "n", "h", "y", "r", "w", "g", "d", "b", "p"];
@@ -314,21 +328,21 @@ class PracticeTool {
                 var hir = part[0];
                 var kat = part[1];
                 console.log(i, j, rom, hir, kat);
-                this.romanji.push(rom);
+                this.kids.push(rom);
                 this.hiragana.push(hir);
                 this.katakana.push(kat);
-                this.rToH[rom] = hir;
-                this.hToR[hir] = rom;
-                this.rToK[rom] = kat;
-                this.kToR[kat] = hir;
+                this.kidToHiragana[rom] = hir;
+                this.hiraganaToKid[hir] = rom;
+                this.kidToKatakana[rom] = kat;
+                this.kataKanaToKid[kat] = rom;
             }
         }
         // n is a special case
-        this.romanji.push('n');
-        this.rToH['n'] = H_N;
-        this.rToK['n'] = K_N;
-        this.kToR[K_N] = 'n';
-        this.hToR[H_N] = 'n';
+        this.kids.push('n');
+        this.kidToHiragana['n'] = H_N;
+        this.kidToKatakana['n'] = K_N;
+        this.kataKanaToKid[K_N] = 'n';
+        this.hiraganaToKid[H_N] = 'n';
         $("#userInput").change(e => inst.noticeChange());
         $("#userInput").on('input', e => inst.noticeInput(e));
         this.table = new Table(this);
@@ -342,9 +356,9 @@ class PracticeTool {
         $("#load").click(e => inst.load());
         $("#reset").click(e => inst.resetScores());
         this.initDB();
-        this.hcounters = new Counters("hiraganaCounters", this.romanji, this.db);
-        this.kcounters = new Counters("katakanaCounters", this.romanji, this.db);
-        this.bothCounters = new Counters("bothCounters", this.romanji, this.db);
+        this.hcounters = new Counters("hiraganaCounters", this.kids, this.db);
+        this.kcounters = new Counters("katakanaCounters", this.kids, this.db);
+        this.bothCounters = new Counters("bothCounters", this.kids, this.db);
         await this.hcounters.init();
         await this.kcounters.init();
         await this.bothCounters.init();
@@ -399,18 +413,24 @@ class PracticeTool {
         this.updateTable();
     }
 
-    getChar(rom, ctype) {
-        var chr = this.rToH[rom];
+    getRom(kid) {
+        if (this.labtweaks[kid])
+            return this.labtweaks[kid];
+        return kid;
+    }
+
+    getCharStr(kid, ctype) {
+        var str = this.kidToHiragana[kid];
         if (ctype == "Katakana")
-            chr = this.rToK[rom];
+            str = this.kidToKatakana[kid];
         else if (ctype == "Both")
-            chr = this.rToH[rom] + " " + this.rToK[rom];
-        return chr;
+            str = this.kidToHiragana[kid] + " " + this.kidToKatakana[kid];
+        return str;
     }
 
     selectAll(val) {
         var inst = this;
-        this.romanji.forEach(rom => inst.select(rom, val));
+        this.kids.forEach(kid => inst.select(kid, val));
     }
 
     select(rom, val) {
@@ -458,15 +478,16 @@ class PracticeTool {
             this.numTries++;
         this.currentTrial.tries.push(v);
         var label = "good";
-        var rom = this.currentTrial.rom.toLowerCase();
+        var kid = this.currentTrial.kid;
+        var rom = this.currentTrial.rom;
         if (v == rom) {
             this.numCorrect++;
-            this.counters.noticeRight(rom);
+            this.counters.noticeRight(kid);
         }
         else if (v != "") {
             this.numErrors++;
             label = "ooops";
-            this.counters.noticeWrong(rom);
+            this.counters.noticeWrong(kid);
         }
         if (v == " ") {
             $("#r1").html(rom)
@@ -483,24 +504,24 @@ class PracticeTool {
     }
 
     // Get probabilities for selecting a given rom
-    getProbs(romanjis) {
+    getProbs(kids) {
         console.log("getProbs");
         var f = [];
         var sum = 0;
-        for (var i = 0; i < romanjis.length; i++) {
-            var rom = romanjis[i];
+        for (var i = 0; i < kids.length; i++) {
+            var kid = kids[i];
             //f[i] = 1;
-            f[i] = - Math.log(this.counters.probRight(rom));
+            f[i] = - Math.log(this.counters.probRight(kid));
             f[i] = Math.pow(f[i], 3);
-            if (this.currentTrial && this.currentTrial.rom == rom)
+            if (this.currentTrial && this.currentTrial.kid == kid)
                 f[i] = 0;
             sum += f[i];
         }
-        for (var i = 0; i < romanjis.length; i++) {
+        for (var i = 0; i < f.length; i++) {
             f[i] /= sum;
         }
-        for (var i = 0; i < romanjis.length; i++) {
-            console.log(i, romanjis[i], f[i]);
+        for (var i = 0; i < kids.length; i++) {
+            console.log(i, kids[i], f[i]);
         }
         return f;
     }
@@ -508,7 +529,7 @@ class PracticeTool {
     // Select an index from the vector, with probabilities
     // proportional to prob in vector
     selectRandIndex(pv) {
-        console.log("selectRandIndex");
+        //console.log("selectRandIndex", pv);
         var p = Math.random();
         var s = 0;
         for (var i = 0; i < pv.length; i++) {
@@ -521,34 +542,37 @@ class PracticeTool {
     }
 
     chooseRomanji() {
-        var romanjis = Object.keys(this.selected);
-        if (romanjis.length == 0)
-            romanjis = this.romanji;
+        var kids = Object.keys(this.selected);
+        // romanjis should be cids
+        if (kids.length == 0)
+            kids = this.kids;
         var CYCLE = false;
         if (CYCLE) {
-            this.idx = this.idx % romanjis.length;
-            var rom = romanjis[this.idx];
+            this.idx = this.idx % kids.length;
+            var rom = kids[this.idx];
             this.idx++;
         }
         else {
-            var pv = this.getProbs(romanjis);
+            var pv = this.getProbs(kids);
+            console.log("kids", kids, pv);
             var i = this.selectRandIndex(pv);
-            var rom = romanjis[i];
+            var rom = kids[i];
         }
         return rom;
     }
 
     nextTrial() {
-        var rom = this.chooseRomanji();
-        var hir = this.rToH[rom];
-        var kat = this.rToK[rom];
-        var trial = { rom, hir, kat, tries: [] };
-        console.log("update", this.idx, rom, hir, kat);
+        var kid = this.chooseRomanji();
+        var rom = this.getRom(kid);
+        var hir = this.kidToHiragana[kid];
+        var kat = this.kidToKatakana[kid];
+        var trial = { kid, rom, hir, kat, tries: [] };
+        console.log("update", this.idx, kid, rom, hir, kat);
         this.currentTrial = trial;
         this.trials.push(trial);
-        var chr = this.getChar(rom, this.charType);
+        var str = this.getCharStr(kid, this.charType);
         //document.getElementById("h1").innerHTML = h;
-        $("#h1").html(chr);
+        $("#h1").html(str);
         $("#r1").html("");
         //document.getElementById("r1").innerHTML = this.currentRomanji;
     }
