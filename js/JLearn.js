@@ -67,16 +67,21 @@ class Counters {
     }
 
     async init() {
+        this.reset();
+        if (NO_INIT_FROM_DB)
+            return;
+        await this.load();
+    }
+
+    reset() {
         var names = this.names;
         var data = {};
         names.forEach(name => {
             data[name] = { numRight: 0, numWrong: 0 };
         })
         this.data = data;
-        if (NO_INIT_FROM_DB)
-            return;
-        await this.load();
     }
+
 
     async save() {
         console.log("saving counters");
@@ -119,15 +124,6 @@ class Counters {
         }
         catch (e) {
             console.log("*** Error loading counters from DB", e);
-        }
-    }
-
-    reset() {
-        console.log("counters reset", this.name);
-        var data = this.data;
-        for (var name in data) {
-            data[name].numRight = 0;
-            data[name].numWrong = 0;
         }
     }
 
@@ -362,7 +358,7 @@ class PracticeTool {
         await this.hcounters.init();
         await this.kcounters.init();
         await this.bothCounters.init();
-        this.counters = this.kcounters;
+        this.counters = this.hcounters;
         this.updateTable();
         this.idx = 0;
     }
@@ -458,7 +454,7 @@ class PracticeTool {
         this.numCorrect = 0;
         this.numErrors = 0;
         this.trials = [];
-        this.counters.reset();
+        //this.counters.reset();
         this.showStats("");
     }
 
@@ -633,6 +629,8 @@ class PracticeTool {
         await this.hcounters.save();
         this.kcounters.reset();
         await this.kcounters.save();
+        this.bothCounters.reset();
+        await this.bothCounters.save();
         this.updateTable();
     }
 }
