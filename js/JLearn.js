@@ -191,6 +191,7 @@ class Table {
             tab.append(tr);
         });
         $("td").click(e => inst.clickCell(e, $(this)));
+        $("td").mouseover(e => inst.mouseOver(e, $(this)));
     }
 
     // create a table horizontally arranged
@@ -220,6 +221,7 @@ class Table {
             tab.append(tr);
         });
         $("td").click(e => inst.clickCell(e, $(this)));
+        $("td").mouseover(e => inst.mouseOver(e, $(this)));
         this.update();
     }
 
@@ -257,6 +259,24 @@ class Table {
         var id = item.attr("id");
         var rom = id.slice(3);
         this.tool.select(rom, !this.tool.selected[rom]);
+    }
+
+    mouseOver(e, item) {
+        var item = $(e.target);
+        var id = item.attr("id");
+        if (!id)
+            return;
+        var kid = id.slice(3);
+        var counts = this.tool.counters.data[kid];
+        var hir = this.tool.kidToHiragana[kid];
+        var kat = this.tool.kidToKatakana[kid];
+        var r = counts.numRight;
+        var w = counts.numWrong;
+        console.log(kid, hir, kat, counts, r, w);
+        var statStr = sprintf("%s %s %s %d/%d", kid, hir, kat, r, (r+w));
+        if (r+w > 0)
+            statStr += sprintf(" %0.3f", r/(r+w))
+        $("#scoreStats").html(statStr);
     }
 }
 
