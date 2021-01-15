@@ -136,11 +136,13 @@ class Counters {
 
     noticeRight(name) {
         this.data[name].numRight++;
+        this.data[name].lastTime = getClockTime();
         this.save();
     }
 
     noticeWrong(name) {
         this.data[name].numWrong++;
+        this.data[name].lastTime = getClockTime();
         this.save();
     }
 
@@ -267,15 +269,19 @@ class Table {
         if (!id)
             return;
         var kid = id.slice(3);
+        var t = getClockTime();
         var counts = this.tool.counters.data[kid];
         var hir = this.tool.kidToHiragana[kid];
         var kat = this.tool.kidToKatakana[kid];
         var r = counts.numRight;
         var w = counts.numWrong;
+        var dt = t - counts.lastTime;
         console.log(kid, hir, kat, counts, r, w);
         var statStr = sprintf("%s %s %s %d/%d", kid, hir, kat, r, (r+w));
         if (r+w > 0)
             statStr += sprintf(" %0.3f", r/(r+w))
+        if (dt > 0)
+            statStr += sprintf(" %.1f sec", dt);
         $("#scoreStats").html(statStr);
     }
 }
