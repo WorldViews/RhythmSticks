@@ -17,7 +17,7 @@ instMap = {};
 // access instance of MidiPlayTool.
 var _MIDI_PLAYER = null;
 
-class MidiPlayTool {
+class MidiPlayTool_WMB {
     constructor() {
         var player = this;
         player.ticksPerSec = 1000;
@@ -66,6 +66,8 @@ class MidiPlayTool {
             "shores_of_persia"
         ];
         player.initGUI();
+
+        MIDI.loader = new sketch.ui.Timer; // this seems to be an override to show progress on loading
         _MIDI_PLAYER = this;
     }
 
@@ -550,19 +552,10 @@ class MidiPlayTool {
         }
     }
 
-
-
-
-    /*
-    player.getInstName = function(inst)
-    {
-        if (typeof inst == typeof "str")
-        return inst;
-        if (instMap[inst])
-        return instMap[inst];
-        return inst;
+    setProgram(inst) {
+        this.programChange(0, 0, inst);
     }
-    */
+
     getInstName(inst) {
         if (typeof inst == typeof "str")
             return inst;
@@ -891,6 +884,14 @@ class MidiPlayTool {
         //console.log("play note", channel, pitch, vel, dur, t);
     }
 
+    noteOn(channel, pitch, v, t) {
+        MIDI.noteOn(channel, pitch, v, t);
+    }
+
+    noteOff(channel, pitch, v, t) {
+        MIDI.noteOff(channel, pitch, v, t);
+    }
+
     toggleTracks() {
         console.log("toggleTracks");
         var d = $("#midiTrackInfo");
@@ -904,4 +905,4 @@ class MidiPlayTool {
 
 }
 
-window.MidiPlayTool = MidiPlayTool;
+window.MidiPlayTool = MidiPlayTool_WMB;

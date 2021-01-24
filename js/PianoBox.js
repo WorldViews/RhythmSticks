@@ -21,19 +21,7 @@ class PianoBox extends MidiBox {
         this.fillStyle = null;
         this.strokeStyle = null;
         var inst = this;
-        //this.player = PLAYER;
-        this.player = new MidiPlayTool();
-        var player = this.player;
-        player.midiPrefix = opts.midiPrefix || "midi/";
-        //player.scene = this;
         this.notes = [];
-        player.setupTrackInfo();
-        player.loadInstrument("acoustic_grand_piano");
-        player.startUpdates();
-        player.noteObserver = (ch, pitch, v, dur, t) => this.observeNote(ch,pitch, v, dur, t);
-        // for easier debugging in console
-        window.MIDI_BOX = this;
-        window.MPLAYER = this.player;
     }
 
     draw(canvas, ctx) {

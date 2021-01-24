@@ -1,0 +1,53 @@
+<!doctype html>
+<html>
+
+<head>
+  <script src="js/libs/tinysynth/webaudio-tinysynth.js"></script>
+  <script src="js/TinySynth.js"></script>
+  <script>
+
+    var ts = new TinySynth();
+    window.onload = () => ts.Init();
+
+  </script>
+</head>
+
+<body>
+  <h1>webaudio-tinysynth : js version test</h1>
+  This is a simple sample of webaudio-tinysynth (JavaScript library version) page.
+  <hr />
+  <button onclick="Test()">Test audioContext</button>
+  <hr />
+  Load Sample MIDI from URL : <button onclick="ts.loadMidiUrl()">Load (ws.mid)</button><br />
+  Load MIDI file from local : <input type="file" onchange="ts.loadMidi(this.files)" /><br />
+  <button onclick="ts.playMidi()">Play</button>
+  <button onclick="ts.stopMidi()">Stop</button>
+  <div id="status"></div>
+  <br /><br />
+  Loop : <input type="checkbox" onchange="ts.synth.setLoop(this.checked)" /><br />
+  MasterVol<br />
+  <input type="range" value="50" min="0" max="100" oninput="ts.synth.setMasterVol(this.value/100)" /><br />
+  ReverbLev<br />
+  <input type="range" value="50" min="0" max="100" oninput="ts.synth.setReverbLev(this.value/100)" /><br />
+
+  <br /><br />
+  Quality : <select onchange="ts.synth.setQuality(this.selectedIndex)">
+    <option>Quality=0</option>
+    <option selected>Quality=1</option>
+  </select>
+  <br />
+  Timbre : <select id="prog" onchange="ts.SetProgram(this.selectedIndex)"></select>
+  <br />
+  <br />
+  Play by keys :<br />
+  <button onmousedown="ts.send([0x90,60,100])" onmouseup="ts.send([0x80,60,0])">C</button>
+  <button onmousedown="ts.send([0x90,62,100])" onmouseup="ts.send([0x80,62,0])">D</button>
+  <button onmousedown="ts.send([0x90,64,100])" onmouseup="ts.send([0x80,64,0])">E</button>
+  <button onmousedown="ts.send([0x90,65,100])" onmouseup="ts.send([0x80,65,0])">F</button>
+  <button onmousedown="ts.send([0x90,67,100])" onmouseup="ts.send([0x80,67,0])">G</button>
+  <button onmousedown="ts.send([0x90,69,100])" onmouseup="ts.send([0x80,69,0])">A</button>
+  <button onmousedown="ts.send([0x90,71,100])" onmouseup="ts.send([0x80,71,0])">B</button>
+  <button onmousedown="ts.send([0x90,72,100])" onmouseup="ts.send([0x80,72,0])">C</button>
+</body>
+
+</html>

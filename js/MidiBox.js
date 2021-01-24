@@ -20,7 +20,21 @@ class MidiBox extends CanvasTool.RectGraphic {
         this.y0 = opts.y0 || 0;
         this.spacing = opts.spacing || 100;
         this.ncols = opts.ncols || 5;
-        MIDI.loader = new sketch.ui.Timer;
+
+        this.player = new MidiPlayTool();
+        var player = this.player;
+        player.midiPrefix = opts.midiPrefix || "midi/";
+        //player.scene = this;
+
+        player.setupTrackInfo();
+        player.loadInstrument("acoustic_grand_piano");
+        player.startUpdates();
+        player.noteObserver = (ch, pitch, v, dur, t) => this.observeNote(ch,pitch, v, dur, t);
+
+        // for easier debugging in console
+        window.MIDI_BOX = this;
+        window.MPLAYER = this.player;
+
         var instrument = opts.instrument || "taiko_drum";
         //this.loadInstrument(instrument);
         this.initMIDIDevices();
@@ -39,30 +53,12 @@ class MidiBox extends CanvasTool.RectGraphic {
         this.playMidiNote(30);
     }
 
-    loadInstrument(instr, successFn) {
-        console.log("MidiBox",)
-        var instrument = instr;
-        MIDI.loadPlugin({
-            soundfontUrl: "soundfont/",
-            instrument: instrument,
-            onprogress: function (state, progress) {
-                MIDI.loader.setValue(progress * 100);
-            },
-            onprogress: function (state, progress) {
-                MIDI.loader.setValue(progress * 100);
-            },
-            onsuccess: function () {
-                MIDI.programChange(0, instr);
-                if (successFn)
-                    successFn();
-            }
-        });
-    }
-
     playMidiNote(i) {
         console.log("MidiPlayer.playMidiNote", i);
-        MIDI.noteOn(0, i, 100);
-        MIDI.noteOff(0, i, .1);
+        this.player.noteOn(0, i, 100, 0);
+        this.player.noteOff(0, i, 100, 0.1);
+        //MIDI.noteOn(0, i, 100);
+        //MIDI.noteOff(0, i, .1);
     }
 
     // The remainder of functions are for using a MIDI input device

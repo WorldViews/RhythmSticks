@@ -1,6 +1,8 @@
 <!DOCTYPE HTML>
 <html>
-
+<!--
+    This is a version of the taiko game that uses TinySynth instead of the wmb related midi stuff.
+-->
 <head>
     <meta charset="UTF-8">
     <title>WorldViews Taiko Rhythm Games</title>
@@ -11,26 +13,8 @@
     <script src="js/MusicTool.js"></script>
     <script src="js/util.js"></script>
 
-    <!-- Beginning of midi scripts -->
-    <!-- shims -->
-    <script src="js/wmb/Base64.js"></script>
-    <script src="js/wmb/Base64binary.js"></script>
-    <script src="js/wmb/WebAudioAPI.js"></script>
-    <!-- midi.js package -->
-    <script src="js/wmb/audioDetect.js"></script>
-    <script src="js/wmb/gm.js"></script>
-    <script src="js/wmb/loader.js"></script>
-    <script src="js/wmb/plugin.audiotag.js"></script>
-    <script src="js/wmb/plugin.webaudio.js"></script>
-    <script src="js/wmb/plugin.webmidi.js"></script>
-    <script src="js/wmb/player.js"></script>
-    <!-- utils -->
-    <script src="js/wmb/dom_request_xhr.js"></script>
-    <script src="js/wmb/dom_request_script.js"></script>
-    <!-- includes -->
-    <script src="js/wmb/timer.js"></script>
-    <!-- End of midi scripts -->
-
+    <script src="js/libs/tinysynth/webaudio-tinysynth.js"></script>
+  
     <script src="js/RhythmScorer.js"></script>
     <script src="js/MidiBox.js"></script>
     <script src="js/MidiReader.js"></script>
@@ -38,7 +22,7 @@
     <script src="js/TaikoBox.js"></script>
     <script src="js/GamePad.js"></script>
 
-    <script src="js/MidiPlayTool_WMB.js"></script>
+    <script src="js/MidiPlayTool_TinySynth.js"></script>
     <script src="CircuitPy/CircuitRhythm.js"></script>
     <script src="js/phonesensors.js"></script>
 

@@ -16,17 +16,8 @@ class TaikoBox extends MidiBox {
         this.strokeStyle = null;
         var inst = this;
         //this.player = PLAYER;
-        this.player = new MidiPlayTool();
-        var player = this.player;
-        player.midiPrefix = "midi/";
-        //player.scene = this;
         this.notes = [];
         this.targets = {};
-        player.setupTrackInfo();
-        player.loadInstrument("taiko_drum");
-        player.startUpdates();
-        player.noteObserver = (ch, pitch, v, dur, t) => inst.observeNote(ch, pitch, v, dur, t);
-        player.stateObserver = (state => inst.observeState(state));
         this.midiParser = new MidiParser();
         //taikoParser.dump();
         $("#kuchiShoga").change(e => inst.noticeNewKuchiShoga());
@@ -35,11 +26,10 @@ class TaikoBox extends MidiBox {
         $("#matsuri").click(e => inst.playMatsuri());
         this.playKuchiShoga(MATSURI, true);
         this.scorer = null;
+        this.player.setProgram(116);
+        //this.player.setProgram(0);
         // for debugging
         window.TAIKO_BOX = this;
-        window.MIDI_BOX = this;
-        window.MPLAYER = this.player;
-        window.midiParser = this.midiParser;
     }
 
     getTime() {
@@ -222,7 +212,7 @@ class TaikoBox extends MidiBox {
     // as arduino tap or midi input event, which should cause
     // a drum strike.
     strikeDrum(pos) {
-        var midi = MIDI;
+        //var midi = MIDI;
         var channel = 0;
         var pitch = 36;
         if (pos == "center")
@@ -233,8 +223,8 @@ class TaikoBox extends MidiBox {
         var t = 0;
         var dur = .2;
         console.log("strikeDrum", pos, pitch);
-        midi.noteOn(channel, pitch, v, t);
-        midi.noteOff(channel, pitch, v, t + dur);
+        this.player.noteOn(channel, pitch, v, t);
+        this.player.noteOff(channel, pitch, t + dur);
         if (this.scorer) {
             var note = { t: this.getTime() };
             this.scorer.observeUserNote(note);

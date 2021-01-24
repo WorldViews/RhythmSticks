@@ -27,8 +27,9 @@ class MidiReader {
     }
 
     async loadMidiFile(url) {
-        // load a midi file in the browser
         url = url || "midi/shimauta1.mid";
+        console.log("loadMidiFile", url);
+        // load a midi file in the browser
         const midi = await Midi.fromUrl(url);
         //const midi = await Midi.fromUrl("midi/sakura.mid");
         //the file name decoded from the first track
