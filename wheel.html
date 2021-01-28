@@ -1,5 +1,8 @@
 <!DOCTYPE HTML>
 <html>
+<!--
+    This is a version of the taiko game that uses TinySynth instead of the wmb related midi stuff.
+-->
 
 <head>
     <meta charset="UTF-8">
@@ -11,34 +14,16 @@
     <script src="js/MusicTool.js"></script>
     <script src="js/util.js"></script>
 
-    <!-- Beginning of midi scripts -->
-    <!-- shims -->
-    <script src="js/wmb/Base64.js"></script>
-    <script src="js/wmb/Base64binary.js"></script>
-    <script src="js/wmb/WebAudioAPI.js"></script>
-    <!-- midi.js package -->
-    <script src="js/wmb/audioDetect.js"></script>
-    <script src="js/wmb/gm.js"></script>
-    <script src="js/wmb/loader.js"></script>
-    <script src="js/wmb/plugin.audiotag.js"></script>
-    <script src="js/wmb/plugin.webaudio.js"></script>
-    <script src="js/wmb/plugin.webmidi.js"></script>
-    <script src="js/wmb/player.js"></script>
-    <!-- utils -->
-    <script src="js/wmb/dom_request_xhr.js"></script>
-    <script src="js/wmb/dom_request_script.js"></script>
-    <!-- includes -->
-    <script src="js/wmb/timer.js"></script>
-    <!-- End of midi scripts -->
+    <script src="js/libs/tinysynth/webaudio-tinysynth.js"></script>
 
     <script src="js/RhythmScorer.js"></script>
     <script src="js/MidiBox.js"></script>
-    <script src="js/TaikoBox.js"></script>
-
+    <script src="js/MidiReader.js"></script>
+    <script src="js/MidiParser.js"></script>
+    <script src="js/WheelBox.js"></script>
     <script src="js/GamePad.js"></script>
 
-    <script src="js/MidiPlayTool_WMB.js"></script>
-    <script src="js/PianoBox.js"></script>
+    <script src="js/MidiPlayTool_TinySynth.js"></script>
     <script src="CircuitPy/CircuitRhythm.js"></script>
     <script src="js/phonesensors.js"></script>
 
@@ -74,25 +59,27 @@
             position: absolute
         }
 
-        #taikoDiv {
+        #scoreStats {
+            top: 5px;
+            xleft: 5px;
+            right: 10px;
+            xmargin: 5px;
+            position: absolute
+        }
+
+        #musicDiv {
             top: 10px;
             left: 10px;
             right: 10px;
             margin: 10px;
             font-size: 24px;
-            overflow: auto;
             xposition: absolute
-        }
-
-        select {
-            font-size: 24px;
         }
     </style>
 
 </head>
 
 <body>
-
     <div id="gardenDiv" style="width: 100%; height: 100%">
         <canvas id="musicCanvas" xstyle="height:100%"></canvas>
         <div id="playControls">
@@ -100,24 +87,36 @@
             <button id="midiTogglePlaying" onclick="_MIDI_PLAYER.togglePlaying()"
                 style="width:90px; xheight:35px">Play</button>
         </div>
-        <div id="taikoDiv">
-
-            <button onclick="_MIDI_PLAYER.toggleTracks()">&nbsp;</button>
-            &nbsp;&nbsp;
-            &nbsp;&nbsp;Time: <input type="text" id="midiTime" size="5"></input>
-            &nbsp;&nbsp;BPM: <input type="text" id="midiBPM" size="4"></input>
-
+        <div id="musicDiv">
+            <span id="scoreStats">xxx</span>
             <p></p>
-            <select id="midiCompositionSelection" style="overflow:scroll"></select>
-            <br>
+            <span id="songsToggle">Kuchi Shoga</span>
+            <div id="songsArea" style="display:none;">
+                <textarea style="width: 95%; height: 100px; font-size: 18px"
+                    id="kuchiShoga">don don doko don"</textarea><br>
+                <button id="ff1">Fast and Furious 1</button>
+                <button id="ff2">Fast and Furious 2</button>
+                <button id="matsuri">Matsuri</button>
+            </div>
+            <p></p>
             <button id="sensors">Sensors</button>
-            &nbsp; &nbsp;
+            &nbsp;
             <button id="stick">Arduino</button>
-            &nbsp; &nbsp;
+            &nbsp;
+            <input type="checkbox" id="useWheel" checked> wheel
+            &nbsp;
+            <input type="checkbox" id="moveNotes">
+            <label for="moveNotes">move notes</label>
+            &nbsp;
+            <input type="range" id="bpmSlider" min="50" max="160">
+            <label for="bpmSlider">BPM</label>
             <span id="tab">&nbsp; &nbsp;</span>
+            <p>
+            </p>
             <div id="midiTrackInfo">
                 No Tracks Loaded<br>
             </div>
+
         </div>
     </div>
 
@@ -132,7 +131,7 @@
             gtool = new MusicTool("musicCanvas");
             gtool.start();
             gtool.setView(0, 0, 1020);
-            gtool.addPiano();
+            gtool.addWheel();
             stick1 = new RhythmStick({ taikoBox: TAIKO_BOX });
 
             $("#stick").click(() => stick1.setup());
@@ -140,6 +139,12 @@
                 sensors = new Sensors();
                 sensors.start();
             });
+            $("#songsToggle").click(() => {
+                if ($("#songsArea").css("display") == "none")
+                    $("#songsArea").show(200);
+                else
+                    $("#songsArea").hide(200);
+            })
         });
 
     </script>

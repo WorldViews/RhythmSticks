@@ -501,8 +501,14 @@ CanvasTool.Graphic = class {
         ctx.fillStyle = this.fillStyle;
         ctx.beginPath();
         ctx.arc(x, y, r, 0, 2 * Math.PI);
-        ctx.fill();
-        ctx.stroke();
+        if (this.fillStyle != null)
+            ctx.fill();
+        if (this.strokeStyle != null)
+            ctx.stroke();
+    }
+
+    drawLine(canvas, ctx, x1, y1, x2, y2) {
+        this.drawPolyLine(canvas, ctx, [ {x: x1, y: y1}, {x: x2, y: y2}] );
     }
 
     drawPolyLine(canvas, ctx, pts) {

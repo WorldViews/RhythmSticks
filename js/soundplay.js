@@ -9,6 +9,30 @@ var curMidi = 0;
 var midiPort = [];
 var currentPort = -1;
 
+function dumpSong(synth) {
+    console.log("===========================================");
+    console.log("Midi dump");
+    types = {
+        0x80: "noteOn",
+        0x90: "noteOff"
+    }
+    function tname(t) {
+        if (types[t])
+            return types[t];
+        return t;
+    }
+    var song = synth.song;
+    for (var key in song) {
+        console.log(key, song[key]);
+    }
+    var events = song.ev;
+    for (var i=0; i<events.length; i++) {
+        var ev = events[i];
+        var t = ev.m[0];
+        console.log(ev.t, tname(t), ev.m);
+    }
+}
+
 function Init() {
     InitMidi();
     synth = document.getElementById("tinysynth");
@@ -104,6 +128,7 @@ function loadMidi(files) {
     var reader = new FileReader();
     reader.onload = function (e) {
         synth.loadMIDI(reader.result);
+        dumpSong(synth);
     }
     reader.readAsArrayBuffer(files[0]);
 }
@@ -119,7 +144,7 @@ function UpdateFromPad(e) {
     //synth.reverbLev = ny;
     //document.getElementById("g1").value = pg.p[i].g;
     document.getElementById("t1").value = 5 * nx;
-    document.getElementById("v1").value = 5 * nx;
+    document.getElementById("v1").value = 5 * ny;
     Edit();
     var ctx = ppad.getContext("2d");
     ctx.fillStyle = "pink";

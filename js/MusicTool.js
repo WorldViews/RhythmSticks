@@ -8,10 +8,12 @@ class MusicTool extends CanvasTool {
     opts = opts || {};
     var ctx = this.ctx;
     ctx.strokeStyle = "white";
+    /*
     ctx.shadowBlur = 5;
     ctx.shadowOffsetX = 2;
     ctx.shadowOffsetY = 2;
     ctx.shadowColor = "#333";
+    */
     ctx.globalAlpha = .85;
     this.user = null;
     this.plantOnClick = false;
@@ -19,6 +21,7 @@ class MusicTool extends CanvasTool {
     this.lockZoom = true;
     this.lockPan = true;
     this.taikoBox = null;
+    this.wheelBox = null;
   }
 
   addTaiko() {
@@ -37,6 +40,24 @@ class MusicTool extends CanvasTool {
     this.taikoBox = taikoBox;
     this.addGraphic(taikoBox);
     taikoBox.addScorer();
+  }
+
+  addWheel() {
+    var opts = {
+      "type": "WheelBox",
+      "id": "wheel",
+      "name": "Wheel Box",
+      "lineWidth": 4,
+      "fillStyle": "brown",
+      "width": 800,
+      "height": 800,
+      "x": 0,
+      "y": 0
+    }
+    var wheelBox = new WheelBox(opts);
+    this.wheelBox = wheelBox;
+    this.addGraphic(wheelBox);
+    wheelBox.addScorer();
   }
 
   addPiano() {
@@ -88,6 +109,8 @@ class MusicTool extends CanvasTool {
     //console.log("MusicTool.tick");
     if (this.taikoBox)
       this.taikoBox.tick();
+    if (this.wheelBox)
+      this.wheelBox.tick();
   }
 
   async addItem(item) {

@@ -418,6 +418,12 @@ class MidiPlayTool_TinySynth {
         //TODO: should set player.i to appopriate place...
     }
 
+    getDuration() {
+        if (this.midiObj)
+            return this.midiObj.duration;
+        return null;
+    }
+
     //
     // THis works and is self scheduling...
     playNextStep(seqNum) {
@@ -562,7 +568,7 @@ class MidiPlayTool_TinySynth {
         //console.log("noteOn", channel, pitch, v, t);
         //MIDI.noteOn(channel, pitch, v, t);
         var msg = [0x90, pitch, 100];
-        console.log("msg", msg);
+        //console.log("msg", msg);
         this.synth.send(msg);
         //this.synth.send([0x90, pitch, 100]);
     }
@@ -859,6 +865,13 @@ class MidiPlayTool_TinySynth {
         this.compositions = obj;
         this.showCompositions();
     }
+
+    setBPM(bpm) {
+        this.beatsPerMin = bpm;
+        this.ticksPerSec = this.ticksPerBeat * this.beatsPerMin / 60;
+        this.showTempo();
+    }
+
 
     timingChanged(e) {
         console.log("tpbChanged");

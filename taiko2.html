@@ -48,7 +48,7 @@
     <script src="js/libs/jquery-3.1.0.min.js"></script>
     <script src="js/libs/sprintf.js"></script>
     <script src="js/CanvasTool.js"></script>
-    <script src="js/TaikoTool.js"></script>
+    <script src="js/MusicTool.js"></script>
     <script src="js/util.js"></script>
 
     <!-- Beginning of midi scripts -->
@@ -74,7 +74,6 @@
     <script src="js/RhythmTool.js"></script>
     <script src="js/DynObj/DynamicObject.js"></script>
     <script src="js/DynObj/DynamicObjectDB.js"></script>
-    <script src="js/MidiTool.js"></script>
     <script src="js/SoundPlayer.js"></script>
     <script src="js/RhythmScorer.js"></script>
     <script src="js/MidiBox.js"></script>
@@ -82,7 +81,7 @@
     <script src="js/RhythmCanvasGUI.js"></script>
     <script src="js/GamePad.js"></script>
 
-    <script src="js/MidiPlayTool.js"></script>
+    <script src="js/MidiPlayTool_WMB.js"></script>
     <script src="https://unpkg.com/@tonejs/midi"></script>
     <script src="CircuitPy/CircuitRhythm.js"></script>
     <script src="js/phonesensors.js"></script>
@@ -96,7 +95,7 @@
         var sensors = null;
 
         $(document).ready(function () {
-            gtool = new TaikoTool("taikoCanvas");
+            gtool = new MusicTool("taikoCanvas");
             gtool.start();
             gtool.setView(0, 0, 800);
             gtool.addTaiko();

@@ -1,0 +1,582 @@
+{
+   "hcounters": {
+      "a": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "ka": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "sa": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "ta": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "na": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "ha": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "ma": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "ya": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "ra": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "wa": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "ga": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "da": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "ba": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "pa": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "za": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "i": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "ki": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "shi": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "chi": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "ni": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "hi": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "mi": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "ri": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "wi": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "gi": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "ji": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "bi": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "pi": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "zi": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "u": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "ku": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "su": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "tsu": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "nu": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "fu": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "mu": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "yu": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "ru": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "gu": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "du": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "bu": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "pu": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "zu": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "e": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "ke": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "se": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "te": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "ne": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "he": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "me": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "re": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "we": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "ge": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "de": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "be": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "pe": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "ze": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "o": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "ko": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "so": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "to": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "no": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "ho": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "mo": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "yo": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "ro": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "wo": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "go": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "do": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "bo": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "po": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "zo": {
+         "numRight": 0,
+         "numWrong": 0
+      }
+   },
+   "kcounters": {
+      "a": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "ka": {
+         "numRight": 1,
+         "numWrong": 0
+      },
+      "sa": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "ta": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "na": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "ha": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "ma": {
+         "numRight": 1,
+         "numWrong": 0
+      },
+      "ya": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "ra": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "wa": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "ga": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "da": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "ba": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "pa": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "za": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "i": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "ki": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "shi": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "chi": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "ni": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "hi": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "mi": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "ri": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "wi": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "gi": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "ji": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "bi": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "pi": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "zi": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "u": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "ku": {
+         "numRight": 1,
+         "numWrong": 0
+      },
+      "su": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "tsu": {
+         "numRight": 1,
+         "numWrong": 0
+      },
+      "nu": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "fu": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "mu": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "yu": {
+         "numRight": 1,
+         "numWrong": 2
+      },
+      "ru": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "gu": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "du": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "bu": {
+         "numRight": 1,
+         "numWrong": 0
+      },
+      "pu": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "zu": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "e": {
+         "numRight": 1,
+         "numWrong": 0
+      },
+      "ke": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "se": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "te": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "ne": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "he": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "me": {
+         "numRight": 2,
+         "numWrong": 4
+      },
+      "re": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "we": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "ge": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "de": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "be": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "pe": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "ze": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "o": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "ko": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "so": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "to": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "no": {
+         "numRight": 1,
+         "numWrong": 0
+      },
+      "ho": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "mo": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "yo": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "ro": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "wo": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "go": {
+         "numRight": 1,
+         "numWrong": 0
+      },
+      "do": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "bo": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "po": {
+         "numRight": 0,
+         "numWrong": 0
+      },
+      "zo": {
+         "numRight": 0,
+         "numWrong": 0
+      }
+   }
+}

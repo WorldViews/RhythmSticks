@@ -4,7 +4,7 @@ var HALFBEATS = false;
 class NoteGraphic extends CanvasTool.RectGraphic {
     constructor(opts) {
         var tool = opts.tool;
-        opts.x = tool.canvas.timeToPos(opts.t) + opts.width/2;
+        opts.x = tool.canvas.timeToPos(opts.t) + opts.width / 2;
         super(opts);
         this.tool = opts.tool;
         this.rhythmTool = this.tool.tool;
@@ -12,7 +12,7 @@ class NoteGraphic extends CanvasTool.RectGraphic {
         this.r = opts.r;
         this.c = opts.c;
         this.width = opts.width || 0.4;
-        this.height = opts.height || this.width/2;
+        this.height = opts.height || this.width / 2;
     }
 
     setActive(val) {
@@ -39,11 +39,11 @@ class CountGraphic extends NoteGraphic {
         if (HALFBEATS) {
             //return ["one", "and", "two", "and", "three", "and", "four", "and"];
             return ["1", "&", "2", "&", "3", "&", "4", "&",
-                    "5", "&", "6", "&", "7", "&", "8", "&"];
+                "5", "&", "6", "&", "7", "&", "8", "&"];
         }
         //return ["one", "two", "three", "four", "five", "six", "seven", "eight"];
         return ["1", "2", "3", "4", "5", "6", "7", "8"];
-        }
+    }
 
     getCountText(c) {
         var b = (c % this.beatsPerMeasure);
@@ -55,7 +55,7 @@ class CountGraphic extends NoteGraphic {
     }
 
     draw(canvas, ctx) {
-        var x = this.x - this.width/2;
+        var x = this.x - this.width / 2;
         this.drawText(canvas, ctx, x, this.y, this.text);
     }
 }
@@ -64,7 +64,7 @@ class JapaneseCount extends CountGraphic {
     getLabels(c) {
         if (HALFBEATS)
             return ["itchi", "to", "ni", "to", "san", "to", "shi", "to",
-                    "go", "to", "roku", "to", "shichi", "to", "hachi", "to"];
+                "go", "to", "roku", "to", "shichi", "to", "hachi", "to"];
         return ["itchi", "ni", "san", "shi", "go", "roku", "shichi", "hachi"];
     }
 }
@@ -129,13 +129,13 @@ class RhythmCanvas extends CanvasTool {
     }
 
     timeToPos(t) {
-        return t*this.t2p;
+        return t * this.t2p;
     }
-    
+
     posToTime(t) {
-        return t/this.t2p;
+        return t / this.t2p;
     }
-    
+
 }
 
 class RhythmCanvasGUI extends RhythmGUI {
@@ -159,7 +159,7 @@ class RhythmCanvasGUI extends RhythmGUI {
     setupGUI() {
         super.setupGUI();
         if ($("#beatsDiv").length > 0) {
-         this.setupButtonGUI();
+            this.setupButtonGUI();
         }
         else {
             console.log("*** No Buttons UI ***")
@@ -172,8 +172,8 @@ class RhythmCanvasGUI extends RhythmGUI {
         var y0 = -.5;
         var h = 4;
         this.canvas.aspectRatio = null;
-        this.canvas.panConstraint = (dx,dy) => [dx,0];
-        this.labels.panConstraint = (dx,dy) => [0,0];
+        this.canvas.panConstraint = (dx, dy) => [dx, 0];
+        this.labels.panConstraint = (dx, dy) => [0, 0];
         this.labels.lockZoom = true;
         setTimeout(e => inst.labels.setViewXminYmin(-1.6, y0, 1.7, h), 100);
         setTimeout(e => inst.canvas.setViewXminYmin(x0, y0, 9, h), 110);
@@ -197,12 +197,12 @@ class RhythmCanvasGUI extends RhythmGUI {
         console.log("GUI", gui);
         var canvas = gui.canvas;
         console.log("canvas", canvas);
-        for (var i=0; i<dno.times.length; i++) {
+        for (var i = 0; i < dno.times.length; i++) {
             var t = dno.times[i];
             var mt = t / 60;
             var bt = mt * tool.BPM;
             t = bt;
-            let id = sprintf("xxx_%f_%s", t,10);
+            let id = sprintf("xxx_%f_%s", t, 10);
             var c = t;
             var r = 1;
             var x = canvas.timeToPos(c);
@@ -213,7 +213,7 @@ class RhythmCanvasGUI extends RhythmGUI {
         }
         this.timeGraphic = new TimeGraphic({ x: 0, y: 1, t: 0 });
         this.canvas.addGraphic(this.timeGraphic);
-        this.beatGraphic = new  NoteGraphic({ x:0, y:2.5, r:0, c:0, width: 0.1, tool: gui });
+        this.beatGraphic = new NoteGraphic({ x: 0, y: 2.5, r: 0, c: 0, width: 0.1, tool: gui });
         this.canvas.addGraphic(this.beatGraphic);
     }
 
@@ -236,7 +236,7 @@ class RhythmCanvasGUI extends RhythmGUI {
             var name = tool.tracks[r].name;
             var id = name;
             var y = nht * r;
-            var label = new LabelGraphic({id, r, x: -.8, y: y, width:1.2, height:.25, text: id, tool: inst});
+            var label = new LabelGraphic({ id, r, x: -.8, y: y, width: 1.2, height: .25, text: id, tool: inst });
             //this.canvas.addGraphic(label);
             this.labels.addGraphic(label);
             for (let c = 0; c < tool.TICKS; c++) {
@@ -255,13 +255,13 @@ class RhythmCanvasGUI extends RhythmGUI {
                 }
                 this.canvas.addGraphic(ng);
                 this.notes[r + "_" + c] = ng;
-                var v = this.tool.getState(r,c);
+                var v = this.tool.getState(r, c);
                 this.noticeState(r, c, v);
             }
         }
         this.timeGraphic = new TimeGraphic({ x: 0, y: 1, t: 0 });
         this.canvas.addGraphic(this.timeGraphic);
-        this.beatGraphic = new  NoteGraphic({ x:0, y:2.5, r:0, c:0, width: 0.1, tool: inst });
+        this.beatGraphic = new NoteGraphic({ x: 0, y: 2.5, r: 0, c: 0, width: 0.1, tool: inst });
         this.canvas.addGraphic(this.beatGraphic);
     }
 
@@ -327,7 +327,7 @@ class RhythmCanvasGUI extends RhythmGUI {
     noticeTime(t) {
         this.timeGraphic.t = t * 0.5;
         if (this.scroll) {
-            this.setViewTimeLow(t*0.5);
+            this.setViewTimeLow(t * 0.5);
         }
     }
 }
