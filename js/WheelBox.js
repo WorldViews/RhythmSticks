@@ -20,20 +20,27 @@ class WheelBox extends MidiBox {
         this.midiParser = new MidiParser();
         this.useWheel = true;
         this.moveNotes = false;
+        $("#kuchiShoga").keypress(e => inst.noticeSongKeypress(e));
         $("#kuchiShoga").change(e => inst.noticeNewKuchiShoga());
         $("#ff1").click(e => inst.playFastAndFurious1());
         $("#ff2").click(e => inst.playFastAndFurious2());
         $("#matsuri").click(e => inst.playMatsuri());
         $("#useWheel").change(e => inst.toggleUseWheel(e));
         $("#moveNotes").change(e => inst.toggleMoveNotes(e));
-        $("#bpmSlider").change(e => inst.handleSlider(e));
-        this.playKuchiShoga(MATSURI, true);
+        $("#bpmSlider").change(e => inst.handleBPMSlider(e));
+        //this.playKuchiShoga(MATSURI, true);
         this.scorer = null;
         this.player.setProgram(116);
         //this.player.setProgram(0);
         // for debugging
-        window.WHEEL_BOX = this; 
-        this.playKuchiShoga(MATSURI, true);
+        window.WHEEL_BOX = this;
+        var icons = {}
+        icons[0] = new CanvasTool.ImageGraphic({url: "images/sun1.png",  width: 40, height: 40});
+        icons[1] = new CanvasTool.ImageGraphic({url: "images/moon1.png", width: 40, height: 40});
+        icons[2] = new CanvasTool.ImageGraphic({url: "images/star1.png", width: 40, height: 40});
+        this.icons = icons;
+        if (opts.initialSong)
+            this.playKuchiShoga(opts.initialSong, false);
     }
 
     toggleUseWheel(e) {
@@ -44,11 +51,16 @@ class WheelBox extends MidiBox {
         this.moveNotes = $("#moveNotes").is(":checked");
     }
 
-    handleSlider(e) {
+    handleBPMSlider(e) {
         var val = $("#bpmSlider").val();
         var bpm = Number(val);
         console.log("bpm", bpm);
+        var p = this.player.isPlaying;
+        $("#bpmLabel").html("" + bpm + " BMP");
+        this.player.pausePlaying();
         this.player.setBPM(bpm);
+        if (p)
+            this.player.startPlaying();
     }
 
     getTime() {
@@ -86,8 +98,16 @@ class WheelBox extends MidiBox {
         this.playKuchiShoga(ff2);
     }
 
-    playMatsuri() {
-        this.playKuchiShoga(MATSURI);
+    playMatsuri(autoStart) {
+        this.playKuchiShoga(MATSURI, false);
+    }
+
+    noticeSongKeypress(e) {
+        var keycode = (e.keyCode ? e.keyCode : e.which);
+        window.E = e;
+        if(keycode == '13' && !e.shiftKey){
+            this.noticeNewKuchiShoga();
+        }
     }
 
     noticeNewKuchiShoga() {
@@ -96,23 +116,26 @@ class WheelBox extends MidiBox {
         this.playKuchiShoga(kuchiShoga);
     }
 
-    async playKuchiShoga(kuchiShoga, paused) {
+    async playKuchiShoga(kuchiShoga, autoStart) {
+        console.log("playKuchiShoga", kuchiShoga, autoStart);
         kuchiShoga = kuchiShoga.trim();
         //$("#kuchiShoga").val(kuchiShoga);
         this.player.pausePlaying();
         await sleep(0.5);
         this.midiParser.addKuchiShoga(kuchiShoga);
-        if (!paused) {
-            var midiObj = this.midiParser.getMidiObj();
-            await sleep(0.5);
-            this.player.playMidiObj(midiObj, true);
-        }
+        var midiObj = this.midiParser.getMidiObj();
+        await sleep(0.5);
+        this.player.playMidiObj(midiObj, autoStart);
     }
 
     // This is called when the midi player plays a note
     observeNote(ch, pitch, v, t, dur) {
         //console.log("observeNote", ch, pitch, v, dur, t);
         let target = this.targets[ch];
+        if (target == null) {
+            console.log("no target for channel", ch);
+            return;
+        }
         target.on = true;
         setTimeout(() => {
             //console.log("set style", i, prevStyle);
@@ -142,19 +165,38 @@ class WheelBox extends MidiBox {
         this.strokeStyle = "black";
         var r = 200;
         this.lineWidth = 2;
-        this.drawCircle(canvas, ctx, r, this.x, this.y);
+       // this.drawCircle(canvas, ctx, r, this.x, this.y);
         var a = 0;
+        var pt = this.player.getPlayTime();
+        var dur = this.player.getDuration();
         if (!this.moveNotes) {
-            var t = this.player.getPlayTime();
-            var dur = this.player.getDuration();
-            a = 2*Math.PI*t/dur;
+            a = 2 * Math.PI * pt / dur;
         }
-        var x = this.x + r*Math.cos(a);
-        var y = this.y + r*Math.sin(a);
-        this.lineWidth = 1;
-        this.strokeStyle = "black";
-        this.drawLine(canvas, ctx, this.x, this.y, x, y);
+        this.drawRadialLine(canvas, ctx, a, 20, r + 10, 1);
+        // now draw bars at beat times...
+        //
+        this.beatsPerSec = this.player.beatsPerMin/60;
+        this.numBeats = dur*this.beatsPerSec;
+        for (var b=0; b<this.numBeats; b++) {
+            var bt = b / this.beatsPerSec;
+            if (this.moveNotes)
+                bt -= pt;
+            var a = bt * 2 * Math.PI / dur;
+            this.drawRadialLine(canvas, ctx, a,  160, r, 0.2);
+        }
+        // now draw the notes, as arcs
         this.drawNotesArcs(canvas, ctx);
+    }
+
+    drawRadialLine(canvas, ctx, a, r0, r1, wid) {
+        var x0 = this.x + r0 * Math.cos(a);
+        var y0 = this.y + r0 * Math.sin(a);
+        var x1 = this.x + r1 * Math.cos(a);
+        var y1 = this.y + r1 * Math.sin(a);
+        this.lineWidth = wid;
+        this.strokeStyle = "black";
+        //console.log("drawRadLine", x0, y0, x1, y1);
+        this.drawLine(canvas, ctx, x0, y0, x1, y1);
     }
 
     drawNotesArcs(canvas, ctx) {
@@ -175,11 +217,12 @@ class WheelBox extends MidiBox {
         this.drawCircle(canvas, ctx, r1, this.x, this.y);
         this.drawCircle(canvas, ctx, r2, this.x, this.y);
         ctx.save();
-        ctx.lineWidth = 6;
+        ctx.lineWidth = 12;
         ctx.strokeStyle = "black";
         var songDur = this.player.getDuration();
         if (songDur == null)
             return;
+        var timeToAngle = 2 * Math.PI / songDur;
         //console.log("pt", pt);
         for (var i = 0; i < groups.length; i++) {
             //console.log("eventGroup i");
@@ -204,26 +247,30 @@ class WheelBox extends MidiBox {
                 //console.log("draw note", t, dur, pitch);
                 var ki = pitch - 40;
                 var r = 160;
-                let target = this.targets[0];
-                if (ki > 20)
+                var icon = this.icons[event.channel];
+                if (ki > 20) {
                     r = 180;
-                var heightPerSec = 50;
-                var dx = 10;
-                //console.log("addNote", t, dur, pitch);
-                var a0 = 2*Math.PI * t / songDur;
-                var a1 = 2*Math.PI * (t + dur) / songDur;
-                //ctx.fillStyle = "green";
+                }
+                if (ki > 21) {
+                    r = 200;
+                }
+                var a0 = timeToAngle * t;
+                var a1 = timeToAngle * (t+dur);
                 ctx.beginPath();
                 ctx.arc(this.x, this.y, r, a0, a1);
                 ctx.stroke();
-                //this.drawRect(canvas, ctx, x, y, nwidth, height);
+                // draw sun
+                if (!icon)
+                    continue;
+                icon.x = this.x + r*Math.cos(a0);
+                icon.y = this.y + r*Math.sin(a0);
+                icon.draw(canvas, ctx);
             }
         }
         ctx.restore();
-    
-     }
+    }
 
-     drawNotesBars(canvas, ctx) {
+    drawNotesBars(canvas, ctx) {
         // now draw notes
         var player = this.player;
         var midiTrack = player.midiObj;
@@ -289,13 +336,15 @@ class WheelBox extends MidiBox {
             }
         }
         ctx.restore();
-    
-     }
+
+    }
 
     drawBars(canvas, ctx) {
         super.draw(canvas, ctx);
         if (this.pic)
             this.pic.draw(canvas, ctx);
+        if (this.sun)
+            this.sun.draw(canvas, ctx);
         ctx.save();
         for (var ch in this.targets) {
             var target = this.targets[ch];
