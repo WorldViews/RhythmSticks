@@ -76,14 +76,14 @@ class MidiPlayTool_TinySynth {
         //this.setProgram(0);
         var showStats = false;
         if (showStats)
-            setInterval( () => inst.showStatus(), 100);
+            setInterval(() => inst.showStatus(), 100);
         _MIDI_PLAYER = this;
     }
 
     showStatus() {
         var st = this.synth.getPlayStatus();
         var str = "Play:" + st.play + "  Pos:" + st.curTick + "/" + st.maxTick;
-        console.log(str);    
+        console.log(str);
     }
 
     setProgram(p) {
@@ -316,17 +316,20 @@ class MidiPlayTool_TinySynth {
         }
         seqTimes.sort(function (a, b) { return a - b; });
         var seq = []
-        var maxTime = 0;
+        var durationTicks = 0;
         for (var i = 0; i < seqTimes.length; i++) {
             var t = seqTimes[i];
             var evGroup = seqEvents[t];
             seq.push([t, evGroup[1]]);
-            maxTime = t;//
+            durationTicks = t;//
             //console.log("t: "+ t+ " nevents: "+evGroup.length);
         }
         midiObj.seq = seq;
-        //midiObj.duration = maxTime/player.ticksPerBeat;
-        midiObj.duration = maxTime / player.ticksPerSec;
+        if (midiObj.durationTicks == null) {
+            alert("setting midiObj.durationTicks");
+            midiObj.durationTicks = durationTicks;
+        }
+        midiObj.duration = midiObj.durationTicks / player.ticksPerSec;
         player.loadInstruments();
         if (!midiObj.tempo) {
             console.log("***** tempo unknown");
@@ -578,7 +581,7 @@ class MidiPlayTool_TinySynth {
         var msg = [0x80, pitch, 0];
         if (t) {
             var inst = this;
-            setTimeout(() => inst.synth.send(msg), t*1000);
+            setTimeout(() => inst.synth.send(msg), t * 1000);
         }
         else {
             this.synth.send([0x80, pitch, 0]);
@@ -803,38 +806,6 @@ class MidiPlayTool_TinySynth {
         if (this.midiDivInitialized)
             return;
         this.midiDivInitialized = true;
-        /*
-        console.log("setupMidiControlDiv");
-        if ($("#midiControl").length == 0) {
-            console.log("*** no midiControlDiv found ****");
-            return;
-        }
-        var str = `
-        <button onclick="_MIDI_PLAYER.toggleTracks()">&nbsp;</button>
-        <button onclick="_MIDI_PLAYER.rewind()">|&#60; </button>
-        <button id="midiTogglePlaying" onclick="_MIDI_PLAYER.togglePlaying()" style="width:60px;">Play</button>
-        &nbsp;&nbsp;<select id="midiCompositionSelection"></select>
-        &nbsp;&nbsp;Time: <input type="text" id="midiTime" size="5"></input>
-        &nbsp;&nbsp;BPM: <input type="text" id="midiBPM" size="4"></input>
-        &nbsp;&nbsp;TPS: <input type="text" id="midiTPS" size="4"></input>
-        &nbsp;&nbsp;TPB: <input type="text" id="midiTPB" size="4"></input>
-        <div id="midiTrackInfo">
-        No Tracks Loaded<br>
-        </div>`;
-
-        var str = `
-        <button onclick="_MIDI_PLAYER.toggleTracks()">&nbsp;</button>
-        <button onclick="_MIDI_PLAYER.rewind()">|&#60; </button>
-        <button id="midiTogglePlaying" onclick="_MIDI_PLAYER.togglePlaying()" xstyle="width:60px;">Play</button>
-        &nbsp;&nbsp;Time: <input type="text" id="midiTime" size="5"></input>
-        &nbsp;&nbsp;BPM: <input type="text" id="midiBPM" size="4"></input>
-        <div id="midiTrackInfo">
-        No Tracks Loaded<br>
-        </div>`;
-
-        $("#midiControl").html(str);
-        */
-
         $("#midiCompositionSelection").change(e => player.compositionChanged(e));
         $("#midiBPM").change(e => player.timingChanged(e));
         $("#midiTPB").change(e => player.timingChanged(e));
@@ -869,6 +840,8 @@ class MidiPlayTool_TinySynth {
     setBPM(bpm) {
         this.beatsPerMin = bpm;
         this.ticksPerSec = this.ticksPerBeat * this.beatsPerMin / 60;
+        if (this.midiObj)
+            this.midiObj.duration = this.midiObj.durationTicks / this.ticksPerSec;
         this.showTempo();
     }
 

@@ -42,7 +42,7 @@ class MusicTool extends CanvasTool {
     taikoBox.addScorer();
   }
 
-  addWheel() {
+  addWheel(initialSong) {
     var opts = {
       "type": "WheelBox",
       "id": "wheel",
@@ -52,12 +52,14 @@ class MusicTool extends CanvasTool {
       "width": 800,
       "height": 800,
       "x": 0,
-      "y": 0
+      "y": 0,
+      initialSong
     }
     var wheelBox = new WheelBox(opts);
     this.wheelBox = wheelBox;
     this.addGraphic(wheelBox);
     wheelBox.addScorer();
+    return wheelBox;
   }
 
   addPiano() {

@@ -232,7 +232,7 @@ class TaikoBox extends MidiBox {
     }
 
     async playMySong() {
-        this.player.loadMidiFile("midi/sakura.mid");
+        //this.player.loadMidiFile("midi/sakura.mid");
         //this.taikoParser.dump();
         var midiObj = this.midiParser.getMidiObj();
         this.player.playMidiObj(midiObj, true);

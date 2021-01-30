@@ -108,8 +108,8 @@
             <input type="checkbox" id="moveNotes">
             <label for="moveNotes">move notes</label>
             &nbsp;
-            <input type="range" id="bpmSlider" min="50" max="160">
-            <label for="bpmSlider">BPM</label>
+            <input type="range" id="bpmSlider" min="5" max="160">
+            <label for="bpmSlider" id="bpmLabel">BPM</label>
             <span id="tab">&nbsp; &nbsp;</span>
             <p>
             </p>
@@ -127,11 +127,24 @@
         var TAIKO_BOX;
         var sensors = null;
 
+        const SIMPLE1 = `rest rest rest rest | moon moon sun star`;
+        const SIMPLE2 = `don don ka don`;
+
+        function toggleDiv(labelSel, divSel) {
+            $(labelSel).click(e => {
+                console.log("click toggle", labelSel, divSel);
+                if ($(divSel).css("display") == "none")
+                    $(divSel).show(200);
+                else
+                    $(divSel).hide(200);
+            })
+        }
+
         $(document).ready(function () {
             gtool = new MusicTool("musicCanvas");
             gtool.start();
             gtool.setView(0, 0, 1020);
-            gtool.addWheel();
+            window.wheel = gtool.addWheel(SIMPLE1);
             stick1 = new RhythmStick({ taikoBox: TAIKO_BOX });
 
             $("#stick").click(() => stick1.setup());
@@ -139,12 +152,7 @@
                 sensors = new Sensors();
                 sensors.start();
             });
-            $("#songsToggle").click(() => {
-                if ($("#songsArea").css("display") == "none")
-                    $("#songsArea").show(200);
-                else
-                    $("#songsArea").hide(200);
-            })
+            toggleDiv("#songsToggle", "#songsArea");
         });
 
     </script>

@@ -35,7 +35,7 @@ class MidiParser {
     }
 
     reset() {
-        this.t = 200;
+        this.t = 0;
         this.events = [];
     }
 
@@ -61,6 +61,10 @@ class MidiParser {
                 this.addNote(1);
                 continue;
             }
+            if (part == "sun" || part == "moon" || part == "star") {
+                this.addNote(1, part);
+                continue;
+            }
             if (part == "doko" || part == "doro") {
                 this.addNote(0.5);
                 this.addNote(0.5);
@@ -83,6 +87,7 @@ class MidiParser {
             alert("bad kuchi shoga part: '" + part + "'");
             return;
         }
+        this.addMarkerEvent("end");
     }
 
     setInstruments(instruments) {
@@ -104,9 +109,13 @@ class MidiParser {
             v = 120;
         var ch = 0;
         var pitch = 60;
-        if (target == "rim") {
+        if (target == "rim" || target == "moon") {
             pitch = 62;
             ch = 1;
+        }
+        if (target == "star") {
+            pitch = 63;
+            ch = 2;
         }
         if (beats == null)
             beats = 1;
@@ -127,17 +136,32 @@ class MidiParser {
         this.t += beats * this.beatDur;
     }
 
+    addMarkerEvent(name) {
+        var event = [
+            this.t,
+            [
+                {
+                    "t0": this.t,
+                    "type": "marker",
+                    "name": name
+                }
+            ]
+        ];
+        this.events.push(event);
+    }
+
     getMidiObj() {
         var midiObj = {
             format: 0,
-            channels: [0, 1],
-            instruments: [116, 115],
-            resolution: 384,
+            channels: [0, 1, 2],
+            instruments: [116, 115, 116],
+            resolution: 200, // this is ticksPerBeat
+            durationTicks: this.t,
             type: "MidiObj",
             loop: true,
             tracks: [
                 {
-                    channels: [0, 1],
+                    channels: [0, 1, 2],
                     seq: []
                 }
             ]
