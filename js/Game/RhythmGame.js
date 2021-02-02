@@ -55,6 +55,7 @@ class RhythmGame extends CanvasTool.RectGraphic {
         opts = opts || {};
         opts.instrument = "acoustic_grand_piano";
         super(opts);
+        var inst = this;
         //
         this.mplayer = new MPlayer(this, opts);
         //this.mplayer.noteObserver = (ch, pitch, v, dur, t) => this.observeNote(ch, pitch, v, dur, t);
@@ -62,7 +63,8 @@ class RhythmGame extends CanvasTool.RectGraphic {
         // for easier debugging in console
         window.MIDI_BOX = this;
         window.MPLAYER = this.mplayer;
-
+        this.mplayer.stateObserver = state => inst.observeState(state);
+    
         var instrument = opts.instrument || "taiko_drum";
         //this.loadInstrument(instrument);
         this.initMIDIDevices();
@@ -72,8 +74,7 @@ class RhythmGame extends CanvasTool.RectGraphic {
         //this.fillStyle = "beige";
         this.fillStyle = null;
         this.strokeStyle = null;
-        var inst = this;
-        this.notes = [];
+        //this.notes = [];
         this.targets = {};
         this.midiParser = new MidiParser();
         this.useWheel = true;
@@ -111,9 +112,7 @@ class RhythmGame extends CanvasTool.RectGraphic {
 
     /*
     onClick() {
-        console.log("MidiBox.onClick");
-        //this.playMidiNote(30);
-        this.soundPlayer.playNote("cowbell");
+        console.log("RhythmGame.onClick");
     }
     */
 
@@ -271,7 +270,7 @@ class RhythmGame extends CanvasTool.RectGraphic {
             if (this.moveNotes)
                 bt -= pt;
             var a = bt * 2 * Math.PI / dur;
-            this.drawRadialLine(canvas, ctx, a, 160, r, 0.2);
+            //this.drawRadialLine(canvas, ctx, a, 160, r, 0.2);
         }
         // now draw the notes, as arcs
         this.drawNotesArcs(canvas, ctx);
@@ -344,14 +343,6 @@ class RhythmGame extends CanvasTool.RectGraphic {
                 var r = radii[event.channel];
                 //var icon = this.icons[event.channel];
                 var icon = this.icons[event.label];
-                /*
-                if (ki > 20) {
-                    r = r1;
-                }
-                if (ki > 21) {
-                    r = r2;
-                }
-                */
                 var a0 = timeToAngle * t;
                 var a1 = timeToAngle * (t + dur);
                 if (icon) {
@@ -459,14 +450,6 @@ class RhythmGame extends CanvasTool.RectGraphic {
         ctx.restore();
         this.drawNotesBars(canvas, ctx);
     }
-
-    /*
-    onClick(e) {
-        console.log("onClick", e);
-        this.init();
-        this.strikeDrum("center");
-    }
-    */
 
     async init() {
         if (this.started)
@@ -585,7 +568,6 @@ class RhythmGame extends CanvasTool.RectGraphic {
         if (vel != 64)
             this.playMidiNote(dsId);
     }
-
 }
 
 //# sourceURL=js/WheelBox.js
