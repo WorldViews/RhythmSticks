@@ -532,7 +532,7 @@ class MidiPlayTool_TinySynth {
             if (etype == "tempo") {
                 var bpm = event.bpm;
                 var mpqn = event.mpqn;
-                //console.log("tempo bpm: " + bpm + "  mpqn: " + mpqn);
+                console.log("tempo bpm: " + bpm + "  mpqn: " + mpqn);
                 continue;
             }
             var channel = event.channel;
@@ -546,25 +546,36 @@ class MidiPlayTool_TinySynth {
             if (etype == "note") {
                 if (player.muted[event.channel])
                     continue;
-                var note = event;
-                //console.log("note: "+JSON.stringify(note));
-                var pitch = note.pitch;
-                var v = note.v;
-                //var dur = note.dur/player.ticksPerBeat;
-                var dur = note.dur / player.ticksPerSec;
                 if (t0_ != t0) {
                     console.log("*** mismatch t0: " + t0 + " t0_: " + t0_);
                 }
-                //console.log("noteOn "+channel+" "+pitch+" "+v+" "+t+player.delay0);
-                //console.log("noteOff "+channel+" "+pitch+" "+v+" "+t+dur+player.delay0);
-                this.noteOn(channel, pitch, v, t + player.delay0);
-                this.noteOff(channel, pitch, t + dur + player.delay0);
-                if (player.noteObserver)
-                    player.noteObserver(channel, pitch, v, t, dur);
+                this.handleNote(t0, event);
                 continue;
+             }
+            if (etype == "marker") {
+                console.log("event marker", event);
             }
             console.log("*** unexpected etype: " + etype);
         }
+    }
+
+    handleNote(t0, note)
+    {
+        //console.log("note: "+JSON.stringify(note));
+        var t = 0;
+        var pitch = note.pitch;
+        var v = note.v;
+        var channel = note.channel;
+        //var dur = note.dur/player.ticksPerBeat;
+        var dur = note.dur / this.ticksPerSec;
+        this.playNote(channel, pitch, v, t, dur);
+        if (this.noteObserver)
+            this.noteObserver(channel, pitch, v, t, dur);
+    }
+
+    playNote(channel, pitch, v, t, dur) {
+        this.noteOn(channel, pitch, v, t);
+        this.noteOff(channel, pitch, t + dur);
     }
 
     noteOn(channel, pitch, v, t) {

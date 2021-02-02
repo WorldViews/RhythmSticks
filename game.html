@@ -1,0 +1,170 @@
+<!DOCTYPE HTML>
+<html>
+<!--
+    This is a version of the taiko game that uses TinySynth instead of the wmb related midi stuff.
+-->
+
+<head>
+    <meta charset="UTF-8">
+    <title>WorldViews Taiko Rhythm Games</title>
+
+    <script src="js/libs/jquery-3.1.0.min.js"></script>
+    <script src="js/libs/sprintf.js"></script>
+    <script src="js/CanvasTool.js"></script>
+    <script src="js/MusicTool.js"></script>
+    <script src="js/util.js"></script>
+    <script src="js/libs/sprintf.js"></script>
+    <script src="js/DynObj/DynamicObject.js"></script>
+    <script src="js/DynObj/DynamicObjectDB.js"></script>
+    <script src="js/Game/SoundPlayer.js"></script>
+
+    <script src="js/libs/tinysynth/webaudio-tinysynth.js"></script>
+    <script src="js/MidiPlayTool_TinySynth.js"></script>
+ 
+    <script src="js/RhythmScorer.js"></script>
+    <script src="js/MidiReader.js"></script>
+    <script src="js/MidiParser.js"></script>
+    <script src="js/Game/RhythmGame.js"></script>
+    <script src="js/GamePad.js"></script>
+
+    <script src="CircuitPy/CircuitRhythm.js"></script>
+    <script src="js/phonesensors.js"></script>
+
+    <style>
+        body {
+            margin: 0;
+            xoverflow: hidden;
+            height: 100vh;
+            background-color: rgb(241, 239, 230);
+        }
+
+        button {
+            padding: 10px 10px;
+            margin: 10px 10px;
+            font-size: 24px;
+        }
+
+        .stats {
+            height: 30px;
+        }
+
+        #musicCanvas {
+            width: 100%;
+            xheight: 93%;
+            background: #f1dcba;
+        }
+
+        #playControls {
+            top: 5px;
+            left: 5px;
+            right: 10px;
+            xmargin: 5px;
+            position: absolute
+        }
+
+        #scoreStats {
+            top: 5px;
+            xleft: 5px;
+            right: 10px;
+            xmargin: 5px;
+            position: absolute
+        }
+
+        #musicDiv {
+            top: 10px;
+            left: 10px;
+            right: 10px;
+            margin: 10px;
+            font-size: 24px;
+            xposition: absolute
+        }
+    </style>
+
+</head>
+
+<body>
+    <div id="gardenDiv" style="width: 100%; height: 100%">
+        <canvas id="musicCanvas" xstyle="height:100%"></canvas>
+        <div id="playControls">
+            <button onclick="_MIDI_PLAYER.rewind()">|&#60; </button>
+            <button id="midiTogglePlaying" onclick="_MIDI_PLAYER.togglePlaying()"
+                style="width:90px; xheight:35px">Play</button>
+        </div>
+        <div id="musicDiv">
+            <span id="scoreStats">xxx</span>
+            <p></p>
+            <span id="songsToggle">Rhythm Song</span>
+            <div id="songsArea" style="display:none;">
+                <textarea style="width: 95%; height: 100px; font-size: 18px"
+                    id="kuchiShoga">don don doko don"</textarea><br>
+                <button id="ff1">Fast and Furious 1</button>
+                <button id="ff2">Fast and Furious 2</button>
+                <button id="matsuri">Matsuri</button>
+            </div>
+            <p></p>
+             <input type="checkbox" id="useWheel" checked> wheel
+            &nbsp;
+            <input type="checkbox" id="moveNotes">
+            <label for="moveNotes">move notes</label>
+            <input type="checkbox" id="useMidi">
+            <label for="useMidi">midi</label>
+            <input type="checkbox" id="collapse">
+            <label for="collapse">collapse</label>
+            &nbsp;
+            <input type="range" id="bpmSlider" min="5" max="160">
+            <label for="bpmSlider" id="bpmLabel">BPM</label>
+            <p></p>
+  
+            <button id="sensors">Sensors</button>
+            &nbsp;
+            <button id="stick">Arduino</button>
+            &nbsp;
+          <span id="tab">&nbsp; &nbsp;</span>
+            <p>
+            </p>
+            <div id="midiTrackInfo">
+                No Tracks Loaded<br>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        var mtool;
+        var stick1, stick2;
+        var TAIKO_BOX;
+        var sensors = null;
+
+        const SIMPLE1 = `rest rest rest rest | moon moon sun star`;
+        const SIMPLE2 = `don don ka don`;
+
+        function toggleDiv(labelSel, divSel) {
+            $(labelSel).click(e => {
+                console.log("click toggle", labelSel, divSel);
+                if ($(divSel).css("display") == "none")
+                    $(divSel).show(200);
+                else
+                    $(divSel).hide(200);
+            })
+        }
+
+        $(document).ready(function () {
+            mtool = new MusicTool("musicCanvas");
+            mtool.start();
+            mtool.setView(0, 0, 1020);
+            //window.wheel = gtool.addWheel(SIMPLE1);
+            window.game = mtool.addGame(SIMPLE1);
+            stick1 = new RhythmStick({ taikoBox: TAIKO_BOX });
+
+            $("#stick").click(() => stick1.setup());
+            $("#sensors").click(() => {
+                sensors = new Sensors();
+                sensors.start();
+            });
+            toggleDiv("#songsToggle", "#songsArea");
+        });
+
+    </script>
+</body>
+
+</html>

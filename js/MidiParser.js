@@ -128,7 +128,8 @@ class MidiParser {
                     "v": v,
                     "dur": 30,
                     "type": "note",
-                    "channel": ch
+                    "channel": ch,
+                    "label": target
                 }
             ]
         ];

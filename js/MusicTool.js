@@ -62,6 +62,26 @@ class MusicTool extends CanvasTool {
     return wheelBox;
   }
 
+  addGame(initialSong) {
+    var opts = {
+      "type": "RhythmGame",
+      "id": "game",
+      "name": "Rhythm Toy",
+      "lineWidth": 4,
+      "fillStyle": "brown",
+      "width": 800,
+      "height": 800,
+      "x": 0,
+      "y": 0,
+      initialSong
+    }
+    var game = new RhythmGame(opts);
+    this.game = game;
+    this.addGraphic(game);
+    game.addScorer();
+    return game;
+  }
+
   addPiano() {
     var opts = {
       "type": "PianoBox",
@@ -113,6 +133,8 @@ class MusicTool extends CanvasTool {
       this.taikoBox.tick();
     if (this.wheelBox)
       this.wheelBox.tick();
+    if (this.game)
+      this.game.tick();
   }
 
   async addItem(item) {
