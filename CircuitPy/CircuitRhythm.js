@@ -141,6 +141,11 @@ class RhythmStick {
   handleTap(parts) {
     console.log("tap", parts);
     var taikoBox = window.TAIKO_BOX;
+    if (!taikoBox) {
+      taikoBox = window.GAME;
+      if (taikoBox)
+        taikoBox.rhythmStick = this;
+    }
     var ay = Number(parts[2])
     console.log("ay", ay);
     if (taikoBox) {

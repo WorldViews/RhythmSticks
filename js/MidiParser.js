@@ -151,12 +151,41 @@ class MidiParser {
         this.events.push(event);
     }
 
+    addMetronomeEvents() {
+        for (var bt = 0; bt <= this.t; bt += this.beatDur) {
+            var event = [
+                bt,
+                [
+                    /*
+                    {
+                        "pitch": 30,
+                        "t0": bt,
+                        "v": 100,
+                        "dur": 30,
+                        "type": "note",
+                        "channel": 0,
+                        "label": 'cowbell'
+                    }
+                    */
+                    {
+                        't0': bt,
+                        'type': 'metronome',
+                        'label': 'cowbell'
+                    }
+                ]
+            ];
+            console.log(bt, "=====================================================================");
+            this.events.push(event);
+        }
+    }
+
     getMidiObj() {
+        var resolution = this.beatDur;
         var midiObj = {
             format: 0,
             channels: [0, 1, 2],
             instruments: [116, 115, 116],
-            resolution: 200, // this is ticksPerBeat
+            resolution, // this is ticksPerBeat
             durationTicks: this.t,
             type: "MidiObj",
             loop: true,
@@ -167,6 +196,7 @@ class MidiParser {
                 }
             ]
         };
+        this.addMetronomeEvents();
         midiObj.tracks[0].seq = this.events;
         return midiObj;
     }

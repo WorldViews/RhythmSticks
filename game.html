@@ -106,12 +106,17 @@
             &nbsp;
             <input type="checkbox" id="moveNotes">
             <label for="moveNotes">move notes</label>
+            &nbsp;
             <input type="checkbox" id="useMidi">
             <label for="useMidi">midi</label>
+            &nbsp;
             <input type="checkbox" id="collapse">
             <label for="collapse">collapse</label>
             &nbsp;
-            <input type="range" id="bpmSlider" min="5" max="160">
+            <input type="checkbox" id="metronome">
+            <label for="metronome">metronome</label>
+            &nbsp;
+            <input type="range" id="bpmSlider" min="5" max="200" value="100">
             <label for="bpmSlider" id="bpmLabel">BPM</label>
             <p></p>
   
@@ -154,6 +159,7 @@
             mtool.setView(0, 0, 1020);
             //window.wheel = gtool.addWheel(SIMPLE1);
             window.game = mtool.addGame(SIMPLE1);
+            window.GAME = window.game;
             stick1 = new RhythmStick({ taikoBox: TAIKO_BOX });
 
             $("#stick").click(() => stick1.setup());

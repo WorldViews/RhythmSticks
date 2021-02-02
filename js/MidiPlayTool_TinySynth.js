@@ -219,7 +219,7 @@ class MidiPlayTool_TinySynth {
             player.ticksPerBeat = 500;
         }
 
-        var bpm = 100;
+        var bpm = player.beatsPerMin;
         player.ticksPerSec = player.ticksPerBeat * bpm / 60;
         // This is just a guess... we will override if there is a tempo
         player.trackChannels = {};  // These are 'global' tracks which
@@ -328,6 +328,13 @@ class MidiPlayTool_TinySynth {
         if (midiObj.durationTicks == null) {
             alert("setting midiObj.durationTicks");
             midiObj.durationTicks = durationTicks;
+        }
+        else {
+            if (midiObj.durationTicks != durationTicks) {
+                alert("mismatched durationTicks");
+                console.log("mismatch", midiObj.durationTicks, durationTicks);
+                midiObj.durationTicks = durationTicks;
+            }
         }
         midiObj.duration = midiObj.durationTicks / player.ticksPerSec;
         player.loadInstruments();
@@ -552,8 +559,8 @@ class MidiPlayTool_TinySynth {
                 this.handleNote(t0, event);
                 continue;
              }
-            if (etype == "marker") {
-                console.log("event marker", event);
+            if (etype == "marker" || etype == "metronome") {
+                this.handleNote(t0, event);
             }
             console.log("*** unexpected etype: " + etype);
         }
@@ -562,6 +569,8 @@ class MidiPlayTool_TinySynth {
     handleNote(t0, note)
     {
         //console.log("note: "+JSON.stringify(note));
+        if (note.type != 'note')
+            return;
         var t = 0;
         var pitch = note.pitch;
         var v = note.v;

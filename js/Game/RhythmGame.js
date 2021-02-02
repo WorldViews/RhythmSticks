@@ -20,15 +20,24 @@ class MPlayer extends MidiPlayTool {
 
     handleNote(t0, note) {
         console.log("label", note.label);
+        if (note.type == "marker")
+            return;
+        if (note.type == "metronome") {
+            if (this.game.useMetronome()) {
+                this.game.soundPlayer.playNote("cowbell", .1);
+            }
+            return;
+        }
         if (this.game.useMidi()) {
             super.handleNote(t0, note);
         }
         else {
+            var v = 3;
             var ALIAS = { "rim": "cowbell", "center": "taiko" };
             var label = note.label;
             if (ALIAS[label])
                 label = ALIAS[label];
-            this.game.soundPlayer.playNote(label);
+            this.game.soundPlayer.playNote(label, v);
         }
         this.game.observeNote(t0, note);
     }
@@ -36,7 +45,7 @@ class MPlayer extends MidiPlayTool {
 
 class DrumPic extends CanvasTool.ImageGraphic {
     constructor(game, name, x, y, width, height, url) {
-        var opts = {id: name, x, y, width, height, url};
+        var opts = { id: name, x, y, width, height, url };
         super(opts);
         this.label = name;
         this.game = game;
@@ -64,7 +73,7 @@ class RhythmGame extends CanvasTool.RectGraphic {
         window.MIDI_BOX = this;
         window.MPLAYER = this.mplayer;
         this.mplayer.stateObserver = state => inst.observeState(state);
-    
+
         var instrument = opts.instrument || "taiko_drum";
         //this.loadInstrument(instrument);
         this.initMIDIDevices();
@@ -92,6 +101,7 @@ class RhythmGame extends CanvasTool.RectGraphic {
         this.icons = icons;
         this.addItems();
         this.songType = "SUNMOONSTAR";
+        this.rhythmStick = null;
         if (opts.initialSong)
             this.playKuchiShoga(opts.initialSong, false);
     }
@@ -124,6 +134,10 @@ class RhythmGame extends CanvasTool.RectGraphic {
 
     useMidi() {
         return $("#useMidi").is(":checked");
+    }
+
+    useMetronome() {
+        return $("#metronome").is(":checked");
     }
 
     collapseTracks() {
@@ -270,7 +284,7 @@ class RhythmGame extends CanvasTool.RectGraphic {
             if (this.moveNotes)
                 bt -= pt;
             var a = bt * 2 * Math.PI / dur;
-            //this.drawRadialLine(canvas, ctx, a, 160, r, 0.2);
+            this.drawRadialLine(canvas, ctx, a, 160, r, 0.2);
         }
         // now draw the notes, as arcs
         this.drawNotesArcs(canvas, ctx);
@@ -339,7 +353,7 @@ class RhythmGame extends CanvasTool.RectGraphic {
                 //console.log(t0+" graphic for note pitch: "+pitch+" v:"+v+" dur: "+dur);
                 //console.log("draw note", t, dur, pitch);
                 var ki = pitch - 40;
-                var radii = {0: r0, 1: r1, 2: r2};
+                var radii = { 0: r0, 1: r1, 2: r2 };
                 var r = radii[event.channel];
                 //var icon = this.icons[event.channel];
                 var icon = this.icons[event.label];
@@ -505,14 +519,14 @@ class RhythmGame extends CanvasTool.RectGraphic {
         var xspace = 100;
         var x = this.x - xspace;
         var y = this.y;
-        var width =  80;
+        var width = 80;
         var height = 80;
         this.taikoPic = new DrumPic(this, "taiko", x, y, width, height, "images/taiko.svg");
-        this.sunPic =   new DrumPic(this, "sun",   x, y, width, height, "images/sun1.png");
+        this.sunPic = new DrumPic(this, "sun", x, y, width, height, "images/sun1.png");
         x += xspace;
-        this.moonPic =  new DrumPic(this, "moon",  x, y, width, height, "images/moon1.png");
+        this.moonPic = new DrumPic(this, "moon", x, y, width, height, "images/moon1.png");
         x += xspace;
-        this.starPic =  new DrumPic(this, "star",  x, y, width, height, "images/star1.png");
+        this.starPic = new DrumPic(this, "star", x, y, width, height, "images/star1.png");
         this.addGraphic(this.sunPic);
         this.addGraphic(this.moonPic);
         this.addGraphic(this.starPic);

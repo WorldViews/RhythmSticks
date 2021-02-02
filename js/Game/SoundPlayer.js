@@ -23,18 +23,20 @@ class SamplesPlayer extends SoundPlayer {
         }
     }
 
-    playNote(instName) {
+    playNote(instName, v) {
         instName = instName || "taiko";
         //this.app.beep("c4", "16n");
         //this.playSound(soundPrefix + instName + ".wav");
         this.ext = ".wav";
         if (instName == "taiko"  || instName == "cowbell")
             this.ext = ".ogg";
-        this.playSound(this.soundPrefix + instName + this.ext);
+        this.playSound(this.soundPrefix + instName + this.ext, v);
     }
 
-    playSound(url) {
+    playSound(url, v) {
         var inst = this;
+        if (v == null)
+            v = 1.0;
         //console.log("playSound "+url);
         if (!this.AudioContext) {
             new Audio(url).play();
@@ -61,6 +63,15 @@ class SamplesPlayer extends SoundPlayer {
             req.send();
         }
         function playBuffer(buffer) {
+            var source = inst.context.createBufferSource();
+            var gain = inst.context.createGain();
+            gain.gain.value = v;
+            source.buffer = buffer;
+            source.connect(gain);
+            gain.connect(inst.context.destination);
+            source.start();
+        };
+        function playBufferOLD(buffer) {
             var source = inst.context.createBufferSource();
             source.buffer = buffer;
             source.connect(inst.context.destination);
