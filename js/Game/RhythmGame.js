@@ -7,6 +7,9 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+const SHIKO = `moon - moon - | sun - sun - | moon - moon - | sun sun - - |
+sun - star star | sun - star star | sun - star star | moon moon - -`;
+
 // this is a kind of player that uses midi.
 class MPlayer extends MidiPlayTool {
     constructor(game, opts) {
@@ -112,6 +115,7 @@ class RhythmGame extends CanvasTool.RectGraphic {
         $("#kuchiShoga").change(e => inst.noticeNewKuchiShoga());
         $("#ff1").click(e => inst.playFastAndFurious1());
         $("#ff2").click(e => inst.playFastAndFurious2());
+        $("#shiko").click(e => inst.playShiko());
         $("#matsuri").click(e => inst.playMatsuri());
         $("#useWheel").change(e => inst.toggleUseWheel(e));
         $("#moveNotes").change(e => inst.toggleMoveNotes(e));
@@ -176,6 +180,10 @@ class RhythmGame extends CanvasTool.RectGraphic {
     tick() {
         if (this.scorer)
             this.scorer.update(this.getTime());
+    }
+
+    playShiko() {
+        this.playKuchiShoga(SHIKO);
     }
 
     playFastAndFurious1() {
