@@ -95,9 +95,9 @@ class RhythmGame extends CanvasTool.RectGraphic {
         // for debugging
         window.WHEEL_BOX = this;
         var icons = {}
-        icons['sun'] = new CanvasTool.ImageGraphic({ url: "images/sun1.png", width: 40, height: 40 });
-        icons['moon'] = new CanvasTool.ImageGraphic({ url: "images/moon1.png", width: 40, height: 40 });
-        icons['star'] = new CanvasTool.ImageGraphic({ url: "images/star1.png", width: 40, height: 40 });
+        icons['sun'] = new CanvasTool.ImageGraphic({ url: "images/sun.png", width: 40, height: 40 });
+        icons['moon'] = new CanvasTool.ImageGraphic({ url: "images/moon.png", width: 40, height: 40 });
+        icons['star'] = new CanvasTool.ImageGraphic({ url: "images/star.png", width: 40, height: 40 });
         this.icons = icons;
         this.addItems();
         this.songType = "SUNMOONSTAR";
@@ -522,11 +522,11 @@ class RhythmGame extends CanvasTool.RectGraphic {
         var width = 80;
         var height = 80;
         this.taikoPic = new DrumPic(this, "taiko", x, y, width, height, "images/taiko.svg");
-        this.sunPic = new DrumPic(this, "sun", x, y, width, height, "images/sun1.png");
+        this.sunPic = new DrumPic(this, "sun", x, y, width, height, "images/sun.png");
         x += xspace;
-        this.moonPic = new DrumPic(this, "moon", x, y, width, height, "images/moon1.png");
+        this.moonPic = new DrumPic(this, "moon", x, y, width, height, "images/moon.png");
         x += xspace;
-        this.starPic = new DrumPic(this, "star", x, y, width, height, "images/star1.png");
+        this.starPic = new DrumPic(this, "star", x, y, width, height, "images/star.png");
         this.addGraphic(this.sunPic);
         this.addGraphic(this.moonPic);
         this.addGraphic(this.starPic);
