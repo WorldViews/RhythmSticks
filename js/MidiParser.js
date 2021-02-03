@@ -152,27 +152,10 @@ class MidiParser {
     }
 
     addMetronomeEvents() {
-        for (var bt = 0; bt <= this.t; bt += this.beatDur) {
+        for (var bt = 0; bt < this.t; bt += this.beatDur) {
             var event = [
                 bt,
-                [
-                    /*
-                    {
-                        "pitch": 30,
-                        "t0": bt,
-                        "v": 100,
-                        "dur": 30,
-                        "type": "note",
-                        "channel": 0,
-                        "label": 'cowbell'
-                    }
-                    */
-                    {
-                        't0': bt,
-                        'type': 'metronome',
-                        'label': 'cowbell'
-                    }
-                ]
+                [{ 't0': bt, 'type': 'metronome', 'label': 'cowbell' }]
             ];
             console.log(bt, "=====================================================================");
             this.events.push(event);

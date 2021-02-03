@@ -36,7 +36,7 @@ class WordListTable {
         var inst = this;
         var tool = inst.tool;
         var tab = $("#phraseList");
-        var phrases = PHRASE_LIST;
+        var phrases = this.tool.phrases;
         for (var id in phrases) {
             var phrase = phrases[id];
             var kanji = phrase.kanji;
@@ -129,84 +129,16 @@ class WordListTable {
 }
 
 /*
-This is tool to help learn kana, which are the Japanese syllabic sounds.
-They can be represented as katakana, hiragana, or romanji.
-The katakana and hiragana match up one to one, but it is a little more
-subtle for the romanji, because a few different sounds map to the same
-romanji.
-
-For convenience to english speaker, we use a set of strongs we call kana ids,
-or kids, which are in correspondence with katakana and hiragana.   Each kid
-consist of a consonant sound and a vowel sound.  So the full set of kids can
-be produced from a list of consanants (called groups here) and vowels.   There
-is one exception, which is 'n', that has no vowel.
-
-Given a kid, we can map it to a hiragana, a katakana or a romanji.   All scores
-and table cells, etc, are indexed by kids.
-
-The names of the kids are mostly the same as the romanji, except that
-the kid du maps to romanji zu
-and kids di and zi map to romanji ji.
 
 */
 class WordPracticeTool {
     constructor() {
+        this.phrases = PHRASE_LIST;
         //this.init();
     }
 
     async init() {
         var inst = this;
-        inst.charType = "Hiragana";
-        inst.hiragana = [];
-        inst.katakana = [];
-        inst.kids = [];
-        inst.kidToHiragana = {};
-        inst.hiraganaToKid = {};
-        inst.kidToKatakana = {};
-        inst.kataKanaToKid = {};
-        inst.selected = {};
-        inst.counters = null;
-        var parts = HK_CHARS.trim().split(RE_WHITESPACE);
-        //var tweaks = { "tu": "tsu", "si": "shi", "ti": "chi", "hu": "fu", "di": "ji" , "zi": "ji"};
-        var tweaks = { "tu": "tsu", "si": "shi", "ti": "chi", "hu": "fu" };
-        this.labtweaks = { "di": "ji", "zi": "ji", "du": "zu" };
-        this.tweaks = tweaks;
-        this.vowels = ["a", "i", "u", "e", "o"];
-        //var groups = ["", "k", "s", "t", "n", "h", "y", "r", "w", "g", "d", "b", "p"];
-        var cols = ["", "k", "s", "t", "n", "h", "m", "y", "r", "w", "g", "d", "b", "p", "z"];
-        this.groups = cols;
-        var rows = this.vowels;
-        var ncols = cols.length;
-        var nrows = rows.length;
-        for (var i = 0; i < nrows; i++) {
-            var v = rows[i];
-            for (var j = 0; j < ncols; j++) {
-                var c = cols[j];
-                var rom = c + v;
-                if (tweaks[rom]) {
-                    rom = tweaks[rom];
-                }
-                var part = parts[(i + 1) * (ncols + 1) + (j + 1)];
-                if (part.length < 2)
-                    continue;
-                var hir = part[0];
-                var kat = part[1];
-                console.log(i, j, rom, hir, kat);
-                this.kids.push(rom);
-                this.hiragana.push(hir);
-                this.katakana.push(kat);
-                this.kidToHiragana[rom] = hir;
-                this.hiraganaToKid[hir] = rom;
-                this.kidToKatakana[rom] = kat;
-                this.kataKanaToKid[kat] = rom;
-            }
-        }
-        // n is a special case
-        this.kids.push('n');
-        this.kidToHiragana['n'] = H_N;
-        this.kidToKatakana['n'] = K_N;
-        this.kataKanaToKid[K_N] = 'n';
-        this.hiraganaToKid[H_N] = 'n';
         $("#userInput").change(e => inst.noticeChange());
         $("#userInput").on('input', e => inst.noticeInput(e));
         //this.table = new Table(this);
@@ -221,14 +153,6 @@ class WordPracticeTool {
         $("#save").click(e => inst.download());
         $("#load").click(e => inst.load());
         $("#reset").click(e => inst.resetScores());
-        this.initDB();
-        this.hcounters = new Counters("hiraganaCounters", this.kids, this.db);
-        this.kcounters = new Counters("katakanaCounters", this.kids, this.db);
-        this.bothCounters = new Counters("bothCounters", this.kids, this.db);
-        await this.hcounters.init();
-        await this.kcounters.init();
-        await this.bothCounters.init();
-        this.counters = this.hcounters;
         this.updateTable();
         this.idx = 0;
     }
@@ -236,70 +160,13 @@ class WordPracticeTool {
     updateTable() {
     }
 
-    dumpDB() {
-        console.log("dumpDB");
-        this.db.allDocs({ include_docs: true, descending: true }, (err, doc) => {
-            console.log(doc.rows);
-        });
-    }
-
-    addRecDB(id, obj) {
-        var row = { _id: id, vals: obj };
-        this.db.put(row, (err, result) => {
-            if (!err) {
-                console.log("Posted row", row);
-            }
-        })
-    }
-
-    async initDB() {
-        var db = new PouchDB('jlearn');
-        this.db = db;
-        this.addRecDB('user', { name: 'Don', size: 'big' });
-        this.dumpDB();
-    }
-
-    toggleCharType() {
-        var ctype = $("#charType").html();
-        if (ctype == "Hiragana") {
-            ctype = "Katakana";
-            this.counters = this.kcounters;
-        }
-        else if (ctype == "Katakana") {
-            ctype = "Both";
-            this.counters = this.bothCounters;
-        }
-        else {
-            ctype = "Hiragana";
-            this.counters = this.hcounters;
-        }
-        $("#charType").html(ctype);
-        this.charType = ctype;
-        this.updateTable();
-    }
-
-    getRom(kid) {
-        if (this.labtweaks[kid])
-            return this.labtweaks[kid];
-        return kid;
-    }
-
-    getCharStr(kid, ctype) {
-        var str = this.kidToHiragana[kid];
-        if (ctype == "Katakana")
-            str = this.kidToKatakana[kid];
-        else if (ctype == "Both")
-            str = this.kidToHiragana[kid] + " " + this.kidToKatakana[kid];
-        return str;
-    }
-
     selectAll(val) {
         var inst = this;
         this.kids.forEach(kid => inst.select(kid, val));
     }
 
-    select(rom, val) {
-        console.log("select", rom);
+    select(cid, val) {
+        console.log("select", cid);
         var selStyle = "#FFEEEE";
         if (val)
             this.selected[rom] = true;
@@ -337,28 +204,20 @@ class WordPracticeTool {
 
     noticeChange() {
         console.log("noticeChange");
-        var v = $("#userInput").val().toLowerCase();
+        var str = $("#userInput").val().toLowerCase();
         $("#userInput").val("");
-        if (v != "")
+        if (str != "")
             this.numTries++;
-        this.currentTrial.tries.push(v);
-        var label = "good";
-        var kid = this.currentTrial.kid;
-        var rom = this.currentTrial.rom;
-        if (v == rom) {
+        this.currentTrial.tries.push(str);
+        var label = "";
+        var eng = this.currentPhrase.english.toLowerCase();
+        console.log(str, eng);
+        if (str == eng) {
+            label = "good";
             this.numCorrect++;
-            this.counters.noticeRight(kid);
-        }
-        else if (v != "") {
-            this.numErrors++;
-            label = "ooops";
-            this.counters.noticeWrong(kid);
-        }
-        if (v == " ") {
-            $("#r1").html(rom)
         }
         this.showStats(label);
-        if (label == "good" && v != "")
+        if (label == "good" && str != "")
             this.nextTrial();
         this.updateTable();
     }
@@ -370,25 +229,6 @@ class WordPracticeTool {
 
     // Get probabilities for selecting a given rom
     getProbs(kids) {
-        console.log("getProbs");
-        var f = [];
-        var sum = 0;
-        for (var i = 0; i < kids.length; i++) {
-            var kid = kids[i];
-            //f[i] = 1;
-            f[i] = - Math.log(this.counters.probRight(kid));
-            f[i] = Math.pow(f[i], 3);
-            if (this.currentTrial && this.currentTrial.kid == kid)
-                f[i] = 0;
-            sum += f[i];
-        }
-        for (var i = 0; i < f.length; i++) {
-            f[i] /= sum;
-        }
-        for (var i = 0; i < kids.length; i++) {
-            console.log(i, kids[i], f[i]);
-        }
-        return f;
     }
 
     // Select an index from the vector, with probabilities
@@ -406,39 +246,27 @@ class WordPracticeTool {
         return pv.length - 1;
     }
 
-    chooseRomanji() {
-        var kids = Object.keys(this.selected);
-        // romanjis should be cids
-        if (kids.length == 0)
-            kids = this.kids;
-        var CYCLE = false;
-        if (CYCLE) {
-            this.idx = this.idx % kids.length;
-            var rom = kids[this.idx];
-            this.idx++;
-        }
-        else {
-            var pv = this.getProbs(kids);
-            console.log("kids", kids, pv);
-            var i = this.selectRandIndex(pv);
-            var rom = kids[i];
-        }
-        return rom;
+    choosePhrase() {
+        var ids = Object.keys(this.phrases);
+        var n = ids.length;
+        var r = Math.random();
+        var i = Math.floor(r*n);
+        console.log("choosePhrase", r, i, n);
+        return this.phrases[ids[i]];
     }
 
     nextTrial() {
-        var kid = this.chooseRomanji();
-        var rom = this.getRom(kid);
-        var hir = this.kidToHiragana[kid];
-        var kat = this.kidToKatakana[kid];
-        var trial = { kid, rom, hir, kat, tries: [] };
-        console.log("update", this.idx, kid, rom, hir, kat);
-        this.currentTrial = trial;
+        console.log("nextTrial");
+        var phrase = this.choosePhrase();
+        var trial = {};
+        trial.phrase = phrase;
+        trial.tries = [];
         this.trials.push(trial);
-        var str = this.getCharStr(kid, this.charType);
+        this.currentTrial = trial;
+        this.currentPhrase = phrase;
         //document.getElementById("h1").innerHTML = h;
-        $("#h1").html(str);
-        $("#r1").html("");
+        $("#kanji").html(phrase.kanji);
+        $("#kana").html(phrase.kana);
         //document.getElementById("r1").innerHTML = this.currentRomanji;
     }
 
@@ -460,46 +288,9 @@ class WordPracticeTool {
         this.counters.dump();
     }
 
-    // This downloads the scores
-    download(text, filename) {
-        filename = "scores.json";
-        var data = this.hcounters.data;
-        var obj = {
-            'hcounters': this.hcounters.data,
-            'kcounters': this.kcounters.data
-        };
-        var text = JSON.stringify(obj, null, 3);
-        var element = document.createElement('a');
-        element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
-        element.setAttribute('download', filename);
-
-        element.style.display = 'none';
-        document.body.appendChild(element);
-
-        element.click();
-
-        document.body.removeChild(element);
-    }
-
-    async load(url) {
-        url = url || "scores.json";
-        var obj = await loadJSON(url);
-        console.log("scores", obj);
-        this.hcounters.data = obj.hcounters;
-        this.kcounters.data = obj.kcounters;
-        await this.hcounters.save();
-        await this.kcounters.save();
-        this.updateTable();
-    }
 
     async resetScores() {
         console.log("reset scores");
-        this.hcounters.reset();
-        await this.hcounters.save();
-        this.kcounters.reset();
-        await this.kcounters.save();
-        this.bothCounters.reset();
-        await this.bothCounters.save();
         this.updateTable();
     }
 }

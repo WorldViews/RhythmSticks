@@ -2,13 +2,26 @@
 "use strict"
 
 var ALIAS = { "rim": "cowbell", "center": "taiko" };
+const SUN_MOON_STAR_SONG = "SUN_MOON_STAR";
+const TAIKO_SONG = "TAIKO";
 
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+function contains(str, parts) {
+    for (var i = 0; i < parts.length; i++)
+        if (str.indexOf(parts[i]) >= 0)
+            return true;
+    return false;
+}
+
 const SHIKO = `moon - moon - | sun - sun - | moon - moon - | sun sun - - |
 sun - star star | sun - star star | sun - star star | moon moon - -`;
+
+const FANGA1 = `sun rest sun sun | rest sun moon moon | sun rest rest sun | sun rest moon moon`;
+
+const DJEMBE3 = `sun moon moon | sun moon moon | moon moon star | moon - -`;
 
 // this is a kind of player that uses midi.
 class MPlayer extends MidiPlayTool {
@@ -102,26 +115,27 @@ class RhythmGame extends CanvasTool.RectGraphic {
         icons['moon'] = new CanvasTool.ImageGraphic({ url: "images/moon.png", width: 40, height: 40 });
         icons['star'] = new CanvasTool.ImageGraphic({ url: "images/star.png", width: 40, height: 40 });
         this.icons = icons;
-        this.addItems();
-        this.songType = "SUNMOONSTAR";
+        this.songType = SUN_MOON_STAR_SONG;
+        this.setupDrumPics();
         this.rhythmStick = null;
         if (opts.initialSong)
-            this.playKuchiShoga(opts.initialSong, false);
+            this.playSong(opts.initialSong, false);
     }
 
     setupGUI() {
         var inst = this;
         $("#kuchiShoga").keypress(e => inst.noticeSongKeypress(e));
-        $("#kuchiShoga").change(e => inst.noticeNewKuchiShoga());
+        $("#kuchiShoga").change(e => inst.noticeNewSong());
         $("#ff1").click(e => inst.playFastAndFurious1());
         $("#ff2").click(e => inst.playFastAndFurious2());
-        $("#shiko").click(e => inst.playShiko());
+        $("#shiko").click(e => inst.playSong(SHIKO));
+        $("#fanga1").click(e => inst.playSong(FANGA1));
+        $("#djembe3").click(e => inst.playSong(DJEMBE3));
         $("#matsuri").click(e => inst.playMatsuri());
         $("#useWheel").change(e => inst.toggleUseWheel(e));
         $("#moveNotes").change(e => inst.toggleMoveNotes(e));
         $("#bpmSlider").change(e => inst.handleBPMSlider(e));
         inst.handleBPMSlider();
-        //this.playKuchiShoga(MATSURI, true);
     }
 
     /*
@@ -182,9 +196,6 @@ class RhythmGame extends CanvasTool.RectGraphic {
             this.scorer.update(this.getTime());
     }
 
-    playShiko() {
-        this.playKuchiShoga(SHIKO);
-    }
 
     playFastAndFurious1() {
         // https://drive.google.com/file/d/1ehq3Ndf1KEbuJZpi7xc-P-cFxjPh_b-Q/view
@@ -194,7 +205,7 @@ class RhythmGame extends CanvasTool.RectGraphic {
         don don  don  don  ka doko doko doko
         ka  doko doko doko ka doko doko doko
         `;
-        this.playKuchiShoga(ff1);
+        this.playSong(ff1);
     }
 
     playFastAndFurious2() {
@@ -204,34 +215,40 @@ class RhythmGame extends CanvasTool.RectGraphic {
         ka doko kara doko ka   doko kara doko
         ka doko kara doko kara doko kara doko
         `;
-        this.playKuchiShoga(ff2);
+        this.playSong(ff2);
     }
 
     playMatsuri(autoStart) {
-        this.playKuchiShoga(MATSURI, false);
+        this.playSong(MATSURI, false);
     }
 
     noticeSongKeypress(e) {
         var keycode = (e.keyCode ? e.keyCode : e.which);
         window.E = e;
         if (keycode == '13' && !e.shiftKey) {
-            this.noticeNewKuchiShoga();
+            this.noticeNewSong();
         }
     }
 
-    noticeNewKuchiShoga() {
-        var kuchiShoga = $("#kuchiShoga").val();
-        console.log("kuchiShoga", kuchiShoga);
-        this.playKuchiShoga(kuchiShoga);
+    noticeNewSong() {
+        var song = $("#kuchiShoga").val();
+        console.log("noticeNewSong", song);
+        this.playSong(song);
     }
 
-    async playKuchiShoga(kuchiShoga, autoStart) {
-        console.log("playKuchiShoga", kuchiShoga, autoStart);
-        kuchiShoga = kuchiShoga.trim();
+    async playSong(song, autoStart) {
+        var str = song.toLowerCase();
+        if (contains(str, ["sun", "moon", "star"]))
+            this.songType = SUN_MOON_STAR_SONG;
+        if (contains(str, ["doko", "don", "ka"]))
+            this.songType = TAIKO_SONG;
+        console.log("playKuchiShoga", song, autoStart);
+        this.setupDrumPics();
+        song = song.trim();
         //$("#kuchiShoga").val(kuchiShoga);
         this.mplayer.pausePlaying();
         await sleep(0.5);
-        this.midiParser.addKuchiShoga(kuchiShoga);
+        this.midiParser.addKuchiShoga(song);
         var midiObj = this.midiParser.getMidiObj();
         await sleep(0.5);
         this.mplayer.playMidiObj(midiObj, autoStart);
@@ -287,12 +304,14 @@ class RhythmGame extends CanvasTool.RectGraphic {
         //
         this.beatsPerSec = this.mplayer.beatsPerMin / 60;
         this.numBeats = dur * this.beatsPerSec;
+        var rMin = this.getRadius(0) - 10;
+        var rMax = this.getRadius(2) + 10;
         for (var b = 0; b < this.numBeats; b++) {
             var bt = b / this.beatsPerSec;
             if (this.moveNotes)
                 bt -= pt;
             var a = bt * 2 * Math.PI / dur;
-            this.drawRadialLine(canvas, ctx, a, 160, r, 0.2);
+            this.drawRadialLine(canvas, ctx, a, rMin, rMax, 0.2);
         }
         // now draw the notes, as arcs
         this.drawNotesArcs(canvas, ctx);
@@ -309,6 +328,14 @@ class RhythmGame extends CanvasTool.RectGraphic {
         this.drawLine(canvas, ctx, x0, y0, x1, y1);
     }
 
+    getRadius(ch) {
+        this.radii = { 0: 150, 1: 170, 2: 190 };
+        var r = this.radii[ch];
+        if (this.collapseTracks())
+            return 170;
+        return r;
+    }
+
     drawNotesArcs(canvas, ctx) {
         // now draw notes
         var player = this.mplayer;
@@ -320,17 +347,11 @@ class RhythmGame extends CanvasTool.RectGraphic {
         //ctx.strokeStyle = null;
         this.clipNotes = true;
         var ystrike = this.y + 60;
-        var r0 = 150;
-        var r1 = 170;
-        var r2 = 190;
-        if (this.collapseTracks()) {
-            r0 = r2 = r1;
-        }
         this.lineWidth = 1;
         this.strokeStyle = "gray";
-        this.drawCircle(canvas, ctx, r0, this.x, this.y);
-        this.drawCircle(canvas, ctx, r1, this.x, this.y);
-        this.drawCircle(canvas, ctx, r2, this.x, this.y);
+        for (var i = 0; i < 3; i++) {
+            this.drawCircle(canvas, ctx, this.getRadius(i), this.x, this.y);
+        }
         ctx.save();
         ctx.lineWidth = 12;
         ctx.strokeStyle = "black";
@@ -361,8 +382,7 @@ class RhythmGame extends CanvasTool.RectGraphic {
                 //console.log(t0+" graphic for note pitch: "+pitch+" v:"+v+" dur: "+dur);
                 //console.log("draw note", t, dur, pitch);
                 var ki = pitch - 40;
-                var radii = { 0: r0, 1: r1, 2: r2 };
-                var r = radii[event.channel];
+                var r = this.getRadius(event.channel);
                 //var icon = this.icons[event.channel];
                 var icon = this.icons[event.label];
                 var a0 = timeToAngle * t;
@@ -522,22 +542,32 @@ class RhythmGame extends CanvasTool.RectGraphic {
         console.log("playMidiFile returned", obj);
     }
 
-    async addItems() {
+    async setupDrumPics() {
         await sleep(0.5);
-        var xspace = 100;
-        var x = this.x - xspace;
-        var y = this.y;
-        var width = 80;
-        var height = 80;
-        this.taikoPic = new DrumPic(this, "taiko", x, y, width, height, "images/taiko.svg");
-        this.sunPic = new DrumPic(this, "sun", x, y, width, height, "images/sun.png");
-        x += xspace;
-        this.moonPic = new DrumPic(this, "moon", x, y, width, height, "images/moon.png");
-        x += xspace;
-        this.starPic = new DrumPic(this, "star", x, y, width, height, "images/star.png");
-        this.addGraphic(this.sunPic);
-        this.addGraphic(this.moonPic);
-        this.addGraphic(this.starPic);
+        this.graphicsList = [];
+        if (this.songType == SUN_MOON_STAR_SONG) {
+            var xspace = 100;
+            var x = this.x - xspace;
+            var y = this.y;
+            var width = 80;
+            var height = 80;
+            this.sunPic = new DrumPic(this, "sun", x, y, width, height, "images/sun.png");
+            x += xspace;
+            this.moonPic = new DrumPic(this, "moon", x, y, width, height, "images/moon.png");
+            x += xspace;
+            this.starPic = new DrumPic(this, "star", x, y, width, height, "images/star.png");
+            this.addGraphic(this.sunPic);
+            this.addGraphic(this.moonPic);
+            this.addGraphic(this.starPic);
+        }
+        else {
+            var x = this.x - xspace;
+            var y = this.y;
+            var width = 200;
+            var height = 200;
+            this.taikoPic = new DrumPic(this, "taiko", x, y, width, height, "images/taiko.svg");   
+            this.addGraphic(this.taikoPic);        
+        }
         x -= 8;
         y -= 55;
         this.targets = {
