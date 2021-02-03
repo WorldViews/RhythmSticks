@@ -1,0 +1,70 @@
+<html>
+
+<head>
+    <script src="./js/libs/jquery-3.1.0.min.js"></script>
+    <script src="./js/util.js"></script>
+    <script src="./js/libs/sprintf.js"></script>
+    <script src="./js/JLearn.js" charset="utf-8"></script>
+    <script src="./js/JLearnWords.js" charset="utf-8"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pouchdb@7.1.1/dist/pouchdb.min.js"></script>
+    <style>
+        table {
+            xborder-style: solid;
+        }
+
+        td {
+            font-size: 30px;
+            padding: 10px;
+            border-style: solid;
+            border-width: 3px;
+        }
+
+        .romlab {
+            font-size: 20px;
+        }
+    </style>
+</head>
+
+<body style="font-size:36px">
+    <div id="box1" style="border-style: plain; border-width: 2;">
+        <span id="h1"></span>
+        <br>
+        <span id="r1"></span>
+        <br>
+        <input id="userInput" type="text">
+        <br>
+        <span id="stats"></span>
+        <br>
+        <button id="start">start</button>
+    </div>
+    <span id="wordsType">Words & Phrases</span>
+    <table id="phraseList">
+    </table>
+    <p></p>
+    <button id="selectAll">select all</button> &nbsp;
+    <button id="selectNone">select none</button>
+    <br>
+    <span id="scoreStats" style="font-size: smaller"></span><br>
+    <p>
+    </p>
+    <button id="save">save</button>
+    <button id="load">load</button>
+    <button id="reset">reset</button>
+    <script>
+
+        "use strict";
+
+        var pt = null;
+
+        async function start() {
+            pt = new WordPracticeTool();
+            pt.run();
+        }
+
+        $(document).ready(() => start());
+
+    </script>
+
+</body>
+
+</html>

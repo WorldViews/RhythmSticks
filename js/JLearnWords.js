@@ -2,256 +2,94 @@
 "use strict";
 
 
-var HK_CHARS =
-    `
-*    –	  k	    s    	t	   n	   h	   m	   y	   r	 w      g     d     b     p    z
-a  あア	 かカ	さサ	たタ	なナ	はハ	まマ	やヤ	らラ	わワ    がガ  だダ  ばバ  ぱパ  ざザ
-i  いイ	 きキ	しシ	ちチ	にニ	ひヒ	みミ	※	   りリ	   ゐヰ    ぎギ  ぢヂ  びビ  ぴピ  じジ
-u  うウ	 くク	すス	つツ	ぬヌ	ふフ	むム	ゆユ	るル	※      ぐグ  づヅ  ぶブ  ぷプ  ずズ
-e  えエ	 けケ	せセ	てテ	ねネ	へヘ	めメ	※	   れレ	   ゑヱ    げゲ  でデ  べベ  ぺペ  ぜゼ
-o  おオ	 こコ	そソ	とト	のノ	ほホ	もモ	よヨ	ろロ	をヲ    ごゴ  どド  ぼボ  ぽポ  ぞゾ
-`;
-
-var XX = `
-g	が	ぎ	ぐ	げ	ご
-g	ガ	ギ	グ	ゲ	ゴ
-d	だ	ぢ	づ	で	ど
-d	ダ	ヂ	ヅ	デ	ド
-b	ば	び	ぶ	べ	ぼ
-b	バ	ビ	ブ	ベ	ボ
-p	ぱ	ぴ	ぷ	ぺ	ぽ
-p	パ	ピ	プ	ペ	ポ
-z	ざ	じ	ず	ぜ	ぞ
-z	ザ	ジ	ズ	ゼ	ゾ
-`;
-
-var HXX = `
-∅	あ	い	う	え	お
-k	か	き	く	け	こ
-g	が	ぎ	ぐ	げ	ご
-s	さ	し	す	せ	そ
-z	ざ	じ	ず	ぜ	ぞ
-t	た	ち	つ	て	と
-d	だ	ぢ	づ	で	ど
-n	な	に	ぬ	ね	の
-h	は	ひ	ふ	へ	ほ
-b	ば	び	ぶ	べ	ぼ
-p	ぱ	ぴ	ぷ	ぺ	ぽ
-m	ま	み	む	め	も
-`;
-
-var KXX = `
-g	ガ	ギ	グ	ゲ	ゴ
-s	サ	シ	ス	セ	ソ
-z	ザ	ジ	ズ	ゼ	ゾ
-t	タ	チ	ツ	テ	ト
-d	ダ	ヂ	ヅ	デ	ド
-n	ナ	ニ	ヌ	ネ	ノ
-h	ハ	ヒ	フ	ヘ	ホ
-b	バ	ビ	ブ	ベ	ボ
-p	パ	ピ	プ	ペ	ポ
-`;
-
-var HK_N = "んン";
-var H_N = "ん";
-var K_N = "ン";
-var RE_WHITESPACE = /\s+/;
-var HK_PARTS = HK_CHARS.trim().split(RE_WHITESPACE);
-var NO_INIT_FROM_DB = false;  // used if schema changes
-
-class Counters {
-    constructor(name, names, db) {
-        this.name = name;
-        this.names = names;
-        this.db = db;
+var PHRASE_LIST = {
+    "id1": {
+        "kanji": "野菜",
+        "kana": "ベジタブル",
+        "romanji": "yasai",
+        "english": "vegetable"
+    },
+    "id2": {
+        "kanji": "果物",
+        "kana": "フルーツ",
+        "romanji": "Furūtsu",
+        "english": "fruit"
+    },
+    "id3": {
+        "kanji": "私",
+        "kana": "あたし",
+        "romanji": "watashi",
+        "english": "I"
     }
+};
 
-    async init() {
-        this.reset();
-        if (NO_INIT_FROM_DB)
-            return;
-        await this.load();
-    }
-
-    reset() {
-        var names = this.names;
-        var data = {};
-        names.forEach(name => {
-            data[name] = { numRight: 0, numWrong: 0 };
-        })
-        this.data = data;
-    }
-
-
-    async save() {
-        console.log("saving counters");
-        // first delete if already there.  We can probably
-        // figure out how to avoid this.
-        try {
-            var doc = await this.db.get(this.name);
-            //var rev = doc.rev;
-            //console.log("rev", rev);
-            await this.db.remove(doc);
-        }
-        catch (e) {
-            console.log(e);
-        }
-        //var row = { _id: 'counters', _rev: doc.rev, vals: this.data };
-        var row = { _id: this.name, vals: this.data };
-        this.db.put(row, { force: true }, (err, result) => {
-            if (!err) {
-                console.log("saved");
-                //console.log("Posted row", row);
-            }
-            else {
-                console.log("Error saving counters", err);
-            }
-        });
-    }
-
-    async load() {
-        console.log("Loading counters from db")
-        try {
-            var obj = await this.db.get(this.name);
-            console.log("obj", obj);
-            var counters = obj.vals;
-            console.log("counters", counters);
-            if (counters) {
-                console.log("Setting counters to", counters);
-                this.data = counters;
-            }
-            this.dump();
-        }
-        catch (e) {
-            console.log("*** Error loading counters from DB", e);
-        }
-    }
-
-    dump() {
-        console.log("dump counters", this.name);
-        for (var name in this.data) {
-            console.log(name, this.data[name]);
-        }
-    }
-
-    noticeRight(name) {
-        this.data[name].numRight++;
-        this.data[name].lastTime = getClockTime();
-        this.save();
-    }
-
-    noticeWrong(name) {
-        this.data[name].numWrong++;
-        this.data[name].lastTime = getClockTime();
-        this.save();
-    }
-
-    probRight(name) {
-        var c = this.data[name];
-        if (!c)
-            return 0.5;
-        var f = 1;
-        return (c.numRight + f) / (c.numRight + c.numWrong + 2 * f);
-    }
-
-    weight(name) {
-        var c = this.data[name];
-        if (!c)
-            return 1;
-        return (c.numRight + c.numWrong);
-    }
-}
-
-class Table {
+class WordListTable {
     constructor(tool) {
         this.tool = tool;
         this.vowels = tool.vowels;
         this.groups = tool.groups;
         this.init();
-        $("#charType").click(e => tool.toggleCharType());
     }
 
-    // create a table vertically arranged
-    // (not tested recently)
-    initV() {
-        var inst = this;
-        var tool = inst.tool;
-        var tab = $("#htab");
-        var vowels = this.vowels.slice(0);
-        vowels.push("x");
-        var groups = this.groups;
-        groups.forEach(g => {
-            var tr = $("<tr>");
-            vowels.forEach(v => {
-                var td = $("<td>");
-                var rom = g + v;
-                if (this.tweaks[rom]) {
-                    rom = this.tweaks[rom];
-                }
-                var hir = this.kidToHiragana[rom];
-                var id = "td_" + rom;
-                td.attr("id", id);
-                td.html(hir);
-                tr.append(td);
-            });
-            tab.append(tr);
-        });
-        $("td").click(e => inst.clickCell(e, $(this)));
-        $("td").mouseover(e => inst.mouseOver(e, $(this)));
-    }
-
-    // create a table horizontally arranged
+    // create a phrase table
     init() {
         var inst = this;
         var tool = inst.tool;
-        var tab = $("#htab");
-        var vowels = this.vowels.slice(0);
-        vowels.push('');
-        vowels.forEach(v => {
+        var tab = $("#phraseList");
+        var phrases = PHRASE_LIST;
+        for (var id in phrases) {
+            var phrase = phrases[id];
+            var kanji = phrase.kanji;
+            var kana = phrase.kana;
+            var rom = phrase.romanji;
+            var eng = phrase.english;
             var tr = $("<tr>");
-            this.groups.forEach(g => {
-                var td = $("<td>");
-                var rom = g + v;
-                if (tool.tweaks[rom]) {
-                    rom = tool.tweaks[rom];
-                }
-                var hir = tool.kidToHiragana[rom];
-                var id = "td_" + rom;
-                td.attr("id", id);
-                if (v == "" && g != 'n') {
-                    td.css('border-width', 0);
-                }
-                td.html(hir);
-                tr.append(td);
-            });
+            //
+            /*
+            var td = $("<td>");
+            var tid = "pt_id_" + id;
+            td.attr("id", tid);
+            td.css('border-width', 0);
+            td.html(id);
+            tr.append(td);
+            */
+            //
+            var td = $("<td>");
+            var kid = "pt__kanji" + id;
+            td.attr("id", kid);
+            td.css('border-width', 0);
+            td.html(kanji);
+            tr.append(td);
+            //
+            var td = $("<td>");
+            var rid = "pt_romanji" + id;
+            td.attr("id", rid);
+            td.css('border-width', 0);
+            td.html(rom);
+            tr.append(td);
+            //
+            var td = $("<td>");
+            var pid = "pt_kana" + id;
+            td.attr("id", pid);
+            td.css('border-width', 0);
+            td.html(kana);
+            tr.append(td);
+            //
+            var td = $("<td>");
+            var eid = "pt_english" + id;
+            td.attr("id", eid);
+            td.css('border-width', 0);
+            td.html(eng);
+            tr.append(td);
+            //
             tab.append(tr);
-        });
-        $("td").click(e => inst.clickCell(e, $(this)));
-        $("td").mouseover(e => inst.mouseOver(e, $(this)));
+        }
+        //$("td").click(e => inst.clickCell(e, $(this)));
+        //$("td").mouseover(e => inst.mouseOver(e, $(this)));
         this.update();
     }
 
     update() {
-        var inst = this;
-        var tool = inst.tool;
-        tool.kids.forEach(kid => {
-            //console.log("kid", kid);
-            var id = "td_" + kid;
-            var chrStr = tool.getCharStr(kid, tool.charType);
-            var rom = tool.getRom(kid);
-            var str = chrStr + '<br><span class="romlab">' + rom + '</span>';
-            $("#" + id).html(str);
-            if (tool.counters) {
-                console.log("update getting probRight", kid);
-                var p = tool.counters.probRight(kid);
-                var n = tool.counters.weight(kid);
-                var h = 200 * p;
-                var s = 100 * (n / (n + 1));
-                var l = 80;
-                var c = 'hsl(' + h + ","+s+"%,"+l+"%)";
-                $("#" + id).css('background-color', c);
-            }
-        })
     }
 
     clickCell(e, item) {
@@ -281,9 +119,9 @@ class Table {
         var w = counts.numWrong;
         var dt = t - counts.lastTime;
         console.log(kid, hir, kat, counts, r, w);
-        var statStr = sprintf("%s %s %s %d/%d", kid, hir, kat, r, (r+w));
-        if (r+w > 0)
-            statStr += sprintf(" %0.3f", r/(r+w))
+        var statStr = sprintf("%s %s %s %d/%d", kid, hir, kat, r, (r + w));
+        if (r + w > 0)
+            statStr += sprintf(" %0.3f", r / (r + w))
         if (dt > 0)
             statStr += sprintf(" %.1f sec", dt);
         $("#scoreStats").html(statStr);
@@ -311,7 +149,7 @@ the kid du maps to romanji zu
 and kids di and zi map to romanji ji.
 
 */
-class PracticeTool {
+class WordPracticeTool {
     constructor() {
         //this.init();
     }
@@ -330,7 +168,7 @@ class PracticeTool {
         inst.counters = null;
         var parts = HK_CHARS.trim().split(RE_WHITESPACE);
         //var tweaks = { "tu": "tsu", "si": "shi", "ti": "chi", "hu": "fu", "di": "ji" , "zi": "ji"};
-        var tweaks = { "tu": "tsu", "si": "shi", "ti": "chi", "hu": "fu"};
+        var tweaks = { "tu": "tsu", "si": "shi", "ti": "chi", "hu": "fu" };
         this.labtweaks = { "di": "ji", "zi": "ji", "du": "zu" };
         this.tweaks = tweaks;
         this.vowels = ["a", "i", "u", "e", "o"];
@@ -371,8 +209,10 @@ class PracticeTool {
         this.hiraganaToKid[H_N] = 'n';
         $("#userInput").change(e => inst.noticeChange());
         $("#userInput").on('input', e => inst.noticeInput(e));
-        this.table = new Table(this);
+        //this.table = new Table(this);
         //this.initTable();
+
+        this.wordList = new WordListTable(this);
 
         $("#selectAll").click(e => inst.selectAll(true));
         $("#selectNone").click(e => inst.selectAll(null));
@@ -394,7 +234,6 @@ class PracticeTool {
     }
 
     updateTable() {
-        this.table.update();
     }
 
     dumpDB() {
