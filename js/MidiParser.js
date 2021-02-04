@@ -65,6 +65,10 @@ class MidiParser {
                 this.addNote(1, part);
                 continue;
             }
+            if (part == "pa" || part == "dum") {
+                this.addNote(1, part);
+                continue;
+            }
             if (part == "doko" || part == "doro") {
                 this.addNote(0.5);
                 this.addNote(0.5);
@@ -111,6 +115,14 @@ class MidiParser {
         var pitch = 60;
         if (target == "rim" || target == "moon") {
             pitch = 62;
+            ch = 1;
+        }
+        if (target == "pa") {
+            pitch = 55;
+            ch = 0;
+        }
+        if (target == "dum") {
+            pitch = 63;
             ch = 1;
         }
         if (target == "star") {
