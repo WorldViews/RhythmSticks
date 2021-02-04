@@ -70,6 +70,10 @@ class Counters {
         this.reset();
         if (NO_INIT_FROM_DB)
             return;
+        if (!this.db) {
+            console.log("Cannot load Counters without DB");
+            return;
+        }
         await this.load();
     }
 
@@ -85,6 +89,10 @@ class Counters {
 
     async save() {
         console.log("saving counters");
+        if (this.db == null) {
+            console.log("No save without DB");
+            return;
+        }
         // first delete if already there.  We can probably
         // figure out how to avoid this.
         try {

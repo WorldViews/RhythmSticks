@@ -26,8 +26,6 @@ var PHRASE_LIST = {
 class WordListTable {
     constructor(tool) {
         this.tool = tool;
-        this.vowels = tool.vowels;
-        this.groups = tool.groups;
         this.init();
     }
 
@@ -44,16 +42,7 @@ class WordListTable {
             var rom = phrase.romanji;
             var eng = phrase.english;
             var tr = $("<tr>");
-            //
-            /*
-            var td = $("<td>");
-            var tid = "pt_id_" + id;
-            td.attr("id", tid);
-            td.css('border-width', 0);
-            td.html(id);
-            tr.append(td);
-            */
-            //
+            tr.attr("id", "tr_" + id);
             var td = $("<td>");
             var kid = "pt__kanji" + id;
             td.attr("id", kid);
@@ -90,6 +79,28 @@ class WordListTable {
     }
 
     update() {
+        console.log("PhraseListTable.update")
+        var phrases = this.tool.phrases;
+        var tool = this.tool;
+        if (!tool.counters) {
+            console.log("*** no counters...");
+            return;
+        }
+        var i = 1;
+        for (var id in phrases) {
+            var trid = "tr_" + id;
+            //var p = i++;
+            //var n = 5;
+            var p = tool.counters.probRight(id);
+            var n = tool.counters.weight(id);
+            console.log("tr", id, p, n);
+            var h = 200 * p;
+            var s = 100 * (n / (n + 1));
+            var l = 80;
+            var c = 'hsl(' + h + "," + s + "%," + l + "%)";
+            var tr = $("#" + trid);
+            tr.css('background-color', c);
+        }
     }
 
     clickCell(e, item) {
@@ -134,6 +145,7 @@ class WordListTable {
 class WordPracticeTool {
     constructor() {
         this.phrases = PHRASE_LIST;
+        this.pids = Object.keys(this.phrases);
         //this.init();
     }
 
@@ -143,9 +155,11 @@ class WordPracticeTool {
         $("#userInput").on('input', e => inst.noticeInput(e));
         //this.table = new Table(this);
         //this.initTable();
+        this.initDB();
+        this.counters = new Counters("kanji", this.pids, this.db);
+        await this.counters.init();
 
         this.wordList = new WordListTable(this);
-
         $("#selectAll").click(e => inst.selectAll(true));
         $("#selectNone").click(e => inst.selectAll(null));
         $("#start").click(e => inst.startTrials());
@@ -158,6 +172,7 @@ class WordPracticeTool {
     }
 
     updateTable() {
+        this.wordList.update();
     }
 
     selectAll(val) {
@@ -210,11 +225,17 @@ class WordPracticeTool {
             this.numTries++;
         this.currentTrial.tries.push(str);
         var label = "";
+        var pid = this.currentPid;
         var eng = this.currentPhrase.english.toLowerCase();
-        console.log(str, eng);
+        console.log(pid, str, eng);
         if (str == eng) {
             label = "good";
             this.numCorrect++;
+            this.counters.noticeRight(pid);
+        }
+        else if (str != "") {
+            this.counters.noticeWrong(pid);
+            label = "ooops";
         }
         this.showStats(label);
         if (label == "good" && str != "")
@@ -250,9 +271,12 @@ class WordPracticeTool {
         var ids = Object.keys(this.phrases);
         var n = ids.length;
         var r = Math.random();
-        var i = Math.floor(r*n);
+        var i = Math.floor(r * n);
         console.log("choosePhrase", r, i, n);
-        return this.phrases[ids[i]];
+        var id = ids[i];
+        var phrase = this.phrases[id];
+        phrase.id = id;
+        return phrase;
     }
 
     nextTrial() {
@@ -264,6 +288,7 @@ class WordPracticeTool {
         this.trials.push(trial);
         this.currentTrial = trial;
         this.currentPhrase = phrase;
+        this.currentPid = phrase.id;
         //document.getElementById("h1").innerHTML = h;
         $("#kanji").html(phrase.kanji);
         $("#kana").html(phrase.kana);
@@ -288,9 +313,35 @@ class WordPracticeTool {
         this.counters.dump();
     }
 
+    dumpDB() {
+        console.log("dumpDB");
+        this.db.allDocs({ include_docs: true, descending: true }, (err, doc) => {
+            console.log(doc.rows);
+        });
+    }
+
+    async initDB() {
+        var db = new PouchDB('jlearn');
+        this.db = db;
+        this.addRecDB('user', { name: 'Don', size: 'big' });
+        this.dumpDB();
+    }
+
+    async load(url) {
+        url = url || "scores.json";
+        var obj = await loadJSON(url);
+        console.log("scores", obj);
+        this.hcounters.data = obj.hcounters;
+        this.kcounters.data = obj.kcounters;
+        await this.hcounters.save();
+        await this.kcounters.save();
+        this.updateTable();
+    }
 
     async resetScores() {
         console.log("reset scores");
+        this.counters.reset();
+        await this.counters.save();
         this.updateTable();
     }
 }
