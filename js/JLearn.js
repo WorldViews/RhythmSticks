@@ -86,6 +86,13 @@ class Counters {
         this.data = data;
     }
 
+    verify(name) {
+        if (!this.data[name]) {
+            console.log("Counter.verifyi ... adding", name, "****************************")
+            this.data[name] = { numRight: 0, numWrong: 0 };
+        }
+    }
+
 
     async save() {
         console.log("saving counters");
@@ -143,29 +150,29 @@ class Counters {
     }
 
     noticeRight(name) {
+        this.verify(name);
         this.data[name].numRight++;
         this.data[name].lastTime = getClockTime();
         this.save();
     }
 
     noticeWrong(name) {
+        this.verify(name);
         this.data[name].numWrong++;
         this.data[name].lastTime = getClockTime();
         this.save();
     }
 
     probRight(name) {
+        this.verify(name);
         var c = this.data[name];
-        if (!c)
-            return 0.5;
         var f = 1;
         return (c.numRight + f) / (c.numRight + c.numWrong + 2 * f);
     }
 
     weight(name) {
+        this.verify(name);
         var c = this.data[name];
-        if (!c)
-            return 1;
         return (c.numRight + c.numWrong);
     }
 }
@@ -250,13 +257,13 @@ class Table {
             var str = chrStr + '<br><span class="romlab">' + rom + '</span>';
             $("#" + id).html(str);
             if (tool.counters) {
-                console.log("update getting probRight", kid);
+                //console.log("update getting probRight", kid);
                 var p = tool.counters.probRight(kid);
                 var n = tool.counters.weight(kid);
                 var h = 200 * p;
                 var s = 100 * (n / (n + 1));
                 var l = 80;
-                var c = 'hsl(' + h + ","+s+"%,"+l+"%)";
+                var c = 'hsl(' + h + "," + s + "%," + l + "%)";
                 $("#" + id).css('background-color', c);
             }
         })
@@ -289,9 +296,9 @@ class Table {
         var w = counts.numWrong;
         var dt = t - counts.lastTime;
         console.log(kid, hir, kat, counts, r, w);
-        var statStr = sprintf("%s %s %s %d/%d", kid, hir, kat, r, (r+w));
-        if (r+w > 0)
-            statStr += sprintf(" %0.3f", r/(r+w))
+        var statStr = sprintf("%s %s %s %d/%d", kid, hir, kat, r, (r + w));
+        if (r + w > 0)
+            statStr += sprintf(" %0.3f", r / (r + w))
         if (dt > 0)
             statStr += sprintf(" %.1f sec", dt);
         $("#scoreStats").html(statStr);
@@ -338,7 +345,7 @@ class PracticeTool {
         inst.counters = null;
         var parts = HK_CHARS.trim().split(RE_WHITESPACE);
         //var tweaks = { "tu": "tsu", "si": "shi", "ti": "chi", "hu": "fu", "di": "ji" , "zi": "ji"};
-        var tweaks = { "tu": "tsu", "si": "shi", "ti": "chi", "hu": "fu"};
+        var tweaks = { "tu": "tsu", "si": "shi", "ti": "chi", "hu": "fu" };
         this.labtweaks = { "di": "ji", "zi": "ji", "du": "zu" };
         this.tweaks = tweaks;
         this.vowels = ["a", "i", "u", "e", "o"];

@@ -20,6 +20,12 @@ var PHRASE_LIST = {
         "kana": "あたし",
         "romanji": "watashi",
         "english": "I"
+    },
+    "id4": {
+        "kanji": "日本語",
+        "kana": "にほんご",
+        "romanji": "nihongo",
+        "english": "japanese"
     }
 };
 
@@ -146,6 +152,7 @@ class WordPracticeTool {
     constructor() {
         this.phrases = PHRASE_LIST;
         this.pids = Object.keys(this.phrases);
+        this.selected = [];
         //this.init();
     }
 
@@ -243,13 +250,31 @@ class WordPracticeTool {
         this.updateTable();
     }
 
-
     showStats(label) {
         $("#stats").html(label + " " + this.numCorrect + " / " + this.numTries);
     }
 
     // Get probabilities for selecting a given rom
-    getProbs(kids) {
+    getProbs(ids) {
+        console.log("getProbs");
+        var f = [];
+        var sum = 0;
+        for (var i = 0; i < ids.length; i++) {
+            var id = ids[i];
+            //f[i] = 1;
+            f[i] = - Math.log(this.counters.probRight(id));
+            f[i] = Math.pow(f[i], 3);
+            if (this.currentTrial && this.currentTrial.id == id)
+                f[i] = 0;
+            sum += f[i];
+        }
+        for (var i = 0; i < f.length; i++) {
+            f[i] /= sum;
+        }
+        for (var i = 0; i < ids.length; i++) {
+            console.log(i, ids[i], f[i]);
+        }
+        return f;
     }
 
     // Select an index from the vector, with probabilities
@@ -268,22 +293,33 @@ class WordPracticeTool {
     }
 
     choosePhrase() {
-        var ids = Object.keys(this.phrases);
-        var n = ids.length;
-        var r = Math.random();
-        var i = Math.floor(r * n);
-        console.log("choosePhrase", r, i, n);
-        var id = ids[i];
-        var phrase = this.phrases[id];
-        phrase.id = id;
-        return phrase;
+        var ids = Object.keys(this.selected);
+        // romanjis should be cids
+        if (ids.length == 0)
+            ids = Object.keys(this.phrases);
+        var CYCLE = false;
+        var id;
+        if (CYCLE) {
+            this.idx = this.idx % kids.length;
+            id = ids[this.idx];
+            this.idx++;
+        }
+        else {
+            var pv = this.getProbs(ids);
+            console.log("pids", ids, pv);
+            var i = this.selectRandIndex(pv);
+            id = ids[i];
+        }
+        return id;
     }
 
     nextTrial() {
         console.log("nextTrial");
-        var phrase = this.choosePhrase();
+        var pid = this.choosePhrase();
+        var phrase = this.phrases[pid];
         var trial = {};
         trial.phrase = phrase;
+        trial.id = pid;
         trial.tries = [];
         this.trials.push(trial);
         this.currentTrial = trial;
@@ -323,8 +359,17 @@ class WordPracticeTool {
     async initDB() {
         var db = new PouchDB('jlearn');
         this.db = db;
-        this.addRecDB('user', { name: 'Don', size: 'big' });
+        this.addRecDB('user', { name: 'Don', size: 'big', lastTime: getClockTime() });
         this.dumpDB();
+    }
+
+    addRecDB(id, obj) {
+        var row = { _id: id, vals: obj };
+        this.db.put(row, (err, result) => {
+            if (!err) {
+                console.log("Posted row", row);
+            }
+        })
     }
 
     async load(url) {
@@ -344,5 +389,24 @@ class WordPracticeTool {
         await this.counters.save();
         this.updateTable();
     }
+
+    // This downloads the scores
+    download(text, filename) {
+        filename = "scores.json";
+        var obj = {
+            'phrases': this.phrases,
+            'phraseCounters': this.counters.data
+        };
+        var text = JSON.stringify(obj, null, 3);
+        var element = document.createElement('a');
+        element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+        element.setAttribute('download', filename);
+        element.style.display = 'none';
+        document.body.appendChild(element);
+        element.click();
+        document.body.removeChild(element);
+    }
+
+
 }
 
