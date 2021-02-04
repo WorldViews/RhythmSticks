@@ -561,6 +561,7 @@ class MidiPlayTool_TinySynth {
              }
             if (etype == "marker" || etype == "metronome") {
                 this.handleNote(t0, event);
+                continue;
             }
             console.log("*** unexpected etype: " + etype);
         }

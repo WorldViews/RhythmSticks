@@ -171,9 +171,10 @@ class CanvasTool {
     traverseItems(fun, items) {
         var inst = this;
         items.forEach(item => {
-            fun(item);
+            //fun(item);
             if (item.graphicsList)
                 inst.traverseItems(fun, item.graphicsList);
+            fun(item);
         });
     }
 

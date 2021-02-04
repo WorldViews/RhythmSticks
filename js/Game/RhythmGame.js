@@ -35,7 +35,7 @@ class MPlayer extends MidiPlayTool {
     }
 
     handleNote(t0, note) {
-        console.log("label", note.label);
+        //console.log("label", note.label);
         if (note.type == "marker")
             return;
         if (note.type == "metronome") {
@@ -164,6 +164,7 @@ class RhythmGame extends CanvasTool.RectGraphic {
 
     toggleUseWheel(e) {
         this.useWheel = $("#useWheel").is(":checked");
+        this.setupDrumPics();
     }
 
     toggleMoveNotes(e) {
@@ -258,13 +259,14 @@ class RhythmGame extends CanvasTool.RectGraphic {
     observeNote(t0, note) {
         //console.log("observeNote", ch, pitch, v, dur, t);
         if (this.scorer) {
-            var note = { t: this.getTime() };
-            this.scorer.observePlayedNote(note);
+            var pnote = { t: this.getTime() };
+            this.scorer.observePlayedNote(pnote);
         }
         var ch = note.channel;
+        var dur = 0.1;
         let target = this.targets[ch];
         if (target == null) {
-            console.log("no target for channel", ch);
+            console.log("no target for channel", ch, note);
             return;
         }
         target.on = true;
@@ -284,8 +286,27 @@ class RhythmGame extends CanvasTool.RectGraphic {
             this.drawWheel(canvas, ctx);
         else
             this.drawBars(canvas, ctx);
+        this.drawTargets(canvas, ctx);
     }
 
+    drawTargets(canvas, ctx) {
+        ctx.save();
+        for (var ch in this.targets) {
+            var target = this.targets[ch];
+            if (!target.on)
+                continue;
+            ctx.fillStyle = "rgba(255,0,0,.3)";
+            ctx.strokeStyle = "rgba(255,0,0,.3)";
+            ctx.beginPath();
+            ctx.arc(target.x, target.y, 20, 0, 2 * Math.PI);
+            ctx.fill();
+            ctx.stroke();
+        }
+        ctx.restore();
+    }
+
+
+    // Draw the visualization in circular format
     drawWheel(canvas, ctx) {
         //super.draw(canvas, ctx);
         this.fillStyle = null;
@@ -334,6 +355,16 @@ class RhythmGame extends CanvasTool.RectGraphic {
         if (this.collapseTracks())
             return 170;
         return r;
+    }
+
+    getTrackPos(ch) {
+        this.trackPos = { 0: -100, 1: 0, 2: 100 };
+        var d = this.trackPos[ch];
+        if (d == null) {
+            console.log("***** bad r", d, ch);
+            d = 0;
+        }
+        return d;
     }
 
     drawNotesArcs(canvas, ctx) {
@@ -402,6 +433,12 @@ class RhythmGame extends CanvasTool.RectGraphic {
         ctx.restore();
     }
 
+    // Draw the visualization in rectangular format
+    drawBars(canvas, ctx) {
+        super.draw(canvas, ctx);
+        this.drawNotesBars(canvas, ctx);
+    }
+
     drawNotesBars(canvas, ctx) {
         // now draw notes
         var player = this.mplayer;
@@ -412,7 +449,7 @@ class RhythmGame extends CanvasTool.RectGraphic {
         var groups = midiTrack.seq;
         //ctx.strokeStyle = null;
         this.clipNotes = true;
-        var ystrike = this.y + 60;
+        var ystrike = this.y;
         ctx.save();
         ctx.strokeStyle = "black";
         this.drawPolyLine(canvas, ctx,
@@ -442,6 +479,7 @@ class RhythmGame extends CanvasTool.RectGraphic {
                     continue;
                 //console.log(t0+" graphic for note pitch: "+pitch+" v:"+v+" dur: "+dur);
                 //console.log("draw note", t, dur, pitch);
+                /*
                 var ki = pitch - 40;
                 let target = this.targets[0];
                 if (ki > 20)
@@ -454,6 +492,9 @@ class RhythmGame extends CanvasTool.RectGraphic {
                 var dx = 10;
                 //console.log("addNote", t, dur, pitch);
                 var x = target.x + 2 * ki;
+                */
+               var heightPerSec = 50;
+                var x = this.getTrackPos(note.channel);
                 var y = ystrike + t * heightPerSec;
                 var h = dur * heightPerSec;
                 var w = 6;
@@ -468,29 +509,6 @@ class RhythmGame extends CanvasTool.RectGraphic {
             }
         }
         ctx.restore();
-
-    }
-
-    drawBars(canvas, ctx) {
-        super.draw(canvas, ctx);
-        if (this.pic)
-            this.pic.draw(canvas, ctx);
-        if (this.sun)
-            this.sun.draw(canvas, ctx);
-        ctx.save();
-        for (var ch in this.targets) {
-            var target = this.targets[ch];
-            if (!target.on)
-                continue;
-            ctx.fillStyle = "rgba(255,0,0,.5)";
-            ctx.strokeStyle = "rgba(255,0,0,.5)";
-            ctx.beginPath();
-            ctx.arc(target.x, target.y, 10, 0, 2 * Math.PI);
-            ctx.fill();
-            ctx.stroke();
-        }
-        ctx.restore();
-        this.drawNotesBars(canvas, ctx);
     }
 
     async init() {
@@ -543,8 +561,16 @@ class RhythmGame extends CanvasTool.RectGraphic {
     }
 
     async setupDrumPics() {
-        await sleep(0.5);
+        //await sleep(0.5);
+        if (this.useWheel)
+            this.setupDrumPicsCirc();
+        else
+            this.setupDrumPicsRectV();
+    }
+
+    setupDrumPicsCirc() {
         this.graphicsList = [];
+        this.targets = {};
         if (this.songType == SUN_MOON_STAR_SONG) {
             var xspace = 100;
             var x = this.x - xspace;
@@ -552,27 +578,63 @@ class RhythmGame extends CanvasTool.RectGraphic {
             var width = 80;
             var height = 80;
             this.sunPic = new DrumPic(this, "sun", x, y, width, height, "images/sun.png");
+            this.targets[0] = {x,y};
             x += xspace;
             this.moonPic = new DrumPic(this, "moon", x, y, width, height, "images/moon.png");
+            this.targets[1] = {x,y};
             x += xspace;
             this.starPic = new DrumPic(this, "star", x, y, width, height, "images/star.png");
+            this.targets[2] = {x,y};
             this.addGraphic(this.sunPic);
             this.addGraphic(this.moonPic);
             this.addGraphic(this.starPic);
         }
         else {
-            var x = this.x - xspace;
+            var x = this.x;
             var y = this.y;
             var width = 200;
             var height = 200;
             this.taikoPic = new DrumPic(this, "taiko", x, y, width, height, "images/taiko.svg");   
-            this.addGraphic(this.taikoPic);        
+            this.addGraphic(this.taikoPic);
+            y -= 50;    
+            this.targets[0] = { x: x,    y };
+            this.targets[1] = { x: x+25, y };
+            this.targets[2] = { x: x+50, y };
         }
-        x -= 8;
-        y -= 55;
-        this.targets = {
-            0: { x, y },
-            1: { x: x + 35, y }
+    }
+
+    setupDrumPicsRectV() {
+        this.graphicsList = [];
+        this.targets = {};
+        if (this.songType == SUN_MOON_STAR_SONG) {
+            var xspace = 100;
+            var x = this.x - xspace;
+            var y = this.y - 100;
+            var width = 80;
+            var height = 80;
+            this.sunPic = new DrumPic(this, "sun", x, y, width, height, "images/sun.png");
+            this.targets[0] = {x,y};
+            x += xspace;
+            this.moonPic = new DrumPic(this, "moon", x, y, width, height, "images/moon.png");
+            this.targets[1] = {x,y};
+            x += xspace;
+            this.starPic = new DrumPic(this, "star", x, y, width, height, "images/star.png");
+            this.targets[2] = {x,y};
+            this.addGraphic(this.sunPic);
+            this.addGraphic(this.moonPic);
+            this.addGraphic(this.starPic);
+        }
+        else {
+            var x = this.x;
+            var y = this.y - 100;
+            var width = 200;
+            var height = 200;
+            this.taikoPic = new DrumPic(this, "taiko", x, y, width, height, "images/taiko.svg");   
+            this.addGraphic(this.taikoPic);
+            y -= 50;
+            this.targets[0] = { x, y };
+            this.targets[1] = { x: x+25, y };
+            this.targets[2] = { x: x+50, y };
         }
     }
 
