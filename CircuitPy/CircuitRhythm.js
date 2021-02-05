@@ -189,6 +189,10 @@ class RhythmStick {
     $("#tab").css('background', color);
   }
 
+  setColor(r,g,b) {
+    this.write("color "+r+" "+g+" "+b);
+  }
+
   async setup() {
     // Prompt user to select any serial port.
     console.log("setup");

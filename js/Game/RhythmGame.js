@@ -57,6 +57,11 @@ class MPlayer extends MidiPlayTool {
             if (ALIAS[label])
                 label = ALIAS[label];
             this.game.soundPlayer.playNote(label, v);
+            var stick = this.game.rhythmStick;
+            if (stick) {
+                stick.setColor(0,0,200);
+                setTimeout( () => stick.setColor(0,0,0), 100);
+            }
         }
         this.game.observeNote(t0, note);
     }

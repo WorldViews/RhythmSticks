@@ -146,6 +146,14 @@ class RhythmTool:
             return
         if parts[0] == "mode":
             self.setMode(parts[1])
+        if parts[0] == "color":
+            if len(parts) < 4:
+                print("not enough parts for color", parts)
+                return
+            r = int(parts[1])
+            g = int(parts[2])
+            b = int(parts[3])
+            self.setColor([r,g,b])
 
     def setMode(self, mode):
         #if mode == self.mode:
