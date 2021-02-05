@@ -44,7 +44,6 @@ class MidiPlayTool_TinySynth {
         player.graphicsSpiral = true;
         player.instruments = {};
         player.loop = false;
-        player.USE_NEW_METHOD = true;
         player.midiPrefix = "midi/";
         player.soundfontUrl = "soundfont/"
         player.prevPt = null;
@@ -117,9 +116,12 @@ class MidiPlayTool_TinySynth {
     }
 
     pausePlaying() {
-        console.log("Pause Playing");
+        console.log("Pause Playing", this.getPlayTime());
         this.isPlaying = false;
-        this.setPlayTime(this.getPlayTime());
+        var pt = this.getPlayTime();
+        this.setPlayTime(pt);
+        var pt2 = this.getPlayTime();
+        console.log("pausePlaying", pt, pt2);
         $("#midiTogglePlaying").text("Play");
         if (this.stateObserver)
             this.stateObserver('stop');
@@ -137,6 +139,7 @@ class MidiPlayTool_TinySynth {
     }
 
     togglePlaying() {
+        console.log("togglePlaying pt", this.getPlayTime());
         if ($("#midiTogglePlaying").text() == "Play") {
             this.startPlaying();
         }
@@ -149,12 +152,20 @@ class MidiPlayTool_TinySynth {
         this.loadMelody(name, true);
     }
 
-    loadMelody(name, autoStart) {
+    async loadMelody(name, autoStart) {
         var inst = this;
         console.log("MidiPlayTool.loadMelody " + name + " autostart: " + autoStart);
         this.stopPlaying();
         var melodyUrl = this.midiPrefix + name + ".json";
-        $.getJSON(melodyUrl, function (obj) { inst.playMidiObj(obj, autoStart) });
+        try {
+            var obj = await loadJSON(melodyUrl);
+            inst.playMidiObj(obj, autoStart);
+
+        }
+        catch (e) {
+            alert("Failed to load " + name);
+            console.log("err:", e);
+        }
     }
 
     // This tries to play a midi file using code from
@@ -326,7 +337,7 @@ class MidiPlayTool_TinySynth {
         }
         midiObj.seq = seq;
         if (midiObj.durationTicks == null) {
-            alert("setting midiObj.durationTicks");
+            //alert("setting midiObj.durationTicks");
             midiObj.durationTicks = durationTicks;
         }
         else {
@@ -388,11 +399,6 @@ class MidiPlayTool_TinySynth {
         }
     }
 
-    /*
-      This version starts a series of callbacks for each time
-      that events must be started.  There is one callback for
-      each time that one or more new notes are played.
-     */
     playSync(obj) {
         console.log("playSync");
         this.seqNum += 1;
@@ -402,17 +408,14 @@ class MidiPlayTool_TinySynth {
         this.isPlaying = true;
         //this.lastEventPlayTime = 0;
         //this.lastEventClockTime = Date.now()/1000.0;
-        if (!this.USE_NEW_METHOD) {
-            setTimeout(function () {
-                this.playNextStep(this.seqNum)
-            }, 0);
-        }
     }
 
     getPlayTime() {
-        var ct = Date.now() / 1000.0;
+        var ct = getClockTime();
         if (this.isPlaying) {
             var t = this.lastEventPlayTime + (ct - this.lastEventClockTime);
+            this.lastEventPlayTime = t;
+            this.lastEventClockTime = ct;
             return t;
         }
         else {
@@ -424,7 +427,7 @@ class MidiPlayTool_TinySynth {
     setPlayTime(t) {
         console.log("setPlayTime t: " + t);
         this.lastEventPlayTime = t;
-        this.lastEventClockTime = Date.now() / 1000.0;
+        this.lastEventClockTime = getClockTime();
         //TODO: should set player.i to appopriate place...
     }
 
@@ -558,7 +561,7 @@ class MidiPlayTool_TinySynth {
                 }
                 this.handleNote(t0, event);
                 continue;
-             }
+            }
             if (etype == "marker" || etype == "metronome") {
                 this.handleNote(t0, event);
                 continue;
@@ -567,8 +570,7 @@ class MidiPlayTool_TinySynth {
         }
     }
 
-    handleNote(t0, note)
-    {
+    handleNote(t0, note) {
         //console.log("note: "+JSON.stringify(note));
         if (note.type != 'note')
             return;
@@ -765,10 +767,11 @@ class MidiPlayTool_TinySynth {
     }
 
     update() {
-        if (this.isPlaying && this.USE_NEW_METHOD)
-            this.checkForEvent();
-        //var clockTime = Date.now() / 1000;
         var pt = this.getPlayTime();
+        if (this.isPlaying) {
+            console.log("update pt", pt);
+            this.checkForEvent();
+        }
         if (this.prevPt && pt < this.prevPt) {
             console.log("**** pt < prevPt ****");
         }
@@ -845,10 +848,16 @@ class MidiPlayTool_TinySynth {
         }
     }
 
-    loadCompositions(url) {
+    async loadCompositions(url) {
         console.log("LoadCompositions " + url);
         var inst = this;
-        $.getJSON(url, function (obj) { inst.compositionsLoaded(obj) });
+        try {
+            var obj = await loadJSON(url);
+            this.compositionsLoaded(obj);
+        }
+        catch (e) {
+            console.log("failed to load " + url);
+        }
     }
 
     compositionsLoaded(obj) {
@@ -860,9 +869,16 @@ class MidiPlayTool_TinySynth {
 
     setBPM(bpm) {
         this.beatsPerMin = bpm;
+        var prevTPS = this.ticksPerSec;
         this.ticksPerSec = this.ticksPerBeat * this.beatsPerMin / 60;
-        if (this.midiObj)
+        var pt = this.getPlayTime();
+        var npt = pt * prevTPS / this.ticksPerSec;
+        console.log("setBPM", pt, npt);
+        this.setPlayTime(npt);
+        //this.setPlayTime(pt * this.ticksPerSec / prevTPS);
+        if (this.midiObj) {
             this.midiObj.duration = this.midiObj.durationTicks / this.ticksPerSec;
+        }
         this.showTempo();
     }
 

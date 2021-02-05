@@ -140,6 +140,7 @@ class RhythmGame extends CanvasTool.RectGraphic {
         $("#useWheel").change(e => inst.toggleUseWheel(e));
         $("#moveNotes").change(e => inst.toggleMoveNotes(e));
         $("#bpmSlider").change(e => inst.handleBPMSlider(e));
+        $("#bpmSlider").on('input', e => inst.handleBPMSlider(e));
         inst.handleBPMSlider();
     }
 
