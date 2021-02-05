@@ -769,7 +769,7 @@ class MidiPlayTool_TinySynth {
     update() {
         var pt = this.getPlayTime();
         if (this.isPlaying) {
-            console.log("update pt", pt);
+            //console.log("update pt", pt);
             this.checkForEvent();
         }
         if (this.prevPt && pt < this.prevPt) {

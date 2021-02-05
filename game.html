@@ -44,12 +44,19 @@
             font-size: 20px;
         }
 
+        select {
+            padding: 10px 10px;
+            margin: 10px 10px;
+            font-size: 20px;
+        }
+
         .stats {
             height: 30px;
         }
 
         .sb {
             margin: 5px 5px;
+            padding: 5px 5px;
             font-size: 16px;
         }
 
@@ -98,12 +105,13 @@
         <div id="musicDiv">
             <span id="scoreStats">xxx</span>
             <p></p>
-            <span id="songsToggle">Song</span>
-            <div id="songsArea" style="display:none;">
-                <textarea style="width: 95%; height: 100px; font-size: 18px"
-                    id="kuchiShoga">don don doko don"</textarea>
-            </div>
-            <div id="songButtons">
+            <!--
+            <select id="songChoice">
+                <option value="ff1">Fast and Furious 1</option>
+                <option value="ff2">Fast and Furious 2</option>
+            </select>   
+            -->
+           <div id="songButtons">
                 <button class="sb" id="ff1">Fast and Furious 1</button>
                 <button class="sb" id="ff2">Fast and Furious 2</button>
                 <button class="sb" id="matsuri">Matsuri</button>
@@ -111,6 +119,11 @@
                 <button class="sb" id="fanga1">Fanga 1</button>
                 <button class="sb" id="djembe3">Djembe 3 beat</button>
                 <button class="sb" id="paradiddle1">Frame Paradiddle</button>
+           </div>
+            <span id="songsToggle">Song</span>
+            <div id="songsArea" xstyle="display:none;">
+                <textarea style="width: 95%; height: 100px; font-size: 18px"
+                    id="kuchiShoga">don don doko don"</textarea>
             </div>
             <p></p>
              <input type="checkbox" id="useWheel" checked> wheel
@@ -129,6 +142,7 @@
             &nbsp;
             <input type="range" id="bpmSlider" min="5" max="400" value="100">
             <label for="bpmSlider" id="bpmLabel">BPM</label>
+            <br>
             <p></p>
   
             <button id="sensors">Sensors</button>
