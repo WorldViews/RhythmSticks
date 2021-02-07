@@ -2,20 +2,11 @@
 "use strict"
 
 var ALIAS = { "rim": "cowbell", "center": "taiko" };
-const SUN_MOON_STAR_SONG = "SUN_MOON_STAR";
-const FRAME_DRUM_SONG = "FRAME_DRUM_SONG";
-const TAIKO_SONG = "TAIKO";
 
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
-function contains(str, parts) {
-    for (var i = 0; i < parts.length; i++)
-        if (str.indexOf(parts[i]) >= 0)
-            return true;
-    return false;
-}
 
 const SHIKO = `moon - moon - | sun - sun - | moon - moon - | sun sun - - |
 sun - star star | sun - star star | sun - star star | moon moon - -`;
@@ -24,10 +15,12 @@ const FANGA1 = `sun rest sun sun | rest sun moon moon | sun rest rest sun | sun 
 
 const DJEMBE3 = `sun moon moon | sun moon moon | moon moon star | moon - -`;
 
+const FRAME_EX1 = `dum - ki - ta - ki -    dum ki ta ki`;
+
 const PARADIDDLE1 = `pa dum pa pa | dum pa dum dum`;
 
 // this is a kind of player that uses midi.
-class MPlayer extends MidiPlayTool {
+class MPlayer extends PlayTool_TinySynth {
     constructor(game, opts) {
         super(opts);
         this.game = game;
@@ -47,7 +40,8 @@ class MPlayer extends MidiPlayTool {
             }
             return;
         }
-        if (this.game.useMidi()) {
+        if (this.game.useMidi() || this.game.songType == "MIDI") {
+            console.log("handleNote", note);
             super.handleNote(t0, note);
         }
         else {
@@ -109,7 +103,7 @@ class RhythmGame extends CanvasTool.RectGraphic {
         this.strokeStyle = null;
         //this.notes = [];
         this.targets = {};
-        this.midiParser = new MidiParser();
+        this.parser = new SongParser();
         this.useWheel = true;
         this.moveNotes = false;
         this.setupGUI();
@@ -124,7 +118,7 @@ class RhythmGame extends CanvasTool.RectGraphic {
         icons['star'] = new CanvasTool.ImageGraphic({ url: "images/star.png", width: 40, height: 40 });
         this.icons = icons;
         this.songType = SUN_MOON_STAR_SONG;
-        this.setupDrumPics();
+        this.setupPics();
         this.rhythmStick = null;
         this.prevSong = null;
         if (opts.initialSong)
@@ -140,7 +134,9 @@ class RhythmGame extends CanvasTool.RectGraphic {
         $("#shiko").click(e => inst.playSong(SHIKO));
         $("#fanga1").click(e => inst.playSong(FANGA1));
         $("#djembe3").click(e => inst.playSong(DJEMBE3));
+        $("#frameEx1").click(e => inst.playSong(FRAME_EX1));
         $("#paradiddle1").click(e => inst.playSong(PARADIDDLE1));
+        $("#wtc").click(e => inst.playMidi("bach/wtc0"));
         $("#matsuri").click(e => inst.playMatsuri());
         $("#useWheel").change(e => inst.toggleUseWheel(e));
         $("#moveNotes").change(e => inst.toggleMoveNotes(e));
@@ -175,7 +171,7 @@ class RhythmGame extends CanvasTool.RectGraphic {
 
     toggleUseWheel(e) {
         this.useWheel = $("#useWheel").is(":checked");
-        this.setupDrumPics();
+        this.setupPics();
     }
 
     toggleMoveNotes(e) {
@@ -252,6 +248,7 @@ class RhythmGame extends CanvasTool.RectGraphic {
         if (song == this.prevSong)
             autoStart = true;
         this.prevSong = song;
+        /*
         var str = song.toLowerCase();
         if (contains(str, ["sun", "moon", "star"]))
             this.songType = SUN_MOON_STAR_SONG;
@@ -259,16 +256,27 @@ class RhythmGame extends CanvasTool.RectGraphic {
             this.songType = TAIKO_SONG;
         if (contains(str, ["pa", "dum"]))
             this.songType = FRAME_DRUM_SONG;
-        console.log("playSOng", song, autoStart);
-        this.setupDrumPics();
-        song = song.trim();
+        */
+        console.log("playSong", song, autoStart);
+       // this.setupPics();
+
         //$("#kuchiShoga").val(kuchiShoga);
         this.mplayer.pausePlaying();
         await sleep(0.5);
-        this.midiParser.addKuchiShoga(song);
-        var midiObj = this.midiParser.getMidiObj();
+        $("#kuchiShoga").val(song);
+        this.parser.addSong(song);
+        var midiObj = this.parser.getMidiObj();
+        this.songType = midiObj.songType;
+        this.setupPics();
         await sleep(0.5);
         this.mplayer.playMidiObj(midiObj, autoStart);
+    }
+
+    async playMidi(name) {
+        this.songType = "MIDI";
+        this.setupPics();
+        await this.mplayer.playMelody(name);
+        this.mplayer.setProgram(0);
     }
 
     // This is called when the midi player plays a note
@@ -566,7 +574,7 @@ class RhythmGame extends CanvasTool.RectGraphic {
 
     async playMySong() {
         //this.mplayer.loadMidiFile("midi/sakura.mid");
-        var midiObj = this.midiParser.getMidiObj();
+        var midiObj = this.parser.getMidiObj();
         this.mplayer.playMidiObj(midiObj, true);
         //this.mplayer.playMidiObj(midiObj, false);
     }
@@ -576,15 +584,15 @@ class RhythmGame extends CanvasTool.RectGraphic {
         console.log("playMidiFile returned", obj);
     }
 
-    async setupDrumPics() {
+    async setupPics() {
         //await sleep(0.5);
         if (this.useWheel)
-            this.setupDrumPicsCirc();
+            this.setupPicsCirc();
         else
-            this.setupDrumPicsRectV();
+            this.setupPicsRectV();
     }
 
-    setupDrumPicsCirc() {
+    setupPicsCirc() {
         this.graphicsList = [];
         this.targets = {};
         if (this.songType == SUN_MOON_STAR_SONG) {
@@ -617,7 +625,7 @@ class RhythmGame extends CanvasTool.RectGraphic {
             this.targets[1] = { x: x+60, y: y - 40};
             this.targets[2] = { x: x+50, y };
         }
-        else {
+        else if (this.songType == TAIKO_SONG) {
             var x = this.x;
             var y = this.y;
             var width = 200;
@@ -629,9 +637,14 @@ class RhythmGame extends CanvasTool.RectGraphic {
             this.targets[1] = { x: x+25, y };
             this.targets[2] = { x: x+50, y };
         }
+        else {
+            this.targets[0] = { x: x,    y };
+            this.targets[1] = { x: x+25, y };
+            this.targets[2] = { x: x+50, y };
+        }
     }
 
-    setupDrumPicsRectV() {
+    setupPicsRectV() {
         this.graphicsList = [];
         this.targets = {};
         if (this.songType == SUN_MOON_STAR_SONG) {
@@ -724,4 +737,4 @@ class RhythmGame extends CanvasTool.RectGraphic {
     }
 }
 
-//# sourceURL=js/WheelBox.js
+//# sourceURL=js/RhythmGame.js

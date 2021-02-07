@@ -3,23 +3,12 @@ This is a version of MidiPlayTool using WebAudio_TinySynth
 */
 "use strict"
 
-var instMap = {
-    0: "acoustic_grand_piano",
-    1: "violin",
-    2: "harpsichord",
-    3: "voice_oohs",
-    4: "steel_drun",
-    5: "choir_aahs",
-    6: "paradiddle",
-    7: "pad_3_polysynth",
-};
-instMap = {};
 
 // this is a hack so that some html buttons with strings for events can
 // access instance of MidiPlayTool.
 var _MIDI_PLAYER = null;
 
-class MidiPlayTool_TinySynth {
+class PlayTool_TinySynth {
     constructor() {
         var player = this;
         console.log("****** Using MidiPlayTool_TinySYnth");
@@ -31,16 +20,11 @@ class MidiPlayTool_TinySynth {
         player.delay0 = 0.0;
         player.isPlaying = false;
         player.distPerSec = 0.2;
-        player.graphics = null;
-        player.scene = null;
-        player.graphicsScale = null;
         player.muted = {};
         player.midiObj = null;
         player.loadedInstruments = {};
         player.lastEventPlayTime = 0;
         player.lastEventClockTime = 0;
-        player.graphicsX0 = -8;
-        player.graphicsSpiral = true;
         player.instruments = {};
         player.loop = false;
         player.midiPrefix = "midi/";
@@ -166,24 +150,6 @@ class MidiPlayTool_TinySynth {
         }
     }
 
-    // This tries to play a midi file using code from
-    // https://github.com/Tonejs/Midi
-    // Note: this is not working yet, because the form of JSON object
-    // it gets for a midi file is different than the one this player
-    // is based on.
-    async loadMidiFile(url) {
-        var midiReader = new MidiReader();
-        var obj = await midiReader.loadMidiFile(url);
-        return obj;
-    }
-
-    async playMidiFile(url) {
-        var midiReader = new MidiReader();
-        var obj = await midiReader.loadMidiFile(url);
-        this.playMidiObj(obj);
-        return obj;
-    }
-
     fmt(t) { return "" + Math.floor(t * 1000) / 1000; }
 
     playMidiObj(obj, autoStart) {
@@ -191,13 +157,6 @@ class MidiPlayTool_TinySynth {
         //TODO: make this really wait until instruments are loaded.
         this.i = 0;
         this.setPlayTime(0);
-        if (this.scene) {
-            console.log("***** adding Note Graphics ******");
-            this.addNoteGraphics(this.scene, this.midiObj);
-        }
-        else {
-            console.log("***** No registered scene so not adding Note Graphics ******");
-        }
         if (autoStart)
             this.startPlaying();
     }
@@ -502,7 +461,6 @@ class MidiPlayTool_TinySynth {
             if (etype == "programChange") {
                 var inst = event.instrument;
                 console.log("programChange ch: " + channel + " inst: " + inst);
-                //MIDI.programChange(channel, inst);
                 player.programChange(event.track, channel, inst);
                 continue;
             }
@@ -545,11 +503,9 @@ class MidiPlayTool_TinySynth {
 
     noteOn(channel, pitch, v, t) {
         //console.log("noteOn", channel, pitch, v, t);
-        //MIDI.noteOn(channel, pitch, v, t);
         var msg = [0x90, pitch, 100];
         //console.log("msg", msg);
         this.synth.send(msg);
-        //this.synth.send([0x90, pitch, 100]);
     }
 
     noteOff(channel, pitch, t) {
@@ -568,23 +524,15 @@ class MidiPlayTool_TinySynth {
         console.log("MidiPlayTool.programChange trackNo: " + trackNo + " ch: " + ch + " inst: " + inst);
         console.log("**** ignoring programChange");
         return;
-        MIDI.programChange(ch, inst);
-        try {
-            var selName = "selectT" + trackNo + "_" + ch + "_" + ch;
-            console.log("programChange sel: " + selName + " " + inst);
-            $("#" + selName).val(inst);
-        }
-        catch (e) {
-            console.log("err: " + e);
-        }
     }
 
 
     getInstName(inst) {
         if (typeof inst == typeof "str")
             return inst;
-        var instObj = MIDI.GM.byId[inst];
-        console.log("getInstName: " + JSON.stringify(instObj));
+        //var instObj = MIDI.GM.byId[inst];
+        var instObj = this.getInstObjById(inst);
+            console.log("getInstName: " + JSON.stringify(instObj));
         if (instObj) {
             return instObj.id;
         }
@@ -605,37 +553,6 @@ class MidiPlayTool_TinySynth {
         var player = this;
         console.log("******** ignoring loadInstruments");
         return;
-        console.log("loadInstruments " + JSON.stringify(player.instruments));
-        var instruments = [];
-        for (var id in this.instruments) {
-            var instObj = MIDI.GM.byId[id];
-            instruments.push(instObj.id);
-        }
-        console.log("instruments: " + instruments);
-        MIDI.loadPlugin({
-            //soundfontUrl: "./soundfont/",
-            //soundfontUrl: "/rhythm/soundfont/",
-            soundfontUrl: this.soundfontUrl,
-            instruments: instruments,
-            onprogress: function (state, progress) {
-                MIDI.loader.setValue(progress * 100);
-            },
-            onprogress: function (state, progress) {
-                if (MIDI.loader)
-                    MIDI.loader.setValue(progress * 100);
-            },
-            onsuccess: function () {
-                console.log("** finished with loading instruments");
-                for (var i = 0; i < instruments.length; i++) {
-                    var inst = instruments[i];
-                    console.log("loaded " + inst);
-                    player.loadedInstruments[inst] = true;
-                }
-                player.dump();
-                if (successFn)
-                    successFn();
-            }
-        });
     }
 
 
@@ -643,68 +560,12 @@ class MidiPlayTool_TinySynth {
         console.log("setupChannel", chNo, inst, successFn);
         console.log("**** ignoring setupChannel");
         return;
-        var player = this;
-        var instName = player.getInstName(inst);
-        if (chNo == 9) {
-            console.log("Special Hack using gunshot");
-            instName = "gunshot";
-        }
-        console.log("setupChannel chNo: " + chNo + " inst: " + inst + " name: " + instName);
-        var instrument = instName;
-        MIDI.loadPlugin({
-            soundfontUrl: player.soundfontUrl,
-            instrument: instName,
-            onprogress: function (state, progress) {
-                MIDI.loader.setValue(progress * 100);
-            },
-            onprogress: function (state, progress) {
-                if (MIDI.loader)
-                    MIDI.loader.setValue(progress * 100);
-            },
-            onsuccess: function () {
-                player.loadedInstruments[instrument] = true;
-                MIDI.programChange(chNo, instrument);
-                console.log("completed setupChannel", chNo, inst);
-                if (successFn)
-                    successFn();
-            }
-        });
     }
 
 
     loadInstrument(instr, successFn) {
         console.log("loadInstrument " + instr);
         this.setupChannel(0, instr, successFn);
-    }
-
-
-    graphicsHandleEventGroup(scene, eventGroup) {
-        var t0 = eventGroup[0];
-        var events = eventGroup[1];
-        for (var k = 0; k < events.length; k++) {
-            var event = events[k];
-            if (event.type != "note")
-                continue;
-            var note = event;
-            var pitch = note.pitch;
-            var v = note.v;
-            //var dur = note.dur/this.ticksPerBeat;
-            var dur = note.dur / this.ticksPerSec;
-            //var t = t0/this.ticksPerBeat;
-            var t = t0 / this.ticksPerSec;
-            //console.log(t0+" graphic for note pitch: "+pitch+" v:"+v+" dur: "+dur);
-            scene.addNote(t, dur, pitch);
-        }
-    }
-
-    addNoteGraphics(scene, midiTrack) {
-        scene.clearNotes();
-
-        console.log("Adding note graphics...");
-        var events = midiTrack.seq;
-        for (var i = 0; i < events.length; i++) {
-            this.graphicsHandleEventGroup(scene, events[i]);
-        }
     }
 
     update() {
@@ -885,7 +746,7 @@ class MidiPlayTool_TinySynth {
             cb.change(e => player.muteCheckboxChanged(e, mute_id, tchName))
             var sel = $("#" + select_id);
             for (var i = 0; i < 128; i++) {
-                var instObj = MIDI.GM.byId[i];
+                var instObj = this.getInstObjById(i);
                 //var instName = (i+1)+" "+instObj.name;
                 var instName = i + " " + instObj.name;
                 //sel.append($('<option>', { value: i+1, text: instName}));
@@ -899,6 +760,10 @@ class MidiPlayTool_TinySynth {
             sel.change(e => player.instrumentChanged(e, select_id));
         }
         this.showTempo();
+    }
+
+    getInstObjById(id) {
+        return {name: "instrument"+id, id: id };
     }
 
     noteObserver(channel, pitch, vel, t, dur) {
@@ -917,6 +782,3 @@ class MidiPlayTool_TinySynth {
     }
 
 }
-
-var MidiPlayTool = MidiPlayTool_TinySynth;
-window.MidiPlayTool = MidiPlayTool;

@@ -1,8 +1,24 @@
+/*
+This takes a song description text, and produces a JSON Object describing the song
+and suitable for our rhythm sequencer.  It is a similar structure to one produced
+when we read MIDI files.
 
+*/
 "use strict"
+
+const SUN_MOON_STAR_SONG = "SUN_MOON_STAR";
+const FRAME_DRUM_SONG = "FRAME_DRUM_SONG";
+const TAIKO_SONG = "TAIKO";
 
 function splitStr(str) {
     return str.split(/(\s+)/).filter(function (e) { return e.trim().length > 0; });
+}
+
+function stringContains(str, parts) {
+    for (var i = 0; i < parts.length; i++)
+        if (str.indexOf(parts[i]) >= 0)
+            return true;
+    return false;
 }
 
 const MATSURI_OLD = `
@@ -28,9 +44,10 @@ doro kara don  don don kara ka ka |
 // This class is for constructiong a midi event sequence
 // from a given string representation, such as Kuchi Shoga
 //
-class MidiParser {
+class SongParser {
     constructor() {
         this.beatDur = 200;
+        this.songType = null;
         this.reset();
     }
 
@@ -41,20 +58,23 @@ class MidiParser {
 
     guessSongType(str) {
         var songType = null;
-        if (contains(str, ["sun", "moon", "star"]))
+        if (stringContains(str, ["sun", "moon", "star"]))
             songType = SUN_MOON_STAR_SONG;
-        if (contains(str, ["doko", "don", "ka"]))
+        if (stringContains(str, ["doko", "don", "ka"]))
             songType = TAIKO_SONG;
-        if (contains(str, ["pa", "dum"]))
+        if (stringContains(str, ["pa", "dum"]))
             songType = FRAME_DRUM_SONG;
         return songType;
     }
 
-    addKuchiShoga(str) {
+    addSong(song, songType) {
+        var str = song.trim();
+        str = str.toLowerCase();
+        this.songType = songType || this.guessSongType(str);
         console.log("adding for kuchi shoga", str);
         var parts = splitStr(str);
         str = parts.join(" ");
-        $("#kuchiShoga").val(str);
+        //$("#kuchiShoga").val(str);
         //str = str.replace(/\r?\n|\r/g, " ");
         //str = str.replace(/  /g, " ");
         this.reset();
@@ -184,6 +204,7 @@ class MidiParser {
                 bt,
                 [{ 't0': bt, 'type': 'metronome', 'label': 'cowbell' }]
             ];
+            console.log(bt, "=====================================================================");
             this.events.push(event);
         }
     }
@@ -198,6 +219,7 @@ class MidiParser {
             durationTicks: this.t,
             type: "MidiObj",
             loop: true,
+            songType: this.songType,
             tracks: [
                 {
                     channels: [0, 1, 2],
