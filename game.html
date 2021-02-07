@@ -19,16 +19,18 @@
     <script src="js/Game/SoundPlayer.js"></script>
 
     <script src="js/libs/tinysynth/webaudio-tinysynth.js"></script>
-    <script src="js/MidiPlayTool_TinySynth.js"></script>
- 
+
     <script src="js/RhythmScorer.js"></script>
     <script src="js/MidiReader.js"></script>
-    <script src="js/MidiParser.js"></script>
+    <script src="js/Game/SongParser.js"></script>
+    <script src="js/Game/PlayTool_TinySynth.js"></script>
     <script src="js/Game/RhythmGame.js"></script>
+
     <script src="js/GamePad.js"></script>
 
     <script src="CircuitPy/CircuitRhythm.js"></script>
     <script src="js/phonesensors.js"></script>
+    <script src="js/PseudoClock.js"></script>
 
     <style>
         body {
@@ -111,22 +113,24 @@
                 <option value="ff2">Fast and Furious 2</option>
             </select>   
             -->
-           <div id="songButtons">
+            <div id="songButtons">
                 <button class="sb" id="ff1">Fast and Furious 1</button>
                 <button class="sb" id="ff2">Fast and Furious 2</button>
                 <button class="sb" id="matsuri">Matsuri</button>
                 <button class="sb" id="shiko">Shiko</button>
                 <button class="sb" id="fanga1">Fanga 1</button>
                 <button class="sb" id="djembe3">Djembe 3 beat</button>
+                <button class="sb" id="frameEx1">Frame Ex 1</button>
                 <button class="sb" id="paradiddle1">Frame Paradiddle</button>
-           </div>
+                <button class="sb" id="wtc">WTC</button>
+            </div>
             <span id="songsToggle">Song</span>
             <div id="songsArea" xstyle="display:none;">
                 <textarea style="width: 95%; height: 100px; font-size: 18px"
                     id="kuchiShoga">don don doko don"</textarea>
             </div>
             <p></p>
-             <input type="checkbox" id="useWheel" checked> wheel
+            <input type="checkbox" id="useWheel" checked> wheel
             &nbsp;
             <input type="checkbox" id="moveNotes">
             <label for="moveNotes">move notes</label>
@@ -144,12 +148,12 @@
             <label for="bpmSlider" id="bpmLabel">BPM</label>
             <br>
             <p></p>
-  
+
             <button id="sensors">Sensors</button>
             &nbsp;
             <button id="stick">Arduino</button>
             &nbsp;
-          <span id="tab">&nbsp; &nbsp;</span>
+            <span id="tab">&nbsp; &nbsp;</span>
             <p>
             </p>
             <div id="midiTrackInfo">
