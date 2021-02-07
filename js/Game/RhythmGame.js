@@ -121,6 +121,8 @@ class RhythmGame extends CanvasTool.RectGraphic {
         this.setupPics();
         this.rhythmStick = null;
         this.prevSong = null;
+        //this.playMidi("sakura", false);
+        //return;
         if (opts.initialSong)
             this.playSong(opts.initialSong, false);
     }
@@ -137,6 +139,7 @@ class RhythmGame extends CanvasTool.RectGraphic {
         $("#frameEx1").click(e => inst.playSong(FRAME_EX1));
         $("#paradiddle1").click(e => inst.playSong(PARADIDDLE1));
         $("#wtc").click(e => inst.playMidi("bach/wtc0"));
+        $("#sakura").click(e => inst.playMidi("sakura"));
         $("#matsuri").click(e => inst.playMatsuri());
         $("#useWheel").change(e => inst.toggleUseWheel(e));
         $("#moveNotes").change(e => inst.toggleMoveNotes(e));
@@ -272,10 +275,10 @@ class RhythmGame extends CanvasTool.RectGraphic {
         this.mplayer.playMidiObj(midiObj, autoStart);
     }
 
-    async playMidi(name) {
+    async playMidi(name, autoStart) {
         this.songType = "MIDI";
         this.setupPics();
-        await this.mplayer.playMelody(name);
+        await this.mplayer.playMelody(name, autoStart);
         this.mplayer.setProgram(0);
     }
 

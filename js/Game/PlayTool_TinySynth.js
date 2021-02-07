@@ -130,8 +130,60 @@ class PlayTool_TinySynth {
         }
     }
 
-    playMelody(name) {
-        this.loadMelody(name, true);
+    // this converts from the JSON format produced by ToneJS midi converter
+    // to our own format produced using a Python midi package...
+    convertMidiFormat(obj) {
+        console.log("==============================================================================")
+        console.log("trying to convert", obj);
+        var nobj = {
+            "format": 0,
+            "instruments": [],
+            "resolution": 384,
+            "channels": [
+                0
+            ],
+            "tracks": [],
+            "type": "MidiObj"
+        };
+        //console.log("nobj", nobj);
+        //console.log("tracks", obj.tracks);
+        for (var i = 0; i < obj.tracks.length; i++) {
+            var track = obj.tracks[i];
+            //console.log("track", i, track);
+            var ntrack = {
+                "instruments": [],
+                "tMax": 68817,
+                "channels": [
+                    0
+                ],
+                "numNotes": 0,  //******BOGUS
+                "tMax": 0,  //******BOGUS
+                "type": "TrackObj",
+                "seq": []
+            }
+            //console.log("notes", track.notes);
+            for (var j=0; j<track.notes.length; j++) {
+                var note = track.notes[j];
+                //console.log(" note", j, note);
+                var t0 = note.ticks;
+                var dur = note.durationTicks;
+                var pitch = note.midi;
+                var v = note.velocity;
+                var nnote = [t0, [{pitch, v, t0, dur, channel: 0, type: 'note'}]];
+                //console.log("nnote", nnote);
+                ntrack.seq.push(nnote);
+            }
+            ntrack.numNotes = ntrack.seq.length;
+            ntrack.tMax = t0;
+            nobj.tracks.push(ntrack);
+        }
+        window.NMIDOBJ = nobj;
+        console.log("NMIDIOBJ", JSON.stringify(nobj, null, 3));
+        return nobj;
+    }
+
+    playMelody(name, autoStart) {
+        this.loadMelody(name, autoStart);
     }
 
     async loadMelody(name, autoStart) {
@@ -141,6 +193,9 @@ class PlayTool_TinySynth {
         var melodyUrl = this.midiPrefix + name + ".json";
         try {
             var obj = await loadJSON(melodyUrl);
+            if (obj.type != "MidiObj")
+                obj = this.convertMidiFormat(obj);
+            window.MIDI_OBJ = obj;
             inst.playMidiObj(obj, autoStart);
 
         }
@@ -532,7 +587,7 @@ class PlayTool_TinySynth {
             return inst;
         //var instObj = MIDI.GM.byId[inst];
         var instObj = this.getInstObjById(inst);
-            console.log("getInstName: " + JSON.stringify(instObj));
+        console.log("getInstName: " + JSON.stringify(instObj));
         if (instObj) {
             return instObj.id;
         }
@@ -763,7 +818,7 @@ class PlayTool_TinySynth {
     }
 
     getInstObjById(id) {
-        return {name: "instrument"+id, id: id };
+        return { name: "instrument" + id, id: id };
     }
 
     noteObserver(channel, pitch, vel, t, dur) {
@@ -782,3 +837,7 @@ class PlayTool_TinySynth {
     }
 
 }
+function newFunction(obj, i) {
+    return obj.tracks[i];
+}
+
