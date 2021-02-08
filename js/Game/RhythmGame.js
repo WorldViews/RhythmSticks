@@ -407,8 +407,19 @@ class RhythmGame extends CanvasTool.RectGraphic {
         var ystrike = this.y + 60;
         this.lineWidth = 1;
         this.strokeStyle = "gray";
+        if (this.songType == "MIDI")
+        {
+            for (var i = 0; i < 24; i++) {
+                var r = 130 + i*4;
+                this.drawCircle(canvas, ctx, r, this.x, this.y);
+            }
+    
+        }
+        else {
         for (var i = 0; i < 3; i++) {
             this.drawCircle(canvas, ctx, this.getRadius(i), this.x, this.y);
+        }
+
         }
         ctx.save();
         ctx.lineWidth = 12;
@@ -442,6 +453,10 @@ class RhythmGame extends CanvasTool.RectGraphic {
                 var ki = pitch - 40;
                 var r = this.getRadius(event.channel);
                 //var icon = this.icons[event.channel];
+                if (this.songType == "MIDI") {
+                    r = 60 + ki*4;
+                    dur = dur/5;
+                }
                 var icon = this.icons[event.label];
                 var a0 = timeToAngle * t;
                 var a1 = timeToAngle * (t + dur);
@@ -462,7 +477,7 @@ class RhythmGame extends CanvasTool.RectGraphic {
 
     // Draw the visualization in rectangular format
     drawBars(canvas, ctx) {
-        super.draw(canvas, ctx);
+        //super.draw(canvas, ctx);
         this.drawNotesBars(canvas, ctx);
     }
 
@@ -521,7 +536,15 @@ class RhythmGame extends CanvasTool.RectGraphic {
                 var x = target.x + 2 * ki;
                 */
                var heightPerSec = 50;
-                var x = this.getTrackPos(note.channel);
+               var x;
+               if (this.songType == "MIDI") {
+                 var ki = pitch - 40;
+                 x = -100 + 5*ki;
+               }
+               else {
+                   x = this.getTrackPos(note.channel);
+               }
+                
                 var y = ystrike + t * heightPerSec;
                 var h = dur * heightPerSec;
                 var w = 6;
@@ -542,7 +565,7 @@ class RhythmGame extends CanvasTool.RectGraphic {
         if (this.started)
             return;
         this.started = true;
-        this.playMySong();
+        //this.playMySong();
     }
 
     // this is called when an event has been detected, such
@@ -680,7 +703,7 @@ class RhythmGame extends CanvasTool.RectGraphic {
             this.targets[1] = { x: x+60, y: y - 40};
             this.targets[2] = { x: x+50, y };
         }
-        else {
+        else if (this.songType == TAIKO_SONG) {
             var x = this.x;
             var y = this.y - 100;
             var width = 200;
@@ -691,6 +714,9 @@ class RhythmGame extends CanvasTool.RectGraphic {
             this.targets[0] = { x, y };
             this.targets[1] = { x: x+25, y };
             this.targets[2] = { x: x+50, y };
+        }
+        else {
+
         }
     }
 

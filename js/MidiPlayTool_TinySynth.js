@@ -388,7 +388,6 @@ class MidiPlayTool_TinySynth {
     dump() {
         console.log("---------------------------------------");
         console.log("midiPrefix", this.midiPrefix);
-        console.log("soundFontUrl", this.soundfontUrl);
         console.log("loaded instruments", this.loadedInstruments);
         var trackChannels = this.trackChannels;
         for (var tchName in trackChannels) {

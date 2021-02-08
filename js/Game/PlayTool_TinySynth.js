@@ -8,6 +8,52 @@ This is a version of MidiPlayTool using WebAudio_TinySynth
 // access instance of MidiPlayTool.
 var _MIDI_PLAYER = null;
 
+//
+// We are subclassing this so that we can take advantage of the MIDI loader
+// that is built in to TinySynth, without hacking its source code.
+//
+class MyWebAudioTinySynth extends WebAudioTinySynth {
+
+    // load a MIDI file at given URL and return a promise
+    // to get the parsed song.
+    async asyncLoadMIDIUrl(url) {
+        var inst = this;
+        return new Promise((res, rej) => {
+            console.log("Loading MIDI from", url);
+            if (!url) {
+                console.log("asyncLoadMIDIUrl no url")
+                rej("no url");
+            }
+            var xhr = new XMLHttpRequest();
+            xhr.open("GET", url, true);
+            xhr.responseType = "arraybuffer";
+            xhr.loadMIDI = this.loadMIDI.bind(this);
+            xhr.onload = function (e) {
+                if (this.status == 200) {
+                    this.loadMIDI(this.response);
+                    console.log("after loadMIDI, song", inst.song)
+                    res(inst.song);
+                }
+                else {
+                    console.log("Error reading", url, this.status);
+                    rej(this.status);
+                }
+            };
+            xhr.send();
+        });
+    }
+
+    dumpSong(song) {
+        song = song || this.song;
+        var evts = song.ev;
+        for (var i=0; i<evts.length; i++) {
+            var ev = evts[i];
+            var t = ev.t;
+            console.log(t, ev.m);
+        }
+    }
+}
+
 class PlayTool_TinySynth {
     constructor() {
         var player = this;
@@ -52,14 +98,35 @@ class PlayTool_TinySynth {
             "shores_of_persia"
         ];
         player.initGUI();
-        this.synth = new WebAudioTinySynth({ voices: 64 });
         var inst = this;
+        this.synth = new MyWebAudioTinySynth({ voices: 64 });
+        this.synth.playTool = this;
+        //
+        // Monkeypatch to override synth.loadMIDI
+        /*
+        this.synthLoadMIDI = this.synth.loadMIDI;
+        this.synth.loadMIDI = data => {
+            console.log("loadMIDI", data);
+            inst.synthLoadMIDI(data);
+            console.log("**** Loaded.  Got song", this.synth.song);
+            inst.synth.playMIDI();
+        }
+        */
         //this.setProgram(116);
         //this.setProgram(0);
         var showStats = false;
         if (showStats)
             setInterval(() => inst.showStatus(), 100);
         _MIDI_PLAYER = this;
+    }
+
+    async playMIDI(url, play) {
+        var song = await this.synth.asyncLoadMIDIUrl(url);
+        console.log("Got song!!", song);
+        if (play)
+            this.synth.playMIDI();
+        this.synth.dumpSong(song);
+        return song;
     }
 
     showStatus() {
@@ -162,14 +229,14 @@ class PlayTool_TinySynth {
                 "seq": []
             }
             //console.log("notes", track.notes);
-            for (var j=0; j<track.notes.length; j++) {
+            for (var j = 0; j < track.notes.length; j++) {
                 var note = track.notes[j];
                 //console.log(" note", j, note);
                 var t0 = note.ticks;
                 var dur = note.durationTicks;
                 var pitch = note.midi;
                 var v = note.velocity;
-                var nnote = [t0, [{pitch, v, t0, dur, channel: 0, type: 'note'}]];
+                var nnote = [t0, [{ pitch, v, t0, dur, channel: 0, type: 'note' }]];
                 //console.log("nnote", nnote);
                 ntrack.seq.push(nnote);
             }
@@ -178,8 +245,13 @@ class PlayTool_TinySynth {
             nobj.tracks.push(ntrack);
         }
         window.NMIDOBJ = nobj;
-        console.log("NMIDIOBJ", JSON.stringify(nobj, null, 3));
+        //console.log("NMIDIOBJ", JSON.stringify(nobj, null, 3));
         return nobj;
+    }
+
+    playMidi(url) {
+        this.synth.playMidiU
+
     }
 
     playMelody(name, autoStart) {
@@ -325,7 +397,6 @@ class PlayTool_TinySynth {
                         console.log(">> " + tchName);
                         player.trackChannels[tchName].instrument = inst;
                     }
-                    //console.log("ev: "+JSON.stringify(ev)+" "+ev.track);
                     if (seqEvents[t0]) {
                         seqEvents[t0][1].push(ev);
                     }
@@ -585,13 +656,7 @@ class PlayTool_TinySynth {
     getInstName(inst) {
         if (typeof inst == typeof "str")
             return inst;
-        //var instObj = MIDI.GM.byId[inst];
-        var instObj = this.getInstObjById(inst);
-        console.log("getInstName: " + JSON.stringify(instObj));
-        if (instObj) {
-            return instObj.id;
-        }
-        return inst;
+        return this.synth.getTimbreName(0, inst);
     }
 
     setupInstruments() {
@@ -669,11 +734,14 @@ class PlayTool_TinySynth {
         val = eval(val);
         //val = val - 1; // indices start at 0 but names start at 1
         console.log("id: " + id + " ch: " + ch + "  val: " + val);
+        this.setProgram(val);
+        /*
         this.setupChannel(ch, val, () => {
             console.log("completed instrumentChanged", id, tchName, ch, val);
             this.trackChannels[tchName].instrument = val;
             this.dump();
         });
+        */
     }
 
     compositionChanged(e) {
@@ -771,7 +839,6 @@ class PlayTool_TinySynth {
     setupTrackInfo() {
         var player = this;
         console.log("setupTrackInfo");
-        //console.log("trackChannels: "+JSON.stringify(this.trackChannels));
         var d = $("#midiTrackInfo");
         /*
         if (d.length == 0) {
@@ -802,9 +869,7 @@ class PlayTool_TinySynth {
             var sel = $("#" + select_id);
             for (var i = 0; i < 128; i++) {
                 var instObj = this.getInstObjById(i);
-                //var instName = (i+1)+" "+instObj.name;
                 var instName = i + " " + instObj.name;
-                //sel.append($('<option>', { value: i+1, text: instName}));
                 sel.append($('<option>', { value: i, text: instName }));
             }
             var inst = trackChannel.instrument;
@@ -818,7 +883,8 @@ class PlayTool_TinySynth {
     }
 
     getInstObjById(id) {
-        return { name: "instrument" + id, id: id };
+        var name = this.getInstName(id);
+        return { name, id }
     }
 
     noteObserver(channel, pitch, vel, t, dur) {
