@@ -13,6 +13,64 @@ var _MIDI_PLAYER = null;
 // that is built in to TinySynth, without hacking its source code.
 //
 class MyWebAudioTinySynth extends WebAudioTinySynth {
+    constructor(opts) {
+        super(opts);
+    }
+
+    handleNoteOn(ch, n, v, t) {
+        // n is midi number - pitch
+        console.log("handleNoteOn", t, ch, n, t);
+        this.noteOn(ch, n, v, t);
+    }
+
+    handleEvent(ev, t) {
+        console.log("handleEvent", ev, t);
+        this.send(ev.m, t);
+    }
+
+    handleTickXXX() {
+        if (++this.relcnt >= 3) {
+            this.relcnt = 0;
+            for (let i = this.notetab.length - 1; i >= 0; --i) {
+                var nt = this.notetab[i];
+                if (this.actx.currentTime > nt.e) {
+                    this._pruneNote(nt);
+                    this.notetab.splice(i, 1);
+                }
+            }
+            /*@@gui*/
+            /*@@guiEND*/
+        }
+        if (this.playing && this.song.ev.length > 0) {
+            let e = this.song.ev[this.playIndex];
+            while (this.actx.currentTime + this.preroll > this.playTime) {
+                if (e.m[0] == 0xff51) {
+                    this.song.tempo = e.m[1];
+                    this.tick2Time = 4 * 60 / this.song.tempo / this.song.timebase;
+                }
+                else
+                    this.send(e.m, this.playTime);
+                ++this.playIndex;
+                if (this.playIndex >= this.song.ev.length) {
+                    if (this.loop) {
+                        e = this.song.ev[this.playIndex = 0];
+                        this.playTick = e.t;
+                    }
+                    else {
+                        this.playTick = this.maxTick;
+                        this.playing = 0;
+                        break;
+                    }
+                }
+                else {
+                    e = this.song.ev[this.playIndex];
+                    this.playTime += (e.t - this.playTick) * this.tick2Time;
+                    this.playTick = e.t;
+                }
+            }
+        }
+    }
+
 
     // load a MIDI file at given URL and return a promise
     // to get the parsed song.
@@ -43,14 +101,149 @@ class MyWebAudioTinySynth extends WebAudioTinySynth {
         });
     }
 
-    dumpSong(song) {
+    // this is based on the send(msg,t) method of synth
+    processEvent(evt) {    /* send midi message */
+        var t = evt.t;
+        var msg = evt.m;
+        const ch = msg[0] & 0xf;
+        const cmd = msg[0] & ~0xf;
+        if (cmd < 0x80 || cmd >= 0x100)
+            return;
+        //if (this.audioContext.state == "suspended") {
+        //    this.audioContext.resume();
+        //}
+        evt.channel = ch;
+        switch (cmd) {
+            case 0xb0:  /* ctl change */
+            /*
+            switch (msg[1]) {
+                case 1: this.setModulation(ch, msg[2], t); break;
+                case 7: this.setChVol(ch, msg[2], t); break;
+                case 10: this.setPan(ch, msg[2], t); break;
+                case 11: this.setExpression(ch, msg[2], t); break;
+                case 64: this.setSustain(ch, msg[2], t); break;
+                case 98: case 99: this.rpnidx[ch] = 0x3fff; break; // nrpn lsb/msb
+                case 100: this.rpnidx[ch] = (this.rpnidx[ch] & 0x3f80) | msg[2]; break; // rpn lsb
+                case 101: this.rpnidx[ch] = (this.rpnidx[ch] & 0x7f) | (msg[2] << 7); break; // rpn msb
+                case 6:  // data entry msb 
+                    switch (this.rpnidx[ch]) {
+                        case 0:
+                            this.brange[ch] = (msg[2] << 7) + (this.brange[ch] & 0x7f);
+                            break;
+                        case 1:
+                            this.tuningF[ch] = (msg[2] << 7) + ((this.tuningF[ch] + 0x2000) & 0x7f) - 0x2000;
+                            break;
+                        case 2:
+                            this.tuningC[ch] = msg[2] - 0x40;
+                            break;
+                    }
+                    break;
+                case 38:  // data entry lsb 
+                    switch (this.rpnidx[ch]) {
+                        case 0:
+                            this.brange[ch] = (this.brange[ch] & 0x3f80) | msg[2];
+                            break;
+                        case 1:
+                            this.tuningF[ch] = ((this.tuningF[ch] + 0x2000) & 0x3f80) | msg[2] - 0x2000;
+                            break;
+                        case 2: break;
+                    }
+                    break;
+                case 120:  // all sound off
+                case 123:  // all notes off
+                case 124: case 125: case 126: case 127: // omni off/on mono/poly
+                    this.allSoundOff(ch);
+                    break;
+                case 121: this.resetAllControllers(ch); break;
+            }
+            break;
+            */
+            case 0xc0:
+                //this.setProgram(ch, msg[1]);
+                evt.type = 'setProgram'
+                break;
+            //case 0xe0: this.setBend(ch, (msg[1] + (msg[2] << 7)), t); break;
+            case 0x90:
+                //this.noteOn(ch, msg[1], msg[2], t);
+                evt.type = 'noteOn';
+                evt.type = 'note';
+                evt.pitch = msg[1];
+                evt.v = msg[2];
+                evt.dur = 3;//*bogus
+                break;
+            case 0x80:
+                //this.noteOff(ch, msg[1], t);
+                evt.type = 'noteOff';
+                evt.pitch = msg[1]
+                break;
+            case 0xf0:
+                /*
+                if (msg[0] == 0xff) {
+                    this.reset();
+                    break;
+                }
+                if (msg[0] != 254 && this.debug) {
+                    var ds = [];
+                    for (let ii = 0; ii < msg.length; ++ii)
+                        ds.push(msg[ii].toString(16));
+                }
+                if (msg[0] == 0xf0) {
+                    if (msg[1] == 0x7f && msg[3] == 4) {
+                        if (msg[4] == 3 && msg.length >= 8) { // Master Fine Tuning
+                            this.masterTuningF = msg[6] * 0x80 + msg[5] - 8192;
+                        }
+                        if (msg[4] == 4 && msg.length >= 8) { // Master Coarse Tuning
+                            this.masterTuningC = msg[6] - 0x40;
+                        }
+                    }
+                    if (msg[1] == 0x41 && msg[3] == 0x42 && msg[4] == 0x12 && msg[5] == 0x40) {
+                        if ((msg[6] & 0xf0) == 0x10 && msg[7] == 0x15) {
+                            const c = [9, 0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 11, 12, 13, 14, 15][msg[6] & 0xf];
+                            this.rhythm[c] = msg[8];
+                        }
+                    }
+                }
+                */
+                break;
+        }
+    }
+
+    processSong(song) {
         song = song || this.song;
         var evts = song.ev;
-        for (var i=0; i<evts.length; i++) {
+        var pendingNotes = {};
+        for (var i = 0; i < evts.length; i++) {
             var ev = evts[i];
             var t = ev.t;
-            console.log(t, ev.m);
+            this.processEvent(ev);
+            var ch = ev.channel;
+            var pitch = ev.pitch;
+            //var key = [ch,pitch];
+            var key = ch + "_" + pitch;
+            if (ev.type == 'note') {
+                if (pendingNotes[key]) {
+                    console.log("note overwrite", t, key);
+                }
+                pendingNotes[key] = ev;
+            }
+            if (ev.type == 'noteOff') {
+                var noteEv = pendingNotes[key];
+                if (noteEv) {
+                    var dur = t - noteEv.t;
+                    console.log("setting duration for note", key, t, dur);
+                    noteEv.duration = dur;
+                }
+                else {
+                    console.log("Note off for unstarted note", t, key);
+                }
+                delete pendingNotes[key];
+            }
+            //console.log(t, ev);
         }
+        for (var key in pendingNotes) {
+            console.log("Note was not turned off", t, key, pendingNotes[key]);
+        }
+        return song;
     }
 }
 
@@ -101,17 +294,6 @@ class PlayTool_TinySynth {
         var inst = this;
         this.synth = new MyWebAudioTinySynth({ voices: 64 });
         this.synth.playTool = this;
-        //
-        // Monkeypatch to override synth.loadMIDI
-        /*
-        this.synthLoadMIDI = this.synth.loadMIDI;
-        this.synth.loadMIDI = data => {
-            console.log("loadMIDI", data);
-            inst.synthLoadMIDI(data);
-            console.log("**** Loaded.  Got song", this.synth.song);
-            inst.synth.playMIDI();
-        }
-        */
         //this.setProgram(116);
         //this.setProgram(0);
         var showStats = false;
@@ -121,12 +303,28 @@ class PlayTool_TinySynth {
     }
 
     async playMIDI(url, play) {
+        if (play == null)
+            play = true;
         var song = await this.synth.asyncLoadMIDIUrl(url);
         console.log("Got song!!", song);
-        if (play)
-            this.synth.playMIDI();
-        this.synth.dumpSong(song);
-        return song;
+        //if (play)
+        //    this.synth.playMIDI();
+        var songObj = this.synth.processSong(song);
+        var obj = this.convertTinySynthSong(songObj);
+        window.MIDI_OBJ = obj;
+        this.playMidiObj(obj, false)
+        var useOurSeq = 1;
+        if (play) {
+            if (useOurSeq) {
+                console.log("******* Using Our Synth ******");
+                this.startPlaying();
+            }
+            else {
+                console.log("******* Using TinySynth ******");
+                this.synth.playMIDI();
+            }
+        }
+        return songObj;
     }
 
     showStatus() {
@@ -199,7 +397,7 @@ class PlayTool_TinySynth {
 
     // this converts from the JSON format produced by ToneJS midi converter
     // to our own format produced using a Python midi package...
-    convertMidiFormat(obj) {
+    convertToneJSMidi(obj) {
         console.log("==============================================================================")
         console.log("trying to convert", obj);
         var nobj = {
@@ -249,15 +447,62 @@ class PlayTool_TinySynth {
         return nobj;
     }
 
-    playMidi(url) {
-        this.synth.playMidiU
-
+    // convert a song object read in by TinySynth from a MIDI file
+    // and convert to our own format.
+    convertTinySynthSong(songObj) {
+        console.log("==============================================================================")
+        console.log("trying to convert", songObj);
+        var obj = {
+            "format": 0,
+            "instruments": [],
+            "resolution": 384,
+            "channels": [
+                0
+            ],
+            "tracks": [],
+            "type": "MidiObj"
+        };
+        //console.log("track", i, track);
+        var track = {
+            "instruments": [],
+            //"tMax": 68817,
+            "channels": [
+                0
+            ],
+            "numNotes": 0,  //******BOGUS
+            "tMax": 0,  //******BOGUS
+            "type": "TrackObj",
+            "seq": []
+        }
+        //console.log("notes", track.notes);
+        var t0 = 0;
+        for (var j = 0; j < songObj.ev.length; j++) {
+            var event = songObj.ev[j];
+            if (event.type != 'note')
+                continue;
+            //console.log(" note", j, note);
+            t0 = event.t;
+            var channel = event.channel;
+            var dur = event.duration;
+            var pitch = event.pitch;
+            var v = event.v;
+            var note = [t0, [{ pitch, v, t0, dur, channel: 0, type: 'note' }]];
+            //console.log("nnote", nnote);
+            track.seq.push(note);
+        }
+        track.numNotes = track.seq.length;
+        track.tMax = t0;
+        obj.tracks.push(track);
+        window.NMIDOBJ = obj;
+        //console.log("NMIDIOBJ", JSON.stringify(nobj, null, 3));
+        return obj;
     }
 
     playMelody(name, autoStart) {
         this.loadMelody(name, autoStart);
     }
 
+    // load a MIDI obj JSON file and prepare to play it
     async loadMelody(name, autoStart) {
         var inst = this;
         console.log("MidiPlayTool.loadMelody " + name + " autostart: " + autoStart);
@@ -266,10 +511,9 @@ class PlayTool_TinySynth {
         try {
             var obj = await loadJSON(melodyUrl);
             if (obj.type != "MidiObj")
-                obj = this.convertMidiFormat(obj);
+                obj = this.convertToneJSMidi(obj);
             window.MIDI_OBJ = obj;
             inst.playMidiObj(obj, autoStart);
-
         }
         catch (e) {
             alert("Failed to load " + name);
@@ -465,7 +709,7 @@ class PlayTool_TinySynth {
             console.log("err: " + e);
         }
         this.dump();
-        console.log("projcessMidiObj returing", midiObj);
+        console.log("processMidiObj returing", midiObj);
         return midiObj;
         //    return midiObj.tracks[ntracks-1];
     }

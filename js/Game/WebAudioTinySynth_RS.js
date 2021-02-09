@@ -690,8 +690,13 @@ function WebAudioTinySynthCore(target) {
                 this.song.tempo=e.m[1];
                 this.tick2Time=4*60/this.song.tempo/this.song.timebase;
               }
-              else
-                this.send(e.m,this.playTime);
+              else { //hack added by DGK
+                if (this.handleEvent)
+                    this.handleEvent(e, this.playTime);
+                else
+                    this.send(e.m,this.playTime);
+              }
+ 
               ++this.playIndex;
               if(this.playIndex>=this.song.ev.length){
                 if(this.loop){
@@ -1256,7 +1261,13 @@ function WebAudioTinySynthCore(target) {
         break;
       case 0xc0: this.setProgram(ch,msg[1]); break;
       case 0xe0: this.setBend(ch,(msg[1]+(msg[2]<<7)),t); break;
-      case 0x90: this.noteOn(ch,msg[1],msg[2],t); break;
+      case 0x90: {
+          if (this.handleNoteOn)
+            this.handleNoteOn(ch, msg[1], msg[2], t);
+          else
+            this.noteOn(ch,msg[1],msg[2],t);
+          break;
+      }
       case 0x80: this.noteOff(ch,msg[1],t); break;
       case 0xf0:
         if (msg[0] == 0xff) {
