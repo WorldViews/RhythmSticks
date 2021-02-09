@@ -131,33 +131,35 @@
                     id="kuchiShoga">don don doko don"</textarea>
             </div>
             <p></p>
-            <input type="checkbox" id="useWheel" checked> wheel
-            &nbsp;
-            <input type="checkbox" id="moveNotes">
-            <label for="moveNotes">move notes</label>
-            &nbsp;
-            <input type="checkbox" id="useMidi">
-            <label for="useMidi">midi</label>
-            &nbsp;
-            <input type="checkbox" id="collapse">
-            <label for="collapse">collapse</label>
-            &nbsp;
-            <input type="checkbox" id="metronome">
-            <label for="metronome">metronome</label>
-            <br>
-            <p></p>
+            <span id="settingsToggle">Settings</span>
+            <div id="settingsArea">
+                <input type="checkbox" id="useWheel" checked> wheel
+                &nbsp;
+                <input type="checkbox" id="moveNotes">
+                <label for="moveNotes">move notes</label>
+                &nbsp;
+                <input type="checkbox" id="useMidi">
+                <label for="useMidi">midi</label>
+                &nbsp;
+                <input type="checkbox" id="collapse">
+                <label for="collapse">collapse</label>
+                &nbsp;
+                <input type="checkbox" id="metronome">
+                <label for="metronome">metronome</label>
+                <br>
+                <p></p>
 
-            <button id="sensors">Sensors</button>
-            &nbsp;
-            <button id="stick">Arduino</button>
-            &nbsp;
-            <span id="tab">&nbsp; &nbsp;</span>
-            <p>
-            </p>
-            <div id="midiTrackInfo">
-                No Tracks Loaded<br>
+                <button id="sensors">Sensors</button>
+                &nbsp;
+                <button id="stick">Arduino</button>
+                &nbsp;
+                <span id="tab">&nbsp; &nbsp;</span>
+                <p>
+                </p>
+                <div id="midiTrackInfo">
+                    No Tracks Loaded<br>
+                </div>
             </div>
-
         </div>
     </div>
 
@@ -195,6 +197,7 @@
                 sensors.start();
             });
             toggleDiv("#songsToggle", "#songsArea");
+            toggleDiv("#settingsToggle", "#settingsArea");
         });
 
     </script>

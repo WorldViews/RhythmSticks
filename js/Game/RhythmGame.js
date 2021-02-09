@@ -78,7 +78,7 @@ var SONGS = [
     },
     {
         'name': 'Frere Jacques',
-        'midi': 'midi/fj.mid'
+        'midi': 'midi/frere-jacques-round.mid'
     }
 ];
 
