@@ -38,27 +38,37 @@ $("#sakura").click(e => inst.playMidiFile("midi/sakura.mid"));
 var SONGS = [
     {
         'name': 'Fast & Furious 1',
-        'song': FF1
+        'song': FF1,
+        'infoLabel': 'South Bay Beat Institute',
+        'infoURL': 'https://www.southbaybeatinstitute.com/'
     },
     {
         'name': 'Fast & Furious 2',
-        'song': FF2
+        'song': FF2,
+        'infoLabel': 'South Bay Beat Institute',
+        'infoURL': 'https://www.southbaybeatinstitute.com/'
     },
     {
         'name': 'Fanga',
-        'song': FANGA1
+        'song': FANGA1,
+        'infoLabel': 'Sun Moon Stars',
+        'infoURL': 'https://www.jamtown.com/products/j0181d'
     },
     {
         'name': 'Shiko',
-        'song': SHIKO
+        'song': SHIKO,
+        'infoLabel': 'Reach and Teach',
+        'infoURL': 'https://shop.reachandteach.com/'
     },
     {
         'name': 'Djembe 3 Beat',
-        'song': DJEMBE3
+        'song': DJEMBE3,
     },
     {
         'name': 'Frame Drum Exercise 1',
-        'song': FRAME_EX1
+        'song': FRAME_EX1,
+        'infoLabel': 'Fern Ferndale',
+        'infoURL': 'https://www.facebook.com/fernsplace'
     },
     {
         'name': 'Frame Drum Paradiddle',
@@ -78,7 +88,9 @@ var SONGS = [
     },
     {
         'name': 'Frere Jacques',
-        'midi': 'midi/frere-jacques-round.mid'
+        'midi': 'midi/frere-jacques-round.mid',
+        'infoLabel': 'Free Midi',
+        'infoURL': 'https://beatlabacademy.com/free-midi/'
     }
 ];
 
@@ -316,10 +328,20 @@ class RhythmGame extends CanvasTool.RectGraphic {
     }
 
     async playSong(song, autoStart) {
-        if (song.midi)
-            this.playMidiFile(song.midi)
+        if (song.midi) {
+            this.playMidiFile(song.midi, false);
+        }
         else
             this.playSongSpec(song.song, autoStart);
+        if (song.infoURL) {
+            console.log("*******************************************************************");
+            console.log("info", song.infoURL);
+            $("#infoLink").html(song.infoLabel);
+            $("#infoLink").attr('href', song.infoURL);
+        }
+        else {
+            $("#infoLink").html("");
+        }
     }
 
     async playSongSpec(song, autoStart) {
