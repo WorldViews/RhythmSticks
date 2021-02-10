@@ -46,7 +46,7 @@ class MusicTool extends CanvasTool {
   }
 
   handleMouseUp(e) {
-    console.log("MusicTool.handleMouseUp");
+    //console.log("MusicTool.handleMouseUp");
     this.dragPanning = false;
   }
 
@@ -55,12 +55,12 @@ class MusicTool extends CanvasTool {
     var pt = this.getMousePos(e);
     var a = Math.atan2(pt.y, pt.x);
     var r = Math.sqrt(pt.x*pt.x + pt.y*pt.y);
-    console.log("MusicTool.handleMouseDrag", r);
+    //console.log("MusicTool.handleMouseDrag", r);
     if  (r > game.rMax)
       this.dragPanning = true;
     if (!this.dragPanning)
       return;
-    console.log("angle", a);
+    //console.log("angle", a);
     var dur = game.mplayer.getDuration();
     var pt = dur * a / (2 * Math.PI);
     if (pt < 0)

@@ -109,12 +109,16 @@ class MPlayer extends PlayTool_TinySynth {
         //console.log("label", note.label);
         if (note.type == "marker")
             return;
+        if (note.type == "metronome")
+            return;
+        /*
         if (note.type == "metronome") {
             if (this.game.useMetronome()) {
                 this.game.soundPlayer.playNote("cowbell", .1);
             }
             return;
         }
+        */
         if (this.game.useMidi() || this.game.songType == "MIDI") {
             console.log("handleNote", note);
             super.handleNote(t0, note);
@@ -247,22 +251,6 @@ class RhythmGame extends CanvasTool.RectGraphic {
         })
     }
 
-    /*
-    onClick(e) {
-        console.log(">>>>> RhythmGame.onClick");
-        this.handleMouseDrag(e);
-    }
-
-    handleMouseDrag(e) {
-        var pt = this.tool.getMousePos(e);
-        var a = Math.atan2(pt.y, pt.x);
-        console.log("angle", a);
-        var dur = this.mplayer.getDuration();
-        var pt = dur * a / (2*Math.PI);
-        this.mplayer.setPlayTime(pt);
-    }
-    */
-
     playMidiNote(i) {
         console.log("MidiPlayer.playMidiNote", i);
         this.mplayer.noteOn(0, i, 100, 0);
@@ -312,11 +300,20 @@ class RhythmGame extends CanvasTool.RectGraphic {
     }
 
     tick() {
+        var pt = this.mplayer.getPlayTime();
+        var b = pt * this.mplayer.beatsPerMin / 60;
+        var bn = Math.floor(b);
+        if (bn != this.prevBn) {
+            console.log("**************************** BEAT **************************", bn);
+            if (this.useMetronome()) {
+              this.soundPlayer.playNote("cowbell", .1);
+            }
+
+        }
+        this.prevBn = bn;
         if (this.scorer)
             this.scorer.update(this.getTime());
     }
-
-
 
     playMatsuri(autoStart) {
         this.playSong(MATSURI, false);
