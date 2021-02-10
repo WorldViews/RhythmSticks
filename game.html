@@ -11,7 +11,7 @@
     <script src="js/libs/jquery-3.1.0.min.js"></script>
     <script src="js/libs/sprintf.js"></script>
     <script src="js/CanvasTool.js"></script>
-    <script src="js/MusicTool.js"></script>
+    <script src="js/Game/MusicTool.js"></script>
     <script src="js/util.js"></script>
     <script src="js/libs/sprintf.js"></script>
     <script src="js/DynObj/DynamicObject.js"></script>
@@ -83,18 +83,30 @@
         #playControls {
             top: 5px;
             left: 5px;
-            right: 10px;
+            xright: 10px;
             xmargin: 5px;
             font-size: 24px;
-            position: absolute
+            xborder-style: solid;
+            position: absolute;
+        }
+
+        #choicesDiv {
+            top: 75px;
+            left: 5px;
+            xright: 10px;
+            xmargin: 5px;
+            font-size: 24px;
+            xborder-style: solid;
+            position: absolute;
         }
 
         #scoreStats {
             top: 5px;
             xleft: 5px;
-            right: 100px;
+            right: 30px;
             xmargin: 5px;
-            position: absolute
+            xborder-style: solid;
+            position: absolute;
         }
 
         #musicDiv {
@@ -103,7 +115,7 @@
             right: 10px;
             margin: 10px;
             font-size: 24px;
-            xposition: absolute
+            xposition: absolute;
         }
     </style>
 
@@ -120,14 +132,16 @@
             <input type="range" id="bpmSlider" min="5" max="400" value="100">
             <label for="bpmSlider" id="bpmLabel">BPM</label>
             <br>
+        </div>
+        <div id="choicesDiv">
             <span id="songChoices">
             </span>
             <br>
             &nbsp;&nbsp;
             <a href="https://worldviews.org" id="infoLink" target="infoPane">info</a>
         </div>
+        <span id="scoreStats">xxx</span>
         <div id="musicDiv">
-            <span id="scoreStats">xxx</span>
             <span id="songsToggle">Song</span>
             <div id="songsArea" xstyle="display:none;">
                 <textarea style="width: 95%; height: 100px; font-size: 18px"

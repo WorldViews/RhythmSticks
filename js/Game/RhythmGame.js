@@ -152,7 +152,6 @@ class DrumPic extends CanvasTool.ImageGraphic {
 }
 
 class RhythmGame extends CanvasTool.RectGraphic {
-
     constructor(opts) {
         opts = opts || {};
         opts.instrument = "acoustic_grand_piano";
@@ -249,8 +248,18 @@ class RhythmGame extends CanvasTool.RectGraphic {
     }
 
     /*
-    onClick() {
-        console.log("RhythmGame.onClick");
+    onClick(e) {
+        console.log(">>>>> RhythmGame.onClick");
+        this.handleMouseDrag(e);
+    }
+
+    handleMouseDrag(e) {
+        var pt = this.tool.getMousePos(e);
+        var a = Math.atan2(pt.y, pt.x);
+        console.log("angle", a);
+        var dur = this.mplayer.getDuration();
+        var pt = dur * a / (2*Math.PI);
+        this.mplayer.setPlayTime(pt);
     }
     */
 
@@ -457,6 +466,7 @@ class RhythmGame extends CanvasTool.RectGraphic {
         this.numBeats = dur * this.beatsPerSec;
         var rMin = this.getRadius(0) - 10;
         var rMax = this.getRadius(2) + 10;
+        this.rMax = rMax;
         for (var b = 0; b < this.numBeats; b++) {
             var bt = b / this.beatsPerSec;
             if (this.moveNotes)

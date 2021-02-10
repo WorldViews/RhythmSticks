@@ -77,6 +77,7 @@ class MusicTool extends CanvasTool {
     }
     var game = new RhythmGame(opts);
     this.game = game;
+    game.tool = this;
     this.addGraphic(game);
     game.addScorer();
     return game;

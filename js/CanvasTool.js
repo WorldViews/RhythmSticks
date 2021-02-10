@@ -69,15 +69,16 @@ class CanvasTool {
                 return;
             }
             if (e.which == 1) {
-
             }
             inst.handleMouseDrag(e)
         });
+
         this.canvas.addEventListener("mouseup", e => {
             inst.mouseDownPt = null;
             e.preventDefault();
             e.stopImmediatePropagation();
-            console.log("preventDefaults for mouse up");
+            //console.log("preventDefaults for mouse up");
+            inst.handleMouseUp(e);
             return false;
             //console.log("up", e);
         });
@@ -94,6 +95,10 @@ class CanvasTool {
     }
 
     handleMouseDown(e) {
+        console.log("handleMouseDown", e);
+    }
+
+    handleMouseUp(e) {
         console.log("handleMouseDown", e);
     }
 
