@@ -328,7 +328,7 @@ class RhythmGame extends CanvasTool.RectGraphic {
     }
 
     noticeNewSong() {
-        var song = $("#kuchiShoga").val();
+        var song = {song: $("#kuchiShoga").val() };
         console.log("noticeNewSong", song);
         this.playSong(song);
     }
@@ -721,10 +721,46 @@ class RhythmGame extends CanvasTool.RectGraphic {
 
     async setupPics() {
         //await sleep(0.5);
+        this.examineEvents();
         if (this.useWheel)
             this.setupPicsCirc();
         else
             this.setupPicsRectV();
+    }
+
+    examineEvents() {
+        var nMin = 1E10;
+        var nMax = -1E10;
+        var channels = {};
+        var labels = {};
+        var numNotes = 0;
+        if (!this.mplayer.midiObj) {
+            console.log("***** no midiObj");
+            return null;
+        }
+        var groups = this.mplayer.midiObj.seq;
+         for (var i = 0; i < groups.length; i++) {
+            //console.log("eventGroup i");
+            var eventGroup = groups[i];
+            var events = eventGroup[1];
+            for (var k = 0; k < events.length; k++) {
+                var event = events[k];
+                if (event.type != "note")
+                    continue;
+                var n = event.pitch;
+                if (event.label)
+                    labels[event.label] = 1;
+                numNotes++;
+                channels[event.channel] = 1;
+                if (!n)
+                    continue;
+                nMin = Math.min(n, nMin);
+                nMax = Math.max(n, nMax);
+            }
+        }
+        var info =  {nMin, nMax, numNotes, channels, labels};
+        console.log("****** Info: "+JSON.stringify(info, null, 3));
+        return info;
     }
 
     setupPicsCirc() {

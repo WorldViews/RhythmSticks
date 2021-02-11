@@ -28,50 +28,6 @@ class MyWebAudioTinySynth extends WebAudioTinySynth {
         this.send(ev.m, t);
     }
 
-    handleTickXXX() {
-        if (++this.relcnt >= 3) {
-            this.relcnt = 0;
-            for (let i = this.notetab.length - 1; i >= 0; --i) {
-                var nt = this.notetab[i];
-                if (this.actx.currentTime > nt.e) {
-                    this._pruneNote(nt);
-                    this.notetab.splice(i, 1);
-                }
-            }
-            /*@@gui*/
-            /*@@guiEND*/
-        }
-        if (this.playing && this.song.ev.length > 0) {
-            let e = this.song.ev[this.playIndex];
-            while (this.actx.currentTime + this.preroll > this.playTime) {
-                if (e.m[0] == 0xff51) {
-                    this.song.tempo = e.m[1];
-                    this.tick2Time = 4 * 60 / this.song.tempo / this.song.timebase;
-                }
-                else
-                    this.send(e.m, this.playTime);
-                ++this.playIndex;
-                if (this.playIndex >= this.song.ev.length) {
-                    if (this.loop) {
-                        e = this.song.ev[this.playIndex = 0];
-                        this.playTick = e.t;
-                    }
-                    else {
-                        this.playTick = this.maxTick;
-                        this.playing = 0;
-                        break;
-                    }
-                }
-                else {
-                    e = this.song.ev[this.playIndex];
-                    this.playTime += (e.t - this.playTick) * this.tick2Time;
-                    this.playTick = e.t;
-                }
-            }
-        }
-    }
-
-
     // load a MIDI file at given URL and return a promise
     // to get the parsed song.
     async asyncLoadMIDIUrl(url) {
@@ -710,6 +666,8 @@ class PlayTool_TinySynth {
         }
         this.dump();
         console.log("processMidiObj returing", midiObj);
+        this.midiObj = midiObj;
+        this.events = midiObj.seq;
         return midiObj;
         //    return midiObj.tracks[ntracks-1];
     }
@@ -767,9 +725,18 @@ class PlayTool_TinySynth {
     //
     checkForEvent() {
         //console.log("playNextStep "+player.i);
+        /*
         if (!this.isPlaying) {
             console.log("player stopped!");
             return;
+        }
+        */
+        //console.log("checkForEvent");
+        if (!this.events || this.events.length == 0)
+            return;
+        if (this.i >= this.events.length) {
+            this.i = 0;
+            this.lastEventPlayTime = 0;
         }
         var pt = this.getPlayTime();
         var evGroup = this.events[this.i];
@@ -935,7 +902,7 @@ class PlayTool_TinySynth {
     update() {
         //console.log("mplayer update");
         var pt = this.getPlayTime();
-        if (this.isPlaying) {
+        if (this.isPlaying || pt != this.prevPt) {
             //console.log("update pt", pt);
             this.checkForEvent();
         }

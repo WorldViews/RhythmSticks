@@ -204,7 +204,6 @@ class SongParser {
                 bt,
                 [{ 't0': bt, 'type': 'metronome', 'label': 'cowbell' }]
             ];
-            console.log(bt, "=====================================================================");
             this.events.push(event);
         }
     }
@@ -227,7 +226,7 @@ class SongParser {
                 }
             ]
         };
-        this.addMetronomeEvents();
+        //this.addMetronomeEvents();
         midiObj.tracks[0].seq = this.events;
         return midiObj;
     }
