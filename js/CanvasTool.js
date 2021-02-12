@@ -629,7 +629,7 @@ CanvasTool.ImageGraphic = class extends CanvasTool.RectGraphic {
         img.onload = e => {
             console.log("*** image loaded ***", inst.id, inst.url);
             inst.image = img;
-        }   
+        }
         img.src = this.url;
     }
 
