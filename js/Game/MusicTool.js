@@ -56,7 +56,7 @@ class MusicTool extends CanvasTool {
     var a = Math.atan2(pt.y, pt.x);
     var r = Math.sqrt(pt.x*pt.x + pt.y*pt.y);
     //console.log("MusicTool.handleMouseDrag", r);
-    if  (r > game.rMax)
+    if  (r > game.rMax && (e.shiftKey || game.allowScrub()) )
       this.dragPanning = true;
     if (!this.dragPanning)
       return;

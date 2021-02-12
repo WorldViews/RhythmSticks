@@ -3,6 +3,12 @@
 
 var ALIAS = { "rim": "cowbell", "center": "taiko" };
 
+function getSoundLabel(label) {
+    if (ALIAS[label])
+        label = ALIAS[label];
+    return label;
+}
+
 function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -120,15 +126,12 @@ class MPlayer extends PlayTool_TinySynth {
         }
         */
         if (this.game.useMidi() || this.game.songType == "MIDI") {
-            console.log("handleNote", note);
+            //console.log("handleNote", note);
             super.handleNote(t0, note);
         }
         else {
             var v = 3;
-            var ALIAS = { "rim": "cowbell", "center": "taiko" };
-            var label = note.label;
-            if (ALIAS[label])
-                label = ALIAS[label];
+            var label = getSoundLabel(note.label);
             this.game.soundPlayer.playNote(label, v);
             var stick = this.game.rhythmStick;
             if (stick) {
@@ -149,7 +152,7 @@ class DrumPic extends CanvasTool.ImageGraphic {
     }
 
     onClick(e) {
-        console.log("**************** click on ", this.label);
+        console.log("*** click on ", this.label);
         this.game.soundPlayer.playNote(this.label);
         this.game.strikeDrum("note");
     }
@@ -196,7 +199,7 @@ class RhythmGame extends CanvasTool.RectGraphic {
         icons['star'] = new CanvasTool.ImageGraphic({ url: "images/star.png", width: 40, height: 40 });
         this.icons = icons;
         this.songType = SUN_MOON_STAR_SONG;
-        this.setupPics();
+        //this.setupPics();
         this.rhythmStick = null;
         this.prevSong = null;
         //this.playMidiJSON("sakura", false);
@@ -269,6 +272,10 @@ class RhythmGame extends CanvasTool.RectGraphic {
         return $("#collapse").is(":checked");
     }
 
+    allowScrub() {
+        return $("#scrub").is(":checked");
+    }
+
     toggleUseWheel(e) {
         this.useWheel = $("#useWheel").is(":checked");
         this.setupPics();
@@ -300,19 +307,25 @@ class RhythmGame extends CanvasTool.RectGraphic {
     }
 
     tick() {
+        this.checkMetronome();
+        if (this.scorer)
+            this.scorer.update(this.getTime());
+    }
+
+    checkMetronome() {
+        var numBeats = Math.floor(this.mplayer.getDuration() * this.beatsPerSec);
         var pt = this.mplayer.getPlayTime();
         var b = pt * this.mplayer.beatsPerMin / 60;
         var bn = Math.floor(b);
-        if (bn != this.prevBn) {
-            console.log("**************************** BEAT **************************", bn);
+        if (bn != this.prevBn && bn != numBeats) {
+            console.log("***** BEAT ", bn);
             if (this.useMetronome()) {
               this.soundPlayer.playNote("cowbell", .1);
             }
 
         }
         this.prevBn = bn;
-        if (this.scorer)
-            this.scorer.update(this.getTime());
+
     }
 
     playMatsuri(autoStart) {
@@ -364,22 +377,21 @@ class RhythmGame extends CanvasTool.RectGraphic {
             this.songType = FRAME_DRUM_SONG;
         */
         console.log("playSong", song, autoStart);
-        // this.setupPics();
-
-        //$("#kuchiShoga").val(kuchiShoga);
         this.mplayer.pausePlaying();
         await sleep(0.5);
         $("#kuchiShoga").val(song);
         this.parser.addSong(song);
         var midiObj = this.parser.getMidiObj();
         this.songType = midiObj.songType;
+        this.mplayer.playMidiObj(midiObj, false);
         this.setupPics();
-        await sleep(0.5);
-        this.mplayer.playMidiObj(midiObj, autoStart);
+        if (autoStart)
+            this.mplayer.startPlaying();
     }
 
     async playMidiFile(url, autoStart) {
         this.songType = "MIDI";
+        $("#kuchiShoga").val("");
         this.mplayer.playMIDI(url, autoStart);
         this.setupPics();
     }
@@ -682,8 +694,7 @@ class RhythmGame extends CanvasTool.RectGraphic {
     // a drum strike.
     strikeDrum(label) {
         //var midi = MIDI;
-        if (ALIAS[label])
-            label = ALIAS[label];
+        label = getSoundLabel(label);
         if (this.useMidi()) {
             var channel = 0;
             var pitch = 36;
@@ -721,7 +732,9 @@ class RhythmGame extends CanvasTool.RectGraphic {
 
     async setupPics() {
         //await sleep(0.5);
-        this.examineEvents();
+        var info = this.examineEvents();
+        var labels = info.labels.map(getSoundLabel);
+        this.soundPlayer.loadBuffers(labels);
         if (this.useWheel)
             this.setupPicsCirc();
         else
@@ -758,6 +771,7 @@ class RhythmGame extends CanvasTool.RectGraphic {
                 nMax = Math.max(n, nMax);
             }
         }
+        labels = Object.keys(labels);
         var info =  {nMin, nMax, numNotes, channels, labels};
         console.log("****** Info: "+JSON.stringify(info, null, 3));
         return info;

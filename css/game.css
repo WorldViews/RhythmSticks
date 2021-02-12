@@ -1,0 +1,86 @@
+
+        
+body {
+    margin: 0;
+    xoverflow: hidden;
+    height: 100vh;
+    background-color: rgb(241, 239, 230);
+}
+
+button {
+    padding: 10px 10px;
+    margin: 10px 10px;
+    font-size: 20px;
+}
+
+select {
+    padding: 10px 10px;
+    margin: 10px 10px;
+    font-size: 20px;
+}
+
+.stats {
+    height: 30px;
+}
+
+.songButton {
+    margin: 5px 5px;
+    padding: 5px 5px;
+    font-size: 16px;
+}
+
+.songChoice {
+    margin: 2px 2px;
+    padding: 2px 2px;
+    font-size: 16px;
+}
+
+#songChoices {
+    margin: 2px 2px;
+    padding: 2px 2px;
+    font-size: 12px;
+}
+
+#musicCanvas {
+    width: 100%;
+    xheight: 93%;
+    background: #f1dcba;
+}
+
+#playControls {
+    top: 5px;
+    left: 5px;
+    xright: 10px;
+    xmargin: 5px;
+    font-size: 24px;
+    xborder-style: solid;
+    position: absolute;
+}
+
+#choicesDiv {
+    top: 75px;
+    left: 5px;
+    xright: 10px;
+    xmargin: 5px;
+    font-size: 24px;
+    xborder-style: solid;
+    position: absolute;
+}
+
+#scoreStats {
+    top: 5px;
+    xleft: 5px;
+    right: 30px;
+    xmargin: 5px;
+    xborder-style: solid;
+    position: absolute;
+}
+
+#musicDiv {
+    top: 10px;
+    left: 10px;
+    right: 10px;
+    margin: 10px;
+    font-size: 24px;
+    xposition: absolute;
+}

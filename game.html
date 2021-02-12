@@ -6,7 +6,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>WorldViews Taiko Rhythm Games</title>
+    <title>WorldViews Rhythm Games</title>
 
     <script src="js/libs/jquery-3.1.0.min.js"></script>
     <script src="js/libs/sprintf.js"></script>
@@ -32,92 +32,7 @@
     <script src="js/phonesensors.js"></script>
     <script src="js/PseudoClock.js"></script>
 
-    <style>
-        body {
-            margin: 0;
-            xoverflow: hidden;
-            height: 100vh;
-            background-color: rgb(241, 239, 230);
-        }
-
-        button {
-            padding: 10px 10px;
-            margin: 10px 10px;
-            font-size: 20px;
-        }
-
-        select {
-            padding: 10px 10px;
-            margin: 10px 10px;
-            font-size: 20px;
-        }
-
-        .stats {
-            height: 30px;
-        }
-
-        .songButton {
-            margin: 5px 5px;
-            padding: 5px 5px;
-            font-size: 16px;
-        }
-
-        .songChoice {
-            margin: 2px 2px;
-            padding: 2px 2px;
-            font-size: 16px;
-        }
-
-        #songChoices {
-            margin: 2px 2px;
-            padding: 2px 2px;
-            font-size: 12px;
-        }
-
-        #musicCanvas {
-            width: 100%;
-            xheight: 93%;
-            background: #f1dcba;
-        }
-
-        #playControls {
-            top: 5px;
-            left: 5px;
-            xright: 10px;
-            xmargin: 5px;
-            font-size: 24px;
-            xborder-style: solid;
-            position: absolute;
-        }
-
-        #choicesDiv {
-            top: 75px;
-            left: 5px;
-            xright: 10px;
-            xmargin: 5px;
-            font-size: 24px;
-            xborder-style: solid;
-            position: absolute;
-        }
-
-        #scoreStats {
-            top: 5px;
-            xleft: 5px;
-            right: 30px;
-            xmargin: 5px;
-            xborder-style: solid;
-            position: absolute;
-        }
-
-        #musicDiv {
-            top: 10px;
-            left: 10px;
-            right: 10px;
-            margin: 10px;
-            font-size: 24px;
-            xposition: absolute;
-        }
-    </style>
+    <link rel="stylesheet" href="css/game.css">
 
 </head>
 
@@ -149,7 +64,7 @@
             </div>
             <p></p>
             <span id="settingsToggle">Settings</span>
-            <div id="settingsArea" style="display:none;">
+            <div id="settingsArea" xstyle="display:none;">
                 <input type="checkbox" id="useWheel" checked> wheel
                 &nbsp;
                 <input type="checkbox" id="moveNotes">
@@ -163,6 +78,9 @@
                 &nbsp;
                 <input type="checkbox" id="metronome">
                 <label for="metronome">metronome</label>
+                &nbsp;
+                <input type="checkbox" id="scrub">
+                <label for="scrub">scrub</label>
                 <br>
                 <p></p>
 
@@ -186,7 +104,8 @@
         var TAIKO_BOX;
         var sensors = null;
 
-        const SIMPLE1 = `rest rest rest rest | moon moon sun star`;
+        const SIMPLE0 = `rest star moon rest | moon moon sun star`;
+        const SIMPLE1 = `sun moon star`;
         const SIMPLE2 = `don don ka don`;
 
         function toggleDiv(labelSel, divSel) {

@@ -19,7 +19,7 @@ class MyWebAudioTinySynth extends WebAudioTinySynth {
 
     handleNoteOn(ch, n, v, t) {
         // n is midi number - pitch
-        console.log("handleNoteOn", t, ch, n, t);
+        //console.log("handleNoteOn", t, ch, n, t);
         this.noteOn(ch, n, v, t);
     }
 
@@ -483,6 +483,7 @@ class PlayTool_TinySynth {
         this.midiObj = this.processMidiObj(obj);
         //TODO: make this really wait until instruments are loaded.
         this.i = 0;
+        this.prevPt = 0;
         this.setPlayTime(0);
         if (autoStart)
             this.startPlaying();
@@ -708,7 +709,7 @@ class PlayTool_TinySynth {
     }
 
     setPlayTime(t) {
-        console.log("setPlayTime t: " + t);
+        //console.log("setPlayTime t: " + t);
         if (this.pseudoClock)
             return this.pseudoClock.setPlayTime();
         this.lastEventPlayTime = t;
@@ -906,9 +907,9 @@ class PlayTool_TinySynth {
             //console.log("update pt", pt);
             this.checkForEvent();
         }
-        if (this.prevPt && pt < this.prevPt) {
-            console.log("**** pt < prevPt ****");
-        }
+        //if (this.prevPt && pt < this.prevPt) {
+        //    console.log("**** pt < prevPt ****");
+        //}
         this.prevPt = pt;
         //$("#midiStatus").html("Time: "+this.fmt(pt));
         $("#midiTime").val(this.fmt(pt));
@@ -955,12 +956,6 @@ class PlayTool_TinySynth {
         */
     }
 
-    compositionChanged(e) {
-        var name = $("#midiCompositionSelection").val();
-        console.log("compositionChanged: " + name);
-        this.loadMelody(name);
-    }
-
     s//etupMidiControlDiv() {
     initGUI() {
         var player = this;
@@ -970,38 +965,6 @@ class PlayTool_TinySynth {
         $("#midiCompositionSelection").change(e => player.compositionChanged(e));
         $("#midiBPM").change(e => player.timingChanged(e));
         $("#midiTPB").change(e => player.timingChanged(e));
-        player.showCompositions();
-    }
-
-    showCompositions() {
-        console.log("showCompositions");
-        var sel = $("#midiCompositionSelection");
-        sel.html("");
-        sel.append($('<option>', { value: "None", text: "(None)" }));
-        for (var i = 0; i < this.compositions.length; i++) {
-            var compName = this.compositions[i];
-            console.log("**** adding comp " + compName);
-            sel.append($('<option>', { value: compName, text: compName }));
-        }
-    }
-
-    async loadCompositions(url) {
-        console.log("LoadCompositions " + url);
-        var inst = this;
-        try {
-            var obj = await loadJSON(url);
-            this.compositionsLoaded(obj);
-        }
-        catch (e) {
-            console.log("failed to load " + url);
-        }
-    }
-
-    compositionsLoaded(obj) {
-        console.log("compositionsLoaded");
-        console.log("comps: " + obj);
-        this.compositions = obj;
-        this.showCompositions();
     }
 
     setBPM(bpm) {
