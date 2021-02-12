@@ -335,12 +335,6 @@ class PlayTool_TinySynth {
         this.pausePlaying();
     }
 
-    rewind() {
-        console.log("rewind");
-        this.i = 0;
-        this.setPlayTime(0);
-    }
-
     togglePlaying() {
         console.log("togglePlaying pt", this.getPlayTime());
         if ($("#midiTogglePlaying").text() == "Play") {
@@ -715,6 +709,13 @@ class PlayTool_TinySynth {
         this.lastEventPlayTime = t;
         this.lastEventClockTime = getClockTime();
         //TODO: should set player.i to appopriate place...
+    }
+
+    rewind() {
+        console.log("rewind");
+        this.i = 0;
+        this.prevPt = 0;
+        this.setPlayTime(0);
     }
 
     getDuration() {
