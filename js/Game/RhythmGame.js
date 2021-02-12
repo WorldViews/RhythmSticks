@@ -67,8 +67,9 @@ class DrumPic extends CanvasTool.ImageGraphic {
 
     onClick(e) {
         console.log("*** click on ", this.label);
-        this.game.soundPlayer.playNote(this.label);
-        this.game.strikeDrum("note");
+        //this.game.soundPlayer.playNote(this.label);
+        //this.game.strikeDrum("note");
+        this.game.strikeDrum(this.label);
     }
 }
 
