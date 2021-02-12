@@ -13,7 +13,7 @@ class MusicTool extends CanvasTool {
     this.game = null;
   }
 
-  addGame(initialSong) {
+  addGame(opts) {
     var opts = {
       "type": "RhythmGame",
       "id": "game",
@@ -24,7 +24,8 @@ class MusicTool extends CanvasTool {
       "height": 800,
       "x": 0,
       "y": 0,
-      initialSong
+      songs: opts.songs,
+      initialSong: opts.initialSong
     }
     var game = new RhythmGame(opts);
     this.game = game;
@@ -54,9 +55,9 @@ class MusicTool extends CanvasTool {
     var game = this.game;
     var pt = this.getMousePos(e);
     var a = Math.atan2(pt.y, pt.x);
-    var r = Math.sqrt(pt.x*pt.x + pt.y*pt.y);
+    var r = Math.sqrt(pt.x * pt.x + pt.y * pt.y);
     //console.log("MusicTool.handleMouseDrag", r);
-    if  (r > game.rMax && (e.shiftKey || game.allowScrub()) )
+    if (r > game.rMax && (e.shiftKey || game.allowScrub()))
       this.dragPanning = true;
     if (!this.dragPanning)
       return;

@@ -32,6 +32,8 @@
     <script src="js/phonesensors.js"></script>
     <script src="js/PseudoClock.js"></script>
 
+    <script src="SONGS.js"></script>
+
     <link rel="stylesheet" href="css/game.css">
 
 </head>
@@ -123,7 +125,7 @@
             mtool.start();
             mtool.setView(0, 0, 1020);
             //window.wheel = gtool.addWheel(SIMPLE1);
-            window.game = mtool.addGame(SIMPLE1);
+            window.game = mtool.addGame({ songs: SONGS, initialSong: SIMPLE1 });
             window.GAME = window.game;
             stick1 = new RhythmStick({ taikoBox: TAIKO_BOX });
 
