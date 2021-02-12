@@ -34,8 +34,70 @@
 
     <script src="SONGS.js"></script>
 
-    <link rel="stylesheet" href="css/game.css">
+    <xlink rel="stylesheet" href="css/game.css">
+        <style>
+            body {
+                margin: 0;
+                xoverflow: hidden;
+                xheight: 100vh;
+                background-color: rgb(240, 240, 255);
+            }
 
+            #musicCanvas {
+                margin: 10px;
+                width: 500px;
+                height: 500px;
+                background: white;
+                border-style: solid;
+            }
+
+            #playControls {
+                top: 5px;
+                left: 5px;
+                xright: 10px;
+                margin: 10px;
+                font-size: 24px;
+                xborder-style: solid;
+                xposition: absolute;
+            }
+
+            #choicesDiv {
+                top: 75px;
+                left: 5px;
+                xright: 10px;
+                xmargin: 5px;
+                font-size: 24px;
+                xborder-style: solid;
+                display: none;
+                position: absolute;
+            }
+
+            #songChoices {
+                margin: 2px 2px;
+                padding: 2px 2px;
+                font-size: 12px;
+                xdisplay: none;
+            }
+
+            #scoreStats {
+                top: 5px;
+                xleft: 5px;
+                right: 30px;
+                xmargin: 5px;
+                xborder-style: solid;
+                position: absolute;
+                display: none;
+            }
+
+            #musicDiv {
+                top: 10px;
+                left: 10px;
+                right: 10px;
+                margin: 10px;
+                font-size: 24px;
+                xposition: absolute;
+            }
+        </style>
 </head>
 
 <body>
@@ -63,36 +125,38 @@
             <textarea style="width: 95%; height: 100px; font-size: 18px" id="kuchiShoga">don don doko don"</textarea>
         </div>
         <p></p>
-        <span id="settingsToggle">Settings</span>
-        <div id="settingsArea" xstyle="display:none;">
-            <input type="checkbox" id="useWheel" checked> wheel
-            &nbsp;
-            <input type="checkbox" id="moveNotes">
-            <label for="moveNotes">move notes</label>
-            &nbsp;
-            <input type="checkbox" id="useMidi">
-            <label for="useMidi">midi</label>
-            &nbsp;
-            <input type="checkbox" id="collapse">
-            <label for="collapse">collapse</label>
-            &nbsp;
-            <input type="checkbox" id="metronome">
-            <label for="metronome">metronome</label>
-            &nbsp;
-            <input type="checkbox" id="scrub">
-            <label for="scrub">scrub</label>
-            <br>
-            <p></p>
+        <div id="settingsContainer" style="display:none">
+            <span id="settingsToggle">Settings</span>
+            <div id="settingsArea" xstyle="display:none;">
+                <input type="checkbox" id="useWheel" checked> wheel
+                &nbsp;
+                <input type="checkbox" id="moveNotes">
+                <label for="moveNotes">move notes</label>
+                &nbsp;
+                <input type="checkbox" id="useMidi">
+                <label for="useMidi">midi</label>
+                &nbsp;
+                <input type="checkbox" id="collapse">
+                <label for="collapse">collapse</label>
+                &nbsp;
+                <input type="checkbox" id="metronome">
+                <label for="metronome">metronome</label>
+                &nbsp;
+                <input type="checkbox" id="scrub">
+                <label for="scrub">scrub</label>
+                <br>
+                <p></p>
 
-            <button id="sensors">Sensors</button>
-            &nbsp;
-            <button id="stick">Arduino</button>
-            &nbsp;
-            <span id="tab">&nbsp; &nbsp;</span>
-            <p>
-            </p>
-            <div id="midiTrackInfo">
-                No Tracks Loaded<br>
+                <button id="sensors">Sensors</button>
+                &nbsp;
+                <button id="stick">Arduino</button>
+                &nbsp;
+                <span id="tab">&nbsp; &nbsp;</span>
+                <p>
+                </p>
+                <div id="midiTrackInfo">
+                    No Tracks Loaded<br>
+                </div>
             </div>
         </div>
     </div>
@@ -120,7 +184,8 @@
         $(document).ready(function () {
             mtool = new MusicTool("musicCanvas");
             mtool.start();
-            mtool.setView(0, 0, 1020);
+            //mtool.setView(0, 0, 1020);
+            mtool.setView(0, 0, 600);
             //window.wheel = gtool.addWheel(SIMPLE1);
             window.game = mtool.addGame({ songs: SONGS, initialSong: SIMPLE1 });
             window.GAME = window.game;
