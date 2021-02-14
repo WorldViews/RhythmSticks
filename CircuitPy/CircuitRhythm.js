@@ -5,7 +5,8 @@ if ("serial" in navigator) {
   console.log("serial available");
 }
 else {
-  alert("Cannot access serial");
+  console.log("Cannot access serial");
+  //alert("Cannot access serial");
 }
 
 // sent data value to webhook for adafruit data feed
