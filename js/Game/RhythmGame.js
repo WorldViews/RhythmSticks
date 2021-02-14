@@ -152,9 +152,12 @@ class RhythmGame extends CanvasTool.RectGraphic {
 
     setupSongChoices() {
         var inst = this;
-        var select = $("<select>");
+        var select = $("<select>").attr('id', 'songSelect');
         $("#songChoices").append(select);
         var i = 0;
+        var option = $("<option>").html("Choose a Song").val(-1);
+        option.addClass("songChoice");
+        select.append(option);
         this.songs.forEach(song => {
             var option = $("<option>")
             option.html(song.name);
@@ -165,6 +168,8 @@ class RhythmGame extends CanvasTool.RectGraphic {
         });
         select.change(e => {
             var i = select.val();
+            if (i < 0)
+                return;
             var song = this.songs[i];
             inst.playSong(song);
         })
@@ -234,7 +239,7 @@ class RhythmGame extends CanvasTool.RectGraphic {
         var b = pt * this.mplayer.beatsPerMin / 60;
         var bn = Math.floor(b);
         if (bn != this.prevBn && bn != numBeats) {
-            console.log("***** BEAT ", bn);
+            //console.log("***** BEAT ", bn);
             if (this.useMetronome()) {
               this.soundPlayer.playNote("cowbell", .1);
             }
