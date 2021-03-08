@@ -1,0 +1,86 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Simple Metrenome Sync Test</title>
+
+    <script src="js/libs/jquery-3.1.0.min.js"></script>
+    <script src="js/libs/sprintf.js"></script>
+    <script src="js/util.js"></script>
+    <script src="js/libs/sprintf.js"></script>
+    <script src="js/Game/WebAudioTinySynth_RS.js"></script>
+    <link rel="stylesheet" href="css/game.css">
+    <style>
+        body { margin: 10px; padding: 10px; }
+    </style>
+</head>
+
+<body>
+    <canvas id="canvas" style="width:100px;height:100px"></canvas>
+    <span id="tickNum"></span>
+    <br>
+    beep: <input id="useBeep" type="checkbox" />
+    <br>
+    <button id="startButton">Start</button>
+    <script>
+        var mtool;
+        var running = false;
+        var prevTickNum = 0;
+        var tickNum = 0;
+        var beatNum = 0;
+        var synth = null;
+        var ac = null;
+
+        function tickFun() {
+            //console.log("tickNum", tickNum, beatNum);
+            if (beatNum % 2 == 0)
+                $("#canvas").css({background: 'red'})
+            else
+                $("#canvas").css({background: 'blue'});
+            $("#tickNum").html(beatNum);
+            if ($("#useBeep").is(":checked")) {
+                $("#tickNum").html("beep "+beatNum);
+                if (synth) {
+                    ac = synth.getAudioContext();
+                    var t = ac.currentTime
+                    $("#stat").html("t: "+t);
+                    synth.noteOn(0, 60, 100, t);
+                    synth.noteOff(0, 60, t+0.05);
+                    //synth.noteOff(0, 60, 0.01);
+                }
+            }
+        }
+
+        function timerFun() {
+            if (!running)
+                return;
+            var t = getClockTime();
+            tickNum = Math.floor(t);
+            beatNum = (tickNum % 8) + 1;
+            if (tickNum != prevTickNum) {
+                tickFun();
+                prevTickNum = tickNum;
+            }
+            requestAnimationFrame(timerFun);
+        }
+
+        function initSynth() {
+            if (synth)
+                return;
+            synth = new WebAudioTinySynth({voices:64});
+            //synth.setProgram(0,20);
+        }
+
+        $(document).ready(function () {
+           // mtool = new MusicTool("musicCanvas");
+            //mtool.start();
+            //mtool.setView(0, 0, 1020);
+            running = true;
+            timerFun();
+            $("#useBeep").click(initSynth);
+            $("#startButton").click(initSynth);
+        });
+    </script>
+</body>
+
+</html>
