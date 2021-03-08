@@ -31,7 +31,8 @@
     beep: <input id="useBeep" type="checkbox" />
     <br>
     <button id="startButton">Start</button> <br>
-    <span id="stats"></span>
+    <span id="stats"></span><br>
+    <span id="offset"></span>
     <script>
         var mtool;
         var running = false;
@@ -104,6 +105,7 @@
             ts.on('change', function (offset) {
                 $("#stats").html('changed offset: ' + offset + ' ms');
                 console.log('changed offset: ' + offset + ' ms');
+                $("#offset").html(offset+' ms');
                 //document.write('changed offset: ' + offset + ' ms<br>');
             });
 
