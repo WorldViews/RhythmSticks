@@ -1,0 +1,124 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Simple Metrenome Sync Test</title>
+
+    <script src="js/libs/jquery-3.1.0.min.js"></script>
+    <script src="js/libs/sprintf.js"></script>
+    <script src="js/util.js"></script>
+    <script src="js/libs/sprintf.js"></script>
+    <script src="js/Game/WebAudioTinySynth_RS.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/es5-shim/4.0.5/es5-shim.min.js"></script> 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/es6-shim/0.23.0/es6-shim.min.js"></script> 
+ 
+    <script src="https://worldviews.org/FlowerGarden/api/timesync/timesync.js"></script> 
+  
+    <link rel="stylesheet" href="css/game.css">
+    <style>
+        body {
+            margin: 10px;
+            padding: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="canvas" style="width:100px;height:100px"></canvas>
+    <span id="tickNum"></span>
+    <br>
+    beep: <input id="useBeep" type="checkbox" />
+    <br>
+    <button id="startButton">Start</button> <br>
+    <span id="stats"></span>
+    <script>
+        var mtool;
+        var running = false;
+        var prevTickNum = 0;
+        var tickNum = 0;
+        var beatNum = 0;
+        var synth = null;
+        var ac = null;
+        var ts = null;
+
+        function getSyncTime() {
+            if (ts == null) {
+                console.log("getSyncTime - no sync object yet");
+                return getClockTime();
+            }
+            return new Date(ts.now())/1000.0;
+        }
+
+        function tickFun() {
+            //console.log("tickNum", tickNum, beatNum);
+            if (beatNum % 2 == 0)
+                $("#canvas").css({ background: 'red' })
+            else
+                $("#canvas").css({ background: 'blue' });
+            $("#tickNum").html(beatNum);
+            if ($("#useBeep").is(":checked")) {
+                $("#tickNum").html("beep " + beatNum);
+                if (synth) {
+                    ac = synth.getAudioContext();
+                    var t = ac.currentTime
+                    $("#stat").html("t: " + t);
+                    synth.noteOn(0, 60, 100, t);
+                    synth.noteOff(0, 60, t + 0.05);
+                    //synth.noteOff(0, 60, 0.01);
+                }
+            }
+        }
+
+        function timerFun() {
+            if (!running)
+                return;
+            var t = getClockTime();
+            tickNum = Math.floor(t);
+            beatNum = (tickNum % 8) + 1;
+            if (tickNum != prevTickNum) {
+                tickFun();
+                prevTickNum = tickNum;
+            }
+            requestAnimationFrame(timerFun);
+        }
+
+        function initSynth() {
+            if (synth)
+                return;
+            synth = new WebAudioTinySynth({ voices: 64 });
+            //synth.setProgram(0,20);
+        }
+
+        $(document).ready(function () {
+            // mtool = new MusicTool("musicCanvas");
+            //mtool.start();
+            //mtool.setView(0, 0, 1020);
+
+            ts = timesync.create({
+                server: 'https://worldviews.org/FlowerGarden/api/timesync',
+                interval: 10000
+            });
+
+            // get notified on changes in the offset
+            ts.on('change', function (offset) {
+                $("#stats").html('changed offset: ' + offset + ' ms');
+                console.log('changed offset: ' + offset + ' ms');
+                //document.write('changed offset: ' + offset + ' ms<br>');
+            });
+
+            // get synchronized time
+            setInterval(function () {
+                var now = new Date(ts.now());
+                $("#stats").html('now: ' + now.toISOString() + ' ms<br>');
+                //document.write('now: ' + now.toISOString() + ' ms<br>');
+            }, 1000);
+            running = true;
+            timerFun();
+            $("#useBeep").click(initSynth);
+            $("#startButton").click(initSynth);
+        });
+    </script>
+</body>
+
+</html>
