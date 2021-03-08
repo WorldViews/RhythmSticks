@@ -30,7 +30,8 @@
     <br>
     beep: <input id="useBeep" type="checkbox" />
     <br>
-    <button id="startButton">Start</button> <br>
+    <button id="startButton">Start</button> 
+    <button id="sync">Sync</button><br>
     <span id="stats"></span><br>
     <span id="offset"></span>
     <script>
@@ -119,6 +120,10 @@
             timerFun();
             $("#useBeep").click(initSynth);
             $("#startButton").click(initSynth);
+            $("#sync").click(() => {
+                console.log("click sync");
+                ts.sync();
+            });
         });
     </script>
 </body>
