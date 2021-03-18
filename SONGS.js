@@ -77,6 +77,27 @@ var SONGS = [
         'midi': 'midi/Bach/wtc0.mid'
     },
     {
+        'name': 'Amazing Grace',
+        'midi': 'midi/amazing_grace.mid'
+    },
+    {
+        'name': 'Amazing Grace Piano',
+        //'midi': 'midi/amazing_grace_piano.mid',
+        'midi': 'midi/amazing_grace_BPNO.mid'
+    },
+    {
+        'name': 'Row Your Boat',
+        'midi': 'midi/row_your_boat_0.mid'
+    },
+    {
+        'name': 'Row Your Boat 1',
+        'midi': 'midi/row_your_boat_1.mid'
+    },
+    {
+        'name': 'Row Your Boat ',
+        'midi': 'midi/row_your_boat_round.mid'
+    },
+    {
         'name': 'Frere Jacques',
         'midi': 'midi/frere-jacques-round.mid',
         'infoLabel': 'Free Midi',

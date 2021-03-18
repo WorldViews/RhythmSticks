@@ -31,14 +31,6 @@ class MPlayer extends PlayTool_TinySynth {
             return;
         if (note.type == "metronome")
             return;
-        /*
-        if (note.type == "metronome") {
-            if (this.game.useMetronome()) {
-                this.game.soundPlayer.playNote("cowbell", .1);
-            }
-            return;
-        }
-        */
         if (this.game.useMidi() || this.game.songType == "MIDI") {
             //console.log("handleNote", note);
             super.handleNote(t0, note);
@@ -118,6 +110,9 @@ class RhythmGame extends CanvasTool.RectGraphic {
         //this.setupPics();
         this.rhythmStick = null;
         this.prevSong = null;
+        this.radii = { 0: 150, 1: 170, 2: 190 };
+        this.rMin = 150;
+        this.rMax = 190;
         //this.playMidiJSON("sakura", false);
         //return;
         if (opts.initialSong)
@@ -179,6 +174,10 @@ class RhythmGame extends CanvasTool.RectGraphic {
         console.log("MidiPlayer.playMidiNote", i);
         this.mplayer.noteOn(0, i, 100, 0);
         this.mplayer.noteOff(0, i, 100, 0.1);
+    }
+
+    useColors() {
+        return $("#useColors").is(":checked");
     }
 
     useMidi() {
@@ -288,15 +287,6 @@ class RhythmGame extends CanvasTool.RectGraphic {
         if (song == this.prevSong)
             autoStart = true;
         this.prevSong = song;
-        /*
-        var str = song.toLowerCase();
-        if (contains(str, ["sun", "moon", "star"]))
-            this.songType = SUN_MOON_STAR_SONG;
-        if (contains(str, ["doko", "don", "ka"]))
-            this.songType = TAIKO_SONG;
-        if (contains(str, ["pa", "dum"]))
-            this.songType = FRAME_DRUM_SONG;
-        */
         console.log("playSong", song, autoStart);
         this.mplayer.pausePlaying();
         await sleep(0.5);
@@ -313,7 +303,7 @@ class RhythmGame extends CanvasTool.RectGraphic {
     async playMidiFile(url, autoStart) {
         this.songType = "MIDI";
         $("#kuchiShoga").val("");
-        this.mplayer.playMIDI(url, autoStart);
+        await this.mplayer.playMIDI(url, autoStart);
         this.setupPics();
     }
 
@@ -380,29 +370,24 @@ class RhythmGame extends CanvasTool.RectGraphic {
         //super.draw(canvas, ctx);
         this.fillStyle = null;
         this.strokeStyle = "black";
-        var r = 200;
         this.lineWidth = 2;
-        // this.drawCircle(canvas, ctx, r, this.x, this.y);
         var a = 0;
         var pt = this.mplayer.getPlayTime();
         var dur = this.mplayer.getDuration();
         if (!this.moveNotes) {
             a = 2 * Math.PI * pt / dur;
         }
-        this.drawRadialLine(canvas, ctx, a, 20, r + 10, 1);
+        this.drawRadialLine(canvas, ctx, a, this.rMin-15, this.rMax, 1);
         // now draw bars at beat times...
         //
         this.beatsPerSec = this.mplayer.beatsPerMin / 60;
         this.numBeats = dur * this.beatsPerSec;
-        var rMin = this.getRadius(0) - 10;
-        var rMax = this.getRadius(2) + 10;
-        this.rMax = rMax;
         for (var b = 0; b < this.numBeats; b++) {
             var bt = b / this.beatsPerSec;
             if (this.moveNotes)
                 bt -= pt;
             var a = bt * 2 * Math.PI / dur;
-            this.drawRadialLine(canvas, ctx, a, rMin, rMax, 0.2);
+            this.drawRadialLine(canvas, ctx, a, this.rMin, this.rMax, 0.2);
         }
         // now draw the notes, as arcs
         this.drawNotesArcs(canvas, ctx);
@@ -419,9 +404,16 @@ class RhythmGame extends CanvasTool.RectGraphic {
         this.drawLine(canvas, ctx, x0, y0, x1, y1);
     }
 
-    getRadius(ch) {
-        this.radii = { 0: 150, 1: 170, 2: 190 };
-        var r = this.radii[ch];
+    getColor(i) {
+        if (!this.useColors())
+            return "black";
+        const colors = ["red", "orange", "yellow", "green", "blue", "indigo", "violet"];
+        const ncolors = colors.length;
+        return colors[i % ncolors];
+    }
+
+    getRadius(i) {
+        var r = this.radii[i];
         if (this.collapseTracks())
             return 170;
         return r;
@@ -451,17 +443,16 @@ class RhythmGame extends CanvasTool.RectGraphic {
         this.lineWidth = 1;
         this.strokeStyle = "gray";
         if (this.songType == "MIDI") {
-            for (var i = 0; i < 24; i++) {
-                var r = 130 + i * 4;
-                this.drawCircle(canvas, ctx, r, this.x, this.y);
-            }
-
+           for (var i=this.info.nMin; i<=this.info.nMax; i++) {
+               var r = this.getRadius(i);
+               this.strokeStyle = this.getColor(i);
+               this.drawCircle(canvas, ctx, r, this.x, this.y);
+           }
         }
         else {
             for (var i = 0; i < 3; i++) {
                 this.drawCircle(canvas, ctx, this.getRadius(i), this.x, this.y);
             }
-
         }
         ctx.save();
         ctx.lineWidth = 12;
@@ -496,7 +487,9 @@ class RhythmGame extends CanvasTool.RectGraphic {
                 var r = this.getRadius(event.channel);
                 //var icon = this.icons[event.channel];
                 if (this.songType == "MIDI") {
-                    r = 60 + ki * 4;
+                    //r = 60 + ki * 4;
+                    r = this.getRadius(pitch);
+                    ctx.strokeStyle = this.getColor(pitch);
                     dur = dur / 5;
                 }
                 var icon = this.icons[event.label];
@@ -561,22 +554,6 @@ class RhythmGame extends CanvasTool.RectGraphic {
                 var t = (t0 / player.ticksPerSec) - pt;
                 if (t + dur < 0)
                     continue;
-                //console.log(t0+" graphic for note pitch: "+pitch+" v:"+v+" dur: "+dur);
-                //console.log("draw note", t, dur, pitch);
-                /*
-                var ki = pitch - 40;
-                let target = this.targets[0];
-                if (ki > 20)
-                    target = this.targets[1];
-                if (!target) {
-                    //console.log("no key", i);
-                    continue;
-                }
-                var heightPerSec = 50;
-                var dx = 10;
-                //console.log("addNote", t, dur, pitch);
-                var x = target.x + 2 * ki;
-                */
                 var heightPerSec = 50;
                 var x;
                 if (this.songType == "MIDI") {
@@ -654,6 +631,27 @@ class RhythmGame extends CanvasTool.RectGraphic {
     async setupPics() {
         //await sleep(0.5);
         var info = this.examineEvents();
+        this.info = info;
+        var nMin = info.nMin;
+        var nMax = info.nMax;
+        console.log("nMin, nMax", nMin, nMax);
+        this.radii = {};
+        if (this.songType == "MIDI") {
+            this.rMin = 60;
+            this.rMax = 220;
+            var k = nMax - nMin;
+            var dr = (this.rMax-this.rMin)/k;
+            for (var i=nMin; i<=nMax; i++) {
+                var r = this.rMin + (i-nMin)*dr;
+                console.log("radius", i, r);
+                this.radii[i] = r;
+            }
+        }
+        else {
+            this.rMin = 150;
+            this.rMax = 190;
+            this.radii = { 0: 150, 1: 170, 2: 190 };
+        }
         var labels = info.labels.map(getSoundLabel);
         this.soundPlayer.loadBuffers(labels);
         if (this.useWheel)
