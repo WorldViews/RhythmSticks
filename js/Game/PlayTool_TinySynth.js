@@ -704,6 +704,11 @@ class PlayTool_TinySynth {
 
     setPlayTime(t) {
         //console.log("setPlayTime t: " + t);
+        var periodic = this.loop;
+        if (periodic && this.getDuration()) {
+            t = t % this.getDuration();
+            //console.log("mod time", t);
+        }
         if (this.pseudoClock)
             return this.pseudoClock.setPlayTime();
         this.lastEventPlayTime = t;
@@ -821,7 +826,7 @@ class PlayTool_TinySynth {
     }
 
     handleNote(t0, note) {
-        //console.log("note: "+JSON.stringify(note));
+        //console.log("note: ", note);
         if (note.type != 'note')
             return;
         var t = 0;

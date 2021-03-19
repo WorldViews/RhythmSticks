@@ -176,6 +176,10 @@ class RhythmGame extends CanvasTool.RectGraphic {
         this.mplayer.noteOff(0, i, 100, 0.1);
     }
 
+    isReactive() {
+        return $("#reactive").is(":checked");
+    }
+
     useColors() {
         return $("#useColors").is(":checked");
     }
@@ -230,6 +234,12 @@ class RhythmGame extends CanvasTool.RectGraphic {
         this.checkMetronome();
         if (this.scorer)
             this.scorer.update(this.getTime());
+        if (this.isReactive()) {
+            if (this.pseudoClock == null) {
+                this.pseudoClock = new PseudoClock();
+            }
+            this.mplayer.setPlayTime(this.pseudoClock.getPlayTime());
+        }
     }
 
     checkMetronome() {
@@ -613,6 +623,9 @@ class RhythmGame extends CanvasTool.RectGraphic {
         if (this.scorer) {
             var note = { t: this.getTime(), label };
             this.scorer.observeUserNote(note);
+        }
+        if (this.pseudoClock) {
+            this.pseudoClock.noticeBeat();
         }
     }
 
