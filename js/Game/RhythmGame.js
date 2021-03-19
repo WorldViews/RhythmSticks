@@ -1,6 +1,11 @@
 
 "use strict"
 
+const MODE = {
+    NORMAL: "Normal",
+    REACTIVE: "Reactive"
+};
+
 var ALIAS = { "rim": "cowbell", "center": "taiko" };
 
 function getSoundLabel(label) {
@@ -85,6 +90,7 @@ class RhythmGame extends CanvasTool.RectGraphic {
         this.initMIDIDevices();
 
         // 
+        this.mode = MODE.NORMAL;
         this.songs = opts.songs || [];
         this.soundPlayer = new SamplesPlayer();
         //this.fillStyle = "beige";
@@ -127,9 +133,27 @@ class RhythmGame extends CanvasTool.RectGraphic {
         $("#moveNotes").change(e => inst.toggleMoveNotes(e));
         $("#bpmSlider").change(e => inst.handleBPMSlider(e));
         $("#bpmSlider").on('input', e => inst.handleBPMSlider(e));
+        $("#mode").change(e => inst.setMode($("#mode").val()));
         inst.handleBPMSlider();
         //this.setupSongButtons();
         this.setupSongChoices();
+    }
+
+    setMode(mode) {
+        console.log("**** setMode", mode);
+        this.mode = mode;
+        if (mode == MODE.REACTIVE) {
+            this.mplayer.pausePlaying();
+            if (this.pseudoClock == null) {
+                this.pseudoClock = new PseudoClock();
+            }
+        }
+        else if (mode == MODE.NORMAL) {
+            this.setBPM(100);
+        }
+        else {
+            alert("Unknown mode", mode);
+        }
     }
 
     setupSongButtons() {
@@ -176,10 +200,6 @@ class RhythmGame extends CanvasTool.RectGraphic {
         this.mplayer.noteOff(0, i, 100, 0.1);
     }
 
-    isReactive() {
-        return $("#reactive").is(":checked");
-    }
-
     useColors() {
         return $("#useColors").is(":checked");
     }
@@ -209,6 +229,11 @@ class RhythmGame extends CanvasTool.RectGraphic {
         this.moveNotes = $("#moveNotes").is(":checked");
     }
 
+    setBPM(bpm) {
+        this.setBPMSlider(bpm);
+        this.handleBPMSlider();
+    }
+
     handleBPMSlider(e) {
         var val = $("#bpmSlider").val();
         var bpm = Number(val);
@@ -219,6 +244,11 @@ class RhythmGame extends CanvasTool.RectGraphic {
         this.mplayer.setBPM(bpm);
         if (p)
             this.mplayer.startPlaying();
+    }
+
+    setBPMSlider(bpm) {
+        $("#bpmSlider").val(bpm);
+        $("#bpmLabel").html("" + Math.floor(bpm)+" BPM");
     }
 
     getTime() {
@@ -234,11 +264,10 @@ class RhythmGame extends CanvasTool.RectGraphic {
         this.checkMetronome();
         if (this.scorer)
             this.scorer.update(this.getTime());
-        if (this.isReactive()) {
-            if (this.pseudoClock == null) {
-                this.pseudoClock = new PseudoClock();
-            }
+        if (this.mode == MODE.REACTIVE) {
+            this.pseudoClock.tick();
             this.mplayer.setPlayTime(this.pseudoClock.getPlayTime());
+            this.setBPMSlider(this.pseudoClock.getBPM());
         }
     }
 
@@ -351,6 +380,8 @@ class RhythmGame extends CanvasTool.RectGraphic {
     }
 
     draw(canvas, ctx) {
+        if (this._nodraw)
+            return;
         if (this.useWheel)
             this.drawWheel(canvas, ctx);
         else
@@ -624,6 +655,10 @@ class RhythmGame extends CanvasTool.RectGraphic {
             var note = { t: this.getTime(), label };
             this.scorer.observeUserNote(note);
         }
+        this.noticeBeat();
+    }
+
+    noticeBeat() {
         if (this.pseudoClock) {
             this.pseudoClock.noticeBeat();
         }
@@ -852,8 +887,10 @@ class RhythmGame extends CanvasTool.RectGraphic {
         var dsId = data[1];
         var vel = data[2];
         console.log("data: ", midiId, dsId, vel);
-        if (vel != 64)
+        if (vel != 64) {
             this.playMidiNote(dsId);
+            this.noticeBeat();
+        }
     }
 }
 

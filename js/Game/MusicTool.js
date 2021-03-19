@@ -57,6 +57,13 @@ class MusicTool extends CanvasTool {
     var a = Math.atan2(pt.y, pt.x);
     var r = Math.sqrt(pt.x * pt.x + pt.y * pt.y);
     //console.log("MusicTool.handleMouseDrag", r);
+    if (r > game.rMax + 80) {
+      // this is not a good mechanism, but is a quick and dirty way
+      // to be able to get beat events by the user clicking in the
+      // window far away from central things
+      console.log("MusicTool noticeBeat");
+      game.noticeBeat();
+    }
     if (r > game.rMax && (e.shiftKey || game.allowScrub()))
       this.dragPanning = true;
     if (!this.dragPanning)

@@ -8,7 +8,13 @@ class PseudoClock {
         this.setPlayTime(0);
         this.lastBeatTime = null;
         this.state = "STOPPED";
-        this.timer = setInterval(() => inst.tick(), 50);
+        //this.timer = setInterval(() => inst.tick(), 50);
+    }
+
+    dispose() {
+        console.log("PseudoClock.dispose");
+        if (this.timer)
+            clearInterval(this.timer);
     }
 
     tick() {
@@ -41,6 +47,10 @@ class PseudoClock {
         console.log("PseudoClock.noticeBeat", t);
        if (this.lastBeatTime != null) {
             var dt = t - this.lastBeatTime;
+            if (dt < 0.01) {
+                console.log("**** ignoring bunched events *****");
+                return;
+            }
             var bpm = 60*1.0/dt;
             console.log("bpm", bpm);
         }
@@ -57,6 +67,10 @@ class PseudoClock {
             this.state == "RUNNING";
         }
         this.setBPM(bpm);
+     }
+
+     getBPM() {
+         return this.playSpeed * 100.0;
      }
 
      setBPM(bpm) {
