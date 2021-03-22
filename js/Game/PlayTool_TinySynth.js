@@ -703,15 +703,45 @@ class PlayTool_TinySynth {
     }
 
     setPlayTime(t) {
-        //console.log("setPlayTime t: " + t);
-        //var periodic = this.loop;
-        var periodic = true;
+        var periodic = false;
         if (periodic && this.getDuration()) {
             t = t % this.getDuration();
-            //console.log("mod time", t);
         }
         if (this.pseudoClock)
-            return this.pseudoClock.setPlayTime();
+            this.pseudoClock.setPlayTime(t);
+        this.lastEventPlayTime = t;
+        this.lastEventClockTime = getClockTime();
+        //TODO: should set player.i to appopriate place...
+    }
+
+    nearestTimeP(t, t0, dur) {
+        if (!dur)
+            return t;
+        //console.log(sprintf("spt dur: %.3f  t0: %.3f  t: %.3f", dur, t0, t));
+        var tp = t % dur;
+        var t0p = t0 % dur;
+        var dt = tp - t0p;
+        //console.log(sprintf("  t0p: %.3f  tp: %.3f  dt: %.3f", t0p, tp, dt));
+        if (Math.abs(dt + dur) < Math.abs(dt)) {
+            dt += dur;
+        }
+        else if (Math.abs(dt - dur) < Math.abs(dt)) {
+            dt -= dur;
+        }
+        t = t0 + dt;
+        //console.log(" t <-", t);
+        return t;
+    }
+
+    // set play time, but choose the nearest instance of t+n*dur
+    // to the previous play time.
+    setPlayTimeNearestP(t) {
+        t = this.nearestTimeP(t, )
+        var t0 = this.getPlayTime();
+        var dur = this.getDuration();
+        t = this.nearestTimeP(t, t0, dur);
+        if (this.pseudoClock)
+            this.pseudoClock.setPlayTime(t);
         this.lastEventPlayTime = t;
         this.lastEventClockTime = getClockTime();
         //TODO: should set player.i to appopriate place...
@@ -740,23 +770,35 @@ class PlayTool_TinySynth {
         }
         */
         //console.log("checkForEvent");
-        if (!this.events || this.events.length == 0)
+        if (!this.events)
             return;
-        if (this.i >= this.events.length) {
+        var nevents = this.events.length;
+        if (nevents == 0)
+            return;
+        if (!this.loop && this.i >= nevents) {
             this.i = 0;
             this.lastEventPlayTime = 0;
         }
         var pt = this.getPlayTime();
-        var evGroup = this.events[this.i];
+        var dur = this.getDuration();
+        var n = Math.floor(this.i / nevents);
+        var k = this.i % nevents;
+        //console.log("checkForEvent i, n, k, pt, dur", this.i, n, k, pt, dur);
+        var evGroup = this.events[k];
         var nextT0 = evGroup[0];
         //var nextPt = nextT0/this.ticksPerBeat;
-        var nextPt = nextT0 / this.ticksPerSec;
+        var nextPt = n * dur + nextT0 / this.ticksPerSec;
+        nextPt = this.nearestTimeP(nextPt, pt, dur);
+        //console.log("pt, n, dur, nextPt", pt, n, dur, nextPt);
         if (pt < nextPt) {
             if (this.i > 0) {
-                var evGroup = this.events[this.i - 1];
+                var n = Math.floor((this.i - 1) / nevents);
+                var k = (this.i - 1) % nevents;
+                var evGroup = this.events[k];
                 var prevT0 = evGroup[0];
+                var prevPt = n*dur + prevT0/this.ticksPerSec;
+                prevPt = this.nearestTimeP(prevPt, pt, dur);
                 //var prevPt = prevT0/this.ticksPerBeat;
-                var prevPt = prevT0 / this.ticksPerSec;
                 if (pt > prevPt)
                     return;
                 console.log("PlayTool reverse");
@@ -769,11 +811,11 @@ class PlayTool_TinySynth {
         }
         this.handleEventGroup(evGroup);
         this.i += 1;
-        if (this.i >= this.events.length) {
+        if (this.i >= nevents) {
             if (this.loop) {
-                console.log("Finished loop");
-                this.i = 0;
-                this.lastEventPlayTime = 0;
+                //console.log("Finished loop");
+                //this.i = 0;
+                //this.lastEventPlayTime = 0;
                 return;
             }
             console.log("Finished playing");
@@ -853,7 +895,7 @@ class PlayTool_TinySynth {
         //console.log("noteOn", channel, pitch, v, t);
         var msg = [0x90, pitch, 100];
         //console.log("msg", msg);
-        this.synth.send(msg, t*1000);
+        this.synth.send(msg, t * 1000);
     }
 
     noteOff(channel, pitch, t) {
@@ -861,7 +903,7 @@ class PlayTool_TinySynth {
             t = 0;
         //console.log("noteOff", channel, pitch, v, t);
         var msg = [0x80, pitch, 0];
-        this.synth.send(msg, t*1000);
+        this.synth.send(msg, t * 1000);
     }
 
     programChange(trackNo, ch, inst) {

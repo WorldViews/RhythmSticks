@@ -73,7 +73,7 @@ class MusicTool extends CanvasTool {
     var pt = dur * a / (2 * Math.PI);
     if (pt < 0)
       pt += dur;
-    game.mplayer.setPlayTime(pt);
+    game.mplayer.setPlayTimeNearestP(pt);
   }
 
   clearCanvas() {

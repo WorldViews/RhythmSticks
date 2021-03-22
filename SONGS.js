@@ -86,15 +86,15 @@ var SONGS = [
         'midi': 'midi/amazing_grace_BPNO.mid'
     },
     {
-        'name': 'Row Your Boat',
+        'name': 'Row Your Boat (simple)',
         'midi': 'midi/row_your_boat_0.mid'
     },
     {
-        'name': 'Row Your Boat 1',
+        'name': 'Row Your Boat (chords)',
         'midi': 'midi/row_your_boat_1.mid'
     },
     {
-        'name': 'Row Your Boat ',
+        'name': 'Row Your Boat (round)',
         'midi': 'midi/row_your_boat_round.mid'
     },
     {

@@ -141,12 +141,16 @@ class RhythmGame extends CanvasTool.RectGraphic {
 
     setMode(mode) {
         console.log("**** setMode", mode);
+        this.mplayer.pausePlaying();
+        this.mplayer.setPlayTime(0);
         this.mode = mode;
         if (mode == MODE.REACTIVE) {
             this.mplayer.pausePlaying();
             if (this.pseudoClock == null) {
                 this.pseudoClock = new PseudoClock();
             }
+            this.pseudoClock.setPlayTime(0);
+            this.mplayer.setPlayTime(0);
         }
         else if (mode == MODE.NORMAL) {
             this.setBPM(100);
@@ -269,6 +273,8 @@ class RhythmGame extends CanvasTool.RectGraphic {
             this.mplayer.setPlayTime(this.pseudoClock.getPlayTime());
             this.setBPMSlider(this.pseudoClock.getBPM());
         }
+        $("#playtime").html(sprintf(" %8.2f", this.mplayer.getPlayTime()));
+        //$("#playtime").html("ga ga");
     }
 
     checkMetronome() {
