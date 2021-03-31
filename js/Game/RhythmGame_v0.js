@@ -89,9 +89,7 @@ class RhythmGame extends CanvasTool.RectGraphic {
         //this.loadInstrument(instrument);
         this.initMIDIDevices();
 
-        //
-        this.timeSigD = 4;
-        this.timeSigN = 4;
+        // 
         this.mode = MODE.NORMAL;
         this.songs = opts.songs || [];
         this.soundPlayer = new SamplesPlayer();
@@ -143,16 +141,12 @@ class RhythmGame extends CanvasTool.RectGraphic {
 
     setMode(mode) {
         console.log("**** setMode", mode);
-        this.mplayer.pausePlaying();
-        this.mplayer.setPlayTime(0);
         this.mode = mode;
         if (mode == MODE.REACTIVE) {
             this.mplayer.pausePlaying();
             if (this.pseudoClock == null) {
                 this.pseudoClock = new PseudoClock();
             }
-            this.pseudoClock.setPlayTime(0);
-            this.mplayer.setPlayTime(0);
         }
         else if (mode == MODE.NORMAL) {
             this.setBPM(100);
@@ -212,10 +206,6 @@ class RhythmGame extends CanvasTool.RectGraphic {
 
     useMidi() {
         return $("#useMidi").is(":checked");
-    }
-
-    setMetronome(val) {
-        $("#metronome").prop('checked', val ? true : false);
     }
 
     useMetronome() {
@@ -279,16 +269,6 @@ class RhythmGame extends CanvasTool.RectGraphic {
             this.mplayer.setPlayTime(this.pseudoClock.getPlayTime());
             this.setBPMSlider(this.pseudoClock.getBPM());
         }
-        var dur = this.mplayer.getDuration();
-        var t = this.mplayer.getPlayTime();
-        if (dur) {
-            var n = Math.floor(t/dur);
-            var mt = t % dur;
-            $("#playtime").html(sprintf(" %3d %8.2f %8.2f", (n+1), mt, t));
-        }
-        else {
-            $("#playtime").html(sprintf(" %8.2f", this.mplayer.getPlayTime()));
-        }
     }
 
     checkMetronome() {
@@ -297,12 +277,9 @@ class RhythmGame extends CanvasTool.RectGraphic {
         var b = pt * this.mplayer.beatsPerMin / 60;
         var bn = Math.floor(b);
         if (bn != this.prevBn && bn != numBeats) {
-            var vol = 0.1;
-            if (this.timeSigN)
-                if (bn % this.timeSigN == 0)
-                    vol *= 6;
+            //console.log("***** BEAT ", bn);
             if (this.useMetronome()) {
-              this.soundPlayer.playNote("cowbell", vol);
+              this.soundPlayer.playNote("cowbell", .1);
             }
 
         }
@@ -334,17 +311,6 @@ class RhythmGame extends CanvasTool.RectGraphic {
         }
         else
             this.playSongSpec(song.song, autoStart);
-        if (song.timeSignature) {
-            this.timeSigN = song.timeSignature[0];
-            this.timeSigD = song.timeSignature[1];
-        }
-        else {
-            this.timeSigN = 0;
-            this.timeSigD = 0;
-        }
-        if (song.bpm)
-            this.setBPM(Number(song.bpm));
-        this.setMetronome(song.metronome);
         if (song.infoURL) {
             console.log("*******************************************************************");
             console.log("info", song.infoURL);
@@ -462,11 +428,7 @@ class RhythmGame extends CanvasTool.RectGraphic {
             if (this.moveNotes)
                 bt -= pt;
             var a = bt * 2 * Math.PI / dur;
-            var wid = 0.2;
-            if (this.timeSigN)
-                if (b % this.timeSigN == 0)
-                    wid *= 5;
-            this.drawRadialLine(canvas, ctx, a, this.rMin, this.rMax, wid);
+            this.drawRadialLine(canvas, ctx, a, this.rMin, this.rMax, 0.2);
         }
         // now draw the notes, as arcs
         this.drawNotesArcs(canvas, ctx);
@@ -729,7 +691,7 @@ class RhythmGame extends CanvasTool.RectGraphic {
             var dr = (this.rMax-this.rMin)/k;
             for (var i=nMin; i<=nMax; i++) {
                 var r = this.rMin + (i-nMin)*dr;
-                //console.log("radius", i, r);
+                console.log("radius", i, r);
                 this.radii[i] = r;
             }
         }

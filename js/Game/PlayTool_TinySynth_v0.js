@@ -401,13 +401,11 @@ class PlayTool_TinySynth {
     // and convert to our own format.
     convertTinySynthSong(songObj) {
         console.log("==============================================================================")
-        console.log("convertTinySynthSong", songObj);
-        var tick2time = 4 * 60 / songObj.tempo / songObj.timebase;
-        var res = 1 / tick2time;
+        console.log("trying to convert", songObj);
         var obj = {
             "format": 0,
             "instruments": [],
-            "resolution": res,
+            "resolution": 384,
             "channels": [
                 0
             ],
@@ -417,6 +415,7 @@ class PlayTool_TinySynth {
         //console.log("track", i, track);
         var track = {
             "instruments": [],
+            //"tMax": 68817,
             "channels": [
                 0
             ],
@@ -440,24 +439,6 @@ class PlayTool_TinySynth {
             var note = [t0, [{ pitch, v, t0, dur, channel: 0, type: 'note' }]];
             //console.log("nnote", nnote);
             track.seq.push(note);
-            //t0 += dur;
-        }
-        console.log("bpm", this.beatsPerMin);
-        console.log("ticksPerSec", this.ticksPerSec);
-        console.log("ticksPerBeat", this.ticksPerBeat);
-        console.log("resolution", obj.resolution);
-        var durationTicks = t0;
-        var duration = durationTicks / this.ticksPerSec;
-        console.log("duration", duration);
-        var numBeats = duration * this.beatsPerMin / 60;
-        console.log("numBeats", numBeats);
-        var totalBeats = t0 / this.ticksPerBeat;
-        console.log("totalBeats", totalBeats);
-        var paddingBeats = 0;
-        if (paddingBeats) {
-            t0 += paddingBeats * this.ticksPerBeat;
-            var marker = [t0, [{ type: 'marker', name: 'end' }]];
-            track.seq.push(marker);
         }
         track.numNotes = track.seq.length;
         track.tMax = t0;
@@ -466,20 +447,6 @@ class PlayTool_TinySynth {
         //console.log("NMIDIOBJ", JSON.stringify(nobj, null, 3));
         return obj;
     }
-
-    /*
-    addPadding(obj, padding) {
-        if (obj.tracks.length != 1) {
-            alert("Can only adjust midi objs with one track");
-        }
-        var track = obj.tracks[0];
-        var t0 = track.tMax + padding;
-        var marker = [t0, [{type:'marker', name:'end'}]];
-        track.seq.push(marker);
-        track.numNotes = track.seq.length;
-        track.tMax = t0;
-    }
-    */
 
     playMelody(name, autoStart) {
         this.loadMelody(name, autoStart);
@@ -504,7 +471,6 @@ class PlayTool_TinySynth {
         }
     }
 
-
     fmt(t) { return "" + Math.floor(t * 1000) / 1000; }
 
     playMidiObj(obj, autoStart) {
@@ -522,9 +488,8 @@ class PlayTool_TinySynth {
     instruments are requred, and also arranges a sequence of events
     grouped by times.
      */
-    processMidiObj(midiObj, opts) {
+    processMidiObj(midiObj) {
         var player = this;
-        opts = opts || {};
         console.log("processMidiObj");
         if (midiObj.type != "MidiObj") {
             console.log("midiObj has unexpected type " + midiObj.type);
@@ -536,7 +501,7 @@ class PlayTool_TinySynth {
         let seqTimes = [];
         let seqEvents = {};
         if (midiObj.resolution) {
-             player.ticksPerBeat = midiObj.resolution;
+            player.ticksPerBeat = midiObj.resolution;
         }
         else {
             console.log("**** WARNING NO RESOLUTON in the MidiObject ****");
@@ -694,9 +659,9 @@ class PlayTool_TinySynth {
         catch (e) {
             console.log("err: " + e);
         }
-        this.midiObj = midiObj;
         this.dump();
         console.log("processMidiObj returing", midiObj);
+        this.midiObj = midiObj;
         this.events = midiObj.seq;
         return midiObj;
         //    return midiObj.tracks[ntracks-1];
@@ -704,14 +669,6 @@ class PlayTool_TinySynth {
 
     dump() {
         console.log("---------------------------------------");
-        console.log("bpm", this.beatsPerMin);
-        console.log("ticksPerSec", this.ticksPerSec);
-        console.log("ticksPerBeat", this.ticksPerBeat);
-        if (this.midiObj) {
-            console.log("resolution", this.midiObj.resolution);
-            console.log("durationTicks", this.midiObj.durationTicks);
-            console.log("duration", this.getDuration());
-        }
         console.log("midiPrefix", this.midiPrefix);
         console.log("soundFontUrl", this.soundfontUrl);
         console.log("loaded instruments", this.loadedInstruments);
@@ -746,45 +703,15 @@ class PlayTool_TinySynth {
     }
 
     setPlayTime(t) {
-        var periodic = false;
+        //console.log("setPlayTime t: " + t);
+        //var periodic = this.loop;
+        var periodic = true;
         if (periodic && this.getDuration()) {
             t = t % this.getDuration();
+            //console.log("mod time", t);
         }
         if (this.pseudoClock)
-            this.pseudoClock.setPlayTime(t);
-        this.lastEventPlayTime = t;
-        this.lastEventClockTime = getClockTime();
-        //TODO: should set player.i to appopriate place...
-    }
-
-    nearestTimeP(t, t0, dur) {
-        if (!dur)
-            return t;
-        //console.log(sprintf("spt dur: %.3f  t0: %.3f  t: %.3f", dur, t0, t));
-        var tp = t % dur;
-        var t0p = t0 % dur;
-        var dt = tp - t0p;
-        //console.log(sprintf("  t0p: %.3f  tp: %.3f  dt: %.3f", t0p, tp, dt));
-        if (Math.abs(dt + dur) < Math.abs(dt)) {
-            dt += dur;
-        }
-        else if (Math.abs(dt - dur) < Math.abs(dt)) {
-            dt -= dur;
-        }
-        t = t0 + dt;
-        //console.log(" t <-", t);
-        return t;
-    }
-
-    // set play time, but choose the nearest instance of t+n*dur
-    // to the previous play time.
-    setPlayTimeNearestP(t) {
-        t = this.nearestTimeP(t,)
-        var t0 = this.getPlayTime();
-        var dur = this.getDuration();
-        t = this.nearestTimeP(t, t0, dur);
-        if (this.pseudoClock)
-            this.pseudoClock.setPlayTime(t);
+            return this.pseudoClock.setPlayTime();
         this.lastEventPlayTime = t;
         this.lastEventClockTime = getClockTime();
         //TODO: should set player.i to appopriate place...
@@ -813,35 +740,23 @@ class PlayTool_TinySynth {
         }
         */
         //console.log("checkForEvent");
-        if (!this.events)
+        if (!this.events || this.events.length == 0)
             return;
-        var nevents = this.events.length;
-        if (nevents == 0)
-            return;
-        if (!this.loop && this.i >= nevents) {
+        if (this.i >= this.events.length) {
             this.i = 0;
             this.lastEventPlayTime = 0;
         }
         var pt = this.getPlayTime();
-        var dur = this.getDuration();
-        var n = Math.floor(this.i / nevents);
-        var k = this.i % nevents;
-        //console.log("checkForEvent i, n, k, pt, dur", this.i, n, k, pt, dur);
-        var evGroup = this.events[k];
+        var evGroup = this.events[this.i];
         var nextT0 = evGroup[0];
         //var nextPt = nextT0/this.ticksPerBeat;
-        var nextPt = n * dur + nextT0 / this.ticksPerSec;
-        nextPt = this.nearestTimeP(nextPt, pt, dur);
-        //console.log("pt, n, dur, nextPt", pt, n, dur, nextPt);
+        var nextPt = nextT0 / this.ticksPerSec;
         if (pt < nextPt) {
             if (this.i > 0) {
-                var n = Math.floor((this.i - 1) / nevents);
-                var k = (this.i - 1) % nevents;
-                var evGroup = this.events[k];
+                var evGroup = this.events[this.i - 1];
                 var prevT0 = evGroup[0];
-                var prevPt = n * dur + prevT0 / this.ticksPerSec;
-                prevPt = this.nearestTimeP(prevPt, pt, dur);
                 //var prevPt = prevT0/this.ticksPerBeat;
+                var prevPt = prevT0 / this.ticksPerSec;
                 if (pt > prevPt)
                     return;
                 console.log("PlayTool reverse");
@@ -854,11 +769,11 @@ class PlayTool_TinySynth {
         }
         this.handleEventGroup(evGroup);
         this.i += 1;
-        if (this.i >= nevents) {
+        if (this.i >= this.events.length) {
             if (this.loop) {
-                //console.log("Finished loop");
-                //this.i = 0;
-                //this.lastEventPlayTime = 0;
+                console.log("Finished loop");
+                this.i = 0;
+                this.lastEventPlayTime = 0;
                 return;
             }
             console.log("Finished playing");
@@ -938,7 +853,7 @@ class PlayTool_TinySynth {
         //console.log("noteOn", channel, pitch, v, t);
         var msg = [0x90, pitch, 100];
         //console.log("msg", msg);
-        this.synth.send(msg, t * 1000);
+        this.synth.send(msg, t*1000);
     }
 
     noteOff(channel, pitch, t) {
@@ -946,7 +861,7 @@ class PlayTool_TinySynth {
             t = 0;
         //console.log("noteOff", channel, pitch, v, t);
         var msg = [0x80, pitch, 0];
-        this.synth.send(msg, t * 1000);
+        this.synth.send(msg, t*1000);
     }
 
     programChange(trackNo, ch, inst) {
@@ -1075,7 +990,7 @@ class PlayTool_TinySynth {
 
 
     timingChanged(e) {
-        console.log("*** tpbChanged");
+        console.log("tpbChanged");
         var bpm, tpb;
         try {
             bpm = eval($("#midiBPM").val());

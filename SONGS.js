@@ -24,8 +24,23 @@ const FRAME_EX1 = `dum - ki - ta - ki -    dum ki ta ki`;
 
 const PARADIDDLE1 = `pa dum pa pa | dum pa dum dum`;
 
+const FOUR_MEASURES_4 = `- - - - | - - - - | - - - - | - - - - |`;
+
+const EIGHT_MEASURES_2 = `- - | - - | - - | - - | - - | - - | - - | - - |`;
 
 var SONGS = [
+    {
+        'name': '8 measures of 2/4',
+        'song': EIGHT_MEASURES_2,
+        'timeSignature': [2, 4],
+        'metronome': 1
+    },
+    {
+        'name': '4 measures of 4/4',
+        'song': FOUR_MEASURES_4,
+        'timeSignature': [4, 4],
+        'metronome': 1
+    },
     {
         'name': 'Fast & Furious 1',
         'song': FF1,
@@ -96,6 +111,18 @@ var SONGS = [
     {
         'name': 'Row Your Boat (round)',
         'midi': 'midi/row_your_boat_round.mid'
+    },
+    {
+        'name': 'Tinsagu No Hana',
+        'bpm': 60,
+        'midi': 'midi/Tinsagu_No_Hana.mid'
+
+    },
+    {
+        'name': 'Shima Uta',
+        //'midi': 'midi/Tensagu_No_Hana_Bon_Odori.mid'
+        'midi': 'midi/shimauta1.mid'
+
     },
     {
         'name': 'Frere Jacques',
