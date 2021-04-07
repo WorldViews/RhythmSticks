@@ -61,7 +61,7 @@ class MusicTool extends CanvasTool {
       // this is not a good mechanism, but is a quick and dirty way
       // to be able to get beat events by the user clicking in the
       // window far away from central things
-      console.log("MusicTool noticeBeat");
+      //console.log("MusicTool noticeBeat");
       game.noticeBeat();
     }
     if (r > game.rMax && (e.shiftKey || game.allowScrub()))

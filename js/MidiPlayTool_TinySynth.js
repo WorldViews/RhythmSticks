@@ -422,7 +422,7 @@ class MidiPlayTool_TinySynth {
     setPlayTime(t) {
         console.log("setPlayTime t: " + t);
         if (this.pseudoClock)
-            return this.pseudoClock.setPlayTime();
+            return this.pseudoClock.setPlayTime(t);
         this.lastEventPlayTime = t;
         this.lastEventClockTime = getClockTime();
         //TODO: should set player.i to appopriate place...

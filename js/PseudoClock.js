@@ -22,7 +22,7 @@ class PseudoClock {
             return;
         var t = getClockTime();
         var dt = t - this.lastBeatTime;
-        var bpm = 60*1.0/dt;
+        var bpm = 60 * 1.0 / dt;
         if (bpm < 10) {
             this.stop();
         }
@@ -42,16 +42,16 @@ class PseudoClock {
         this.playSpeed = 0;
     }
 
-    noticeBeat() {
+    noticeBeatOLD() {
         var t = getClockTime();
         console.log("PseudoClock.noticeBeat", t);
-       if (this.lastBeatTime != null) {
+        if (this.lastBeatTime != null) {
             var dt = t - this.lastBeatTime;
-            if (dt < 0.01) {
-                console.log("**** ignoring bunched events *****");
+            if (dt < 0.1) {
+                console.log("**** IGNORING BOUNCE dt:", dt);
                 return;
             }
-            var bpm = 60*1.0/dt;
+            var bpm = 60 * 1.0 / dt;
             console.log("bpm", bpm);
         }
         this.lastBeatTime = t;
@@ -62,21 +62,48 @@ class PseudoClock {
             return;
         }
         if (state == "STARTING") {
-            this.playSpeed = bpm/100.0;
+            this.playSpeed = bpm / 100.0;
             console.log("PseudoClock RUNNING");
-            this.state == "RUNNING";
+            this.state = "RUNNING";
         }
         this.setBPM(bpm);
-     }
+    }
 
-     getBPM() {
-         return this.playSpeed * 100.0;
-     }
+    noticeBeat() {
+        var t = getClockTime();
+        console.log("PseudoClock.noticeBeat", t);
+        if (this.lastBeatTime != null) {
+            var dt = t - this.lastBeatTime;
+            if (dt < 0.1) {
+                console.log("**** IGNORING BOUNCE dt:", dt);
+                return;
+            }
+            var bpm = 60 * 1.0 / dt;
+            console.log("bpm", bpm);
+        }
+        this.lastBeatTime = t;
+        var state = this.state;
+        if (state == "STOPPED") {
+            console.log("PseudoClock STARTING");
+            this.state = "STARTING";
+            return;
+        }
+        if (state == "STARTING") {
+            this.playSpeed = bpm / 100.0;
+            console.log("PseudoClock RUNNING");
+            this.state = "RUNNING";
+        }
+        this.setBPM(bpm);
+    }
 
-     setBPM(bpm) {
-         this.prevBPM = bpm;
-         this.playSpeed = bpm/100.0;
-     }
+    getBPM() {
+        return this.playSpeed * 100.0;
+    }
+
+    setBPM(bpm) {
+        this.prevBPM = bpm;
+        this.playSpeed = bpm / 100.0;
+    }
 
     setPlayTime(t) {
         this.lastPlayTime = t;
@@ -86,7 +113,7 @@ class PseudoClock {
     getPlayTime() {
         var t = getClockTime();
         var dt = t - this.lastClockTime;
-        var pt = this.lastPlayTime + dt*this.playSpeed;
+        var pt = this.lastPlayTime + dt * this.playSpeed;
         this.lastPlayTime = pt;
         this.lastClockTime = t;
         return pt;

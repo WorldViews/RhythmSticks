@@ -125,6 +125,7 @@ class RhythmGame extends CanvasTool.RectGraphic {
         //return;
         if (opts.initialSong)
             this.playSongSpec(opts.initialSong, false);
+        this.setMode(MODE.NORMAL);
     }
 
     setupGUI() {
@@ -136,6 +137,7 @@ class RhythmGame extends CanvasTool.RectGraphic {
         $("#bpmSlider").change(e => inst.handleBPMSlider(e));
         $("#bpmSlider").on('input', e => inst.handleBPMSlider(e));
         $("#mode").change(e => inst.setMode($("#mode").val()));
+        $("#reactivePad").click(e => inst.noticeBeat(e));
         inst.handleBPMSlider();
         //this.setupSongButtons();
         this.setupSongChoices();
@@ -147,6 +149,7 @@ class RhythmGame extends CanvasTool.RectGraphic {
         this.mplayer.setPlayTime(0);
         this.mode = mode;
         if (mode == MODE.REACTIVE) {
+            $("#reactivePad").show();
             this.mplayer.pausePlaying();
             if (this.pseudoClock == null) {
                 this.pseudoClock = new PseudoClock();
@@ -155,6 +158,7 @@ class RhythmGame extends CanvasTool.RectGraphic {
             this.mplayer.setPlayTime(0);
         }
         else if (mode == MODE.NORMAL) {
+            $("#reactivePad").hide();
             this.setBPM(100);
         }
         else {
@@ -411,6 +415,14 @@ class RhythmGame extends CanvasTool.RectGraphic {
     observeState(state) {
         if (state == "play")
             this.scorer.reset();
+        if (state == "stop" && this.mode == MODE.REACTIVE) {
+            console.log("*** stop pseudoClock")
+            if (this.pseudoClock)
+                this.pseudoClock.stop();
+            else {
+                console.log("**** expected pseudoClock ***");
+            }
+        }
     }
 
     draw(canvas, ctx) {
@@ -697,6 +709,10 @@ class RhythmGame extends CanvasTool.RectGraphic {
     }
 
     noticeBeat() {
+        $("#reactivePad").css("background-color", "pink");
+        setTimeout(() => {
+            $("#reactivePad").css("background-color", "beige");
+        }, 100);
         if (this.pseudoClock) {
             this.pseudoClock.noticeBeat();
         }

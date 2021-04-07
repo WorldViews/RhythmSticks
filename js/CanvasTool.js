@@ -47,8 +47,9 @@ class CanvasTool {
 
         this.canvas.addEventListener("mousedown", e => {
             var hits = this.getHits(e);
-            if (hits.length > 1)
-                console.log("hits", hits);
+            if (hits.length > 1) {
+               // console.log("hits", hits);
+            }
             for (var i=0; i<hits.length; i++) {
                 var hit = hits[i];
                 var v = hit.onClick(e);
@@ -542,7 +543,7 @@ CanvasTool.Graphic = class {
     }
 
     onClick(e) {
-        console.log("Graphic.onClick", this.id, e);
+        //console.log("Graphic.onClick", this.id, e);
     }
 }
 

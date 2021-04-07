@@ -891,7 +891,7 @@ class PlayTool_TinySynth {
             var channel = event.channel;
             if (etype == "programChange") {
                 var inst = event.instrument;
-                console.log("programChange ch: " + channel + " inst: " + inst);
+                //console.log("programChange ch: " + channel + " inst: " + inst);
                 player.programChange(event.track, channel, inst);
                 continue;
             }
@@ -950,8 +950,8 @@ class PlayTool_TinySynth {
     }
 
     programChange(trackNo, ch, inst) {
-        console.log("MidiPlayTool.programChange trackNo: " + trackNo + " ch: " + ch + " inst: " + inst);
-        console.log("**** ignoring programChange");
+        //console.log("MidiPlayTool.programChange trackNo: " + trackNo + " ch: " + ch + " inst: " + inst);
+        //console.log("**** ignoring programChange");
         return;
     }
 
