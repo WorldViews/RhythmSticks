@@ -118,12 +118,10 @@ var SONGS = [
         'midi': 'midi/Tinsagu_No_Hana.mid'
 
     },
-    {
-        'name': 'Shima Uta',
-        //'midi': 'midi/Tensagu_No_Hana_Bon_Odori.mid'
-        'midi': 'midi/shimauta1.mid'
-
-    },
+    //{
+    //    'name': 'Shima Uta',
+    //    'midi': 'midi/shimauta1.mid'
+    //},
     {
         'name': 'Frere Jacques',
         'midi': 'midi/frere-jacques-round.mid',
