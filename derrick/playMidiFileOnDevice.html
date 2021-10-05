@@ -1,0 +1,33 @@
+<!doctype html>
+<html>
+
+<head>
+  <script src="js/libs/tinysynth/webaudio-tinysynth2.js"></script>
+  <script src="js/TinySynth2.js"></script>
+  <script>
+
+    var ts = new TinySynth();
+    window.onload = () => ts.Init();
+
+    MUTE_SYNTH = true;
+    USE_DEVICE = true;
+  </script>
+</head>
+
+<body>
+  <h1>Use webaudio-tinysynth to play MIDI file on a MIDI device</h1>
+  This is a simple sample of webaudio-tinysynth (JavaScript library version) page.
+  
+  <hr />
+  Load Sample MIDI from URL : <button onclick="ts.loadMidiUrl()">Load (sakura.mid)</button><br />
+  Load MIDI file from local : <input type="file" onchange="ts.loadMidi(this.files)" /><br />
+  <div id="midiPath">no MIDI loaded</div>
+  <div id="midiDevName">no midi device</div>
+  <button onclick="ts.playMidi()">Play</button>
+  <button onclick="ts.stopMidi()">Stop</button>
+  <div id="status"></div>
+  <br />
+
+</body>
+
+</html>
