@@ -14,17 +14,17 @@ function initSynth() {
     //this.SetProgram(116);
     setInterval(function () {
         var st = synth.getPlayStatus();
-        document.getElementById("status").innerHTML = 
+        document.getElementById("status").innerHTML =
             "Play:" + st.play + "  Pos:" + st.curTick + "/" + st.maxTick;
     }, 100);
 }
 
-function keyStart(key=60) {
-    console.log("keyStart", key);
-    synth.noteOn(0, key, 100);
+function keyStart(key = 60, v=100) {
+    console.log("keyStart", key, v);
+    synth.noteOn(0, key, v);
 }
 
-function keyStop(key=60) {
+function keyStop(key = 60) {
     console.log("keyStop", key);
     synth.noteOff(0, key);
 }
@@ -34,6 +34,33 @@ function getTime() {
     return new Date().getTime() / 1000;
 }
 
+function log2(x) {
+    return Math.log(x) / Math.log(2);
+}
+
+// linear interpolation between x0 and x1
+// f is fraction between 0 and 1
+function interp(x0, x1, f) {
+    return x0 * (1 - f) + x1 * f;
+}
+
+// ramp up from yLow to yHigh in interval from
+// 0 to T/2, then ramp down from yHigh to yLow
+// in interval from T/2 to T
+function rampUpAndDown(t, T = 20, yLow = 1, yHigh = 2) {
+    var y;
+    let T2 = T / 2;
+    let s = t % T;
+    if (s < T2) {
+        y = interp(yLow, yHigh, s / T2);
+    }
+    else {
+        y = interp(yHigh, yLow, (s - T2) / T2);
+    }
+    //console.log("rampUpAndDown", t, T, yLow, yHigh, y);
+    return y;
+}
+
 let MNOTE = 40;
 
 class Note {
@@ -41,6 +68,7 @@ class Note {
         this.t = t;
         this.state = "off";
         this.mnote = mnote;
+        this.v = 100;
     }
 
     setState(state) {
@@ -58,26 +86,53 @@ class Note {
 class Part {
     constructor(i, cx, cy) {
         this.i = i;
-        //this.speed = 0.5 * Math.pow(Math.sqrt(2), i);
-        this.speed = 0.5 * Math.pow(2, 3-i);
         this.T = 10;
         this.t = 0;
-        this.r = 50 + i * 20;
+        this.setS0(1);
         this.cx = cx;
         this.cy = cy;
-        //this.notes = [new Note(0, MNOTE++), new Note(0.5, MNOTE++)];
-        this.notes = [new Note(0, MNOTE), new Note(0.5, MNOTE+4)];
-        MNOTE += 12;
-        //this.notes = [0];
-        this.nsectors = 4;
+        this.vel = 100;
+        let major = [0, 2, 4, 5, 7, 9, 11, 12];
+        let fixed = [0, 0, 0, 0, 0, 0, 0, 0];
+        let melody = fixed;
+        this.setNotes(melody);
+    }
+
+    setNotes(melody) {
+        this.notes = [];
+        let numSteps = melody.length;
+        for (let i = 0; i < numSteps; i++) {
+            this.notes.push(new Note(i / numSteps, MNOTE + melody[i]));
+        }
+    }
+
+    // set the reference speed.  We are a power of 2 different
+    // from that speed.
+    setS0(s0) {
+        this.speed = s0 * Math.pow(2, -this.i);
+        this.r = 100 - log2(this.speed) * 30;
+        this.setWeight();
+    }
+
+    incT(dt) {
+        this.t += dt * this.speed;
     }
 
     setT(t) {
-        this.t = t*this.speed;
+        this.t = t * this.speed;
+    }
+
+    setWeight() {
+        let k = log2(this.speed);
+        let d = k + 1;
+        let w = 1/(0.8 + 5*d*d);
+        this.vel = Math.floor(60 * w);
+        this.w = w;
     }
 
     getNoteGraphic(i) {
         let note = this.notes[i];
+        note.vel = this.vel;
         let tn = this.t + this.T * note.t;
         let nrevs = tn / this.T;
         let nr = nrevs - Math.floor(nrevs);
@@ -86,7 +141,7 @@ class Part {
         let x = this.cx + this.r * Math.sin(th);
         let y = this.cy - this.r * Math.cos(th);
         let color = note.state == "on" ? "green" : "gray";
-        return {x,y, color}
+        return { x, y, color }
     }
 }
 
@@ -95,7 +150,7 @@ class Player {
     // constructor
     constructor(canvasId) {
         this.color = "gray";
-        this.speed = 1;
+        this.speed = 4;
         this.t = 0;
         this.prevT = null;
         this.playing = false;
@@ -104,9 +159,11 @@ class Player {
         this.cy = this.canvas.height / 2;
         this.ctx = this.canvas.getContext("2d");
         this.parts = [];
-        this.numParts = 4;
-        for (let i = 0; i < this.numParts; i++) {
-            this.parts.push(new Part(i, this.cx, this.cy));
+        this.prevK = 0;
+        this.prevK = Math.floor(log2(this.speed));
+        let numParts = 5;
+        for (let i = 0; i < numParts; i++) {
+            this.parts.push(new Part(i - 1, this.cx, this.cy));
         }
     }
 
@@ -114,7 +171,7 @@ class Player {
         this.t0 = getTime();
         this.prevT = this.t0;
         this.t = 0;
-        for (let i = 0; i < this.numParts; i++) {
+        for (let i = 0; i < this.parts.length; i++) {
             this.parts[i].setT(0);
         }
     }
@@ -136,34 +193,36 @@ class Player {
 
     // updator called every frame
     update() {
-        console.log("Player.update");
+        //console.log("Player.update");
         if (!this.playing) {
             return;
         }
         let t = getTime();
         let dt = t - this.prevT;
         this.prevT = t;
-        let twiddle = true;
+        let twiddle = 0;
         if (twiddle) {
-            let T = 20;
-            let T2 = T/2;
-            let te = t - this.t0; // elapsed time since start
-            let s = te % T;
-            if (s < T2) {
-                // This will range from 1 to 2
-                this.speed = 1 + s/T2;
-            }
-            else {
-                // this will range from 2 to 1
-                this.speed = 2 - (s - T2)/T2;
-            }
-            $("#speed").html("speed:"+this.speed.toFixed(2));
+            this.speed = rampUpAndDown(t - this.t0, 20, 1, 3);
         }
-        console.log("speed",  this.speed.toFixed(2), this.speed);
+        this.speed *= 0.999;
+        $("#speed").html("speed:" + this.speed.toFixed(2));
+        let k = Math.floor(log2(this.speed));
+        if (k != this.prevK) {
+            //console.log("speed", this.speed, k);
+            let part = new Part(k, this.cx, this.cy);
+            part.setT(this.t);
+            this.parts.push(part);
+            this.parts.shift();
+        }
+        this.prevK = k;
+        //console.log("speed",  this.speed.toFixed(2), this.speed);
         this.t += this.speed * dt;
         // set t for each part
-        for (let i = 0; i < this.numParts; i++) {
-            this.parts[i].setT(this.t);
+        for (let i = 0; i < this.parts.length; i++) {
+            let part = this.parts[i];
+            part.setS0(this.speed);
+            part.incT(dt);
+            //this.parts[i].setT(this.t);
         }
         // draw the parts
         this.draw(this.ctx);
@@ -189,8 +248,17 @@ class Player {
         ctx.beginPath();
         ctx.arc(x, y, part.r, 0, 2 * Math.PI, false);
         ctx.lineWidth = 1;
+        ctx.lineWidth = part.w;
         ctx.strokeStyle = '#003366';
         ctx.stroke();
+        let drawLabels = 1;
+        if (drawLabels) {
+            let str = "" + part.i+" "+part.vel+" "+part.w.toFixed(2);
+            // write str as text at x,y+part.r
+            ctx.font = "20px Arial";
+            ctx.fillStyle = "black";
+            ctx.fillText(str, x-5, y - (part.r + 5));
+        }
         for (let i = 0; i < part.notes.length; i++) {
             let ng = part.getNoteGraphic(i);
             //console.log(note);
