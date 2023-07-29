@@ -1,0 +1,56 @@
+<html>
+
+<head>
+    <title>Canvas</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+    <script src="Player0.js"></script>
+    <script src="../js/libs/tinysynth/webaudio-tinysynth.js"></script>
+
+
+    <script>
+        "use strict";
+
+        let player = null;
+
+        // on document ready call the function to draw the circles
+        $(document).ready(function () {
+            initSynth();
+            player = new Player("myCanvas");
+            player.start();
+            //
+        });
+    </script>
+</head>
+
+<body>
+    <canvas id="myCanvas" width="500" height="500" style="border:1px solid #d3d3d3;">
+    </canvas>
+    <br>
+    <button id="start" onclick="player.start();">Start</button>
+    &nbsp;
+    <button id="stop" onclick="player.stop();">Stop</button>
+    <br>
+    <span id="status"></span>
+    <span id="speed"></span>
+    <div id="keys">
+        Play by keys :<br />
+        <button onmousedown="synth.send([0x90,60,100])" onmouseup="synth.send([0x80,60,0])">C</button>
+        <button onmousedown="synth.send([0x90,62,100])" onmouseup="synth.send([0x80,62,0])">D</button>
+        <button onmousedown="synth.send([0x90,64,100])" onmouseup="synth.send([0x80,64,0])">E</button>
+        <button onmousedown="synth.send([0x90,65,100])" onmouseup="synth.send([0x80,65,0])">F</button>
+        <button onmousedown="synth.send([0x90,67,100])" onmouseup="synth.send([0x80,67,0])">G</button>
+        <button onmousedown="synth.send([0x90,69,100])" onmouseup="synth.send([0x80,69,0])">A</button>
+        <button onmousedown="synth.send([0x90,71,100])" onmouseup="synth.send([0x80,71,0])">B</button>
+        <button onmousedown="synth.send([0x90,72,100])" onmouseup="synth.send([0x80,72,0])">C</button>
+    </div>
+    Quality:
+    <select onchange="synth.setQuality(this.selectedIndex)">
+        <option>Quality=0</option>
+        <option selected>Quality=1</option>
+    </select>
+    <br />
+    Timbre : <select id="prog" onchange="SetProgram(this.selectedIndex)"></select>
+    <br />
+</body>
+
+</html>
