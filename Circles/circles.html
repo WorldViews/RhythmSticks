@@ -12,10 +12,16 @@
         "use strict";
 
         let player = null;
+        //let synth = null;  // defined globally in Player.js
+
+        function setProgram(idx) {
+            console.log("** setProgram", idx);
+            synth.send([0xc0, idx]);
+        }
 
         // on document ready call the function to draw the circles
         $(document).ready(function () {
-            initSynth();
+            synth = initSynth();
             player = new Player("myCanvas");
             player.start();
             //
@@ -50,7 +56,7 @@
         <option selected>Quality=1</option>
     </select>
     <br />
-    Timbre : <select id="prog" onchange="SetProgram(this.selectedIndex)"></select>
+    Timbre : <select id="prog" onchange="setProgram(this.selectedIndex)"></select>
     <br />
 </body>
 

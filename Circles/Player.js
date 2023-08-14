@@ -17,15 +17,16 @@ function initSynth() {
         document.getElementById("status").innerHTML =
             "Play:" + st.play + "  Pos:" + st.curTick + "/" + st.maxTick;
     }, 100);
+    return synth;
 }
 
 function keyStart(key = 60, v=100) {
-    console.log("keyStart", key, v);
+    //console.log("keyStart", key, v);
     synth.noteOn(0, key, v);
 }
 
 function keyStop(key = 60) {
-    console.log("keyStop", key);
+    //console.log("keyStop", key);
     synth.noteOff(0, key);
 }
 
