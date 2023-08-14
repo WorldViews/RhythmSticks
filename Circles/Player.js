@@ -71,11 +71,11 @@ class Note {
         this.v = 100;
     }
 
-    setState(state) {
+    setState(state, v) {
         if (this.state != state) {
             this.state = state;
             if (state == "on") {
-                keyStart(this.mnote);
+                keyStart(this.mnote, v);
             } else {
                 keyStop(this.mnote);
             }
@@ -93,8 +93,11 @@ class Part {
         this.cy = cy;
         this.vel = 100;
         let major = [0, 2, 4, 5, 7, 9, 11, 12];
+        let chromatic = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
         let fixed = [0, 0, 0, 0, 0, 0, 0, 0];
         let melody = fixed;
+        //melody = major;
+        melody = chromatic;
         this.setNotes(melody);
     }
 
@@ -125,7 +128,7 @@ class Part {
     setWeight() {
         let k = log2(this.speed);
         let d = k + 1;
-        let w = 1/(0.8 + 5*d*d);
+        let w = 1/(1 + 4*d*d);
         this.vel = Math.floor(60 * w);
         this.w = w;
     }
@@ -136,11 +139,11 @@ class Part {
         let tn = this.t + this.T * note.t;
         let nrevs = tn / this.T;
         let nr = nrevs - Math.floor(nrevs);
-        note.setState(nr < 0.1 ? "on" : "off");
+        note.setState(nr < 0.05 ? "on" : "off", this.vel);
         let th = 2 * Math.PI * nrevs;
         let x = this.cx + this.r * Math.sin(th);
         let y = this.cy - this.r * Math.cos(th);
-        let color = note.state == "on" ? "green" : "gray";
+        let color = note.state == "on" ? "rgb(0, 255, 0)" : "gray";
         return { x, y, color }
     }
 }
@@ -216,6 +219,8 @@ class Player {
         }
         this.prevK = k;
         //console.log("speed",  this.speed.toFixed(2), this.speed);
+        let f = 2;
+        dt *= f;
         this.t += this.speed * dt;
         // set t for each part
         for (let i = 0; i < this.parts.length; i++) {
@@ -245,8 +250,12 @@ class Player {
         // draw circle
         let x = this.cx;
         let y = this.cy;
+        let r = part.r;
+        if (r < 0) {
+            r = 0.5;
+        }
         ctx.beginPath();
-        ctx.arc(x, y, part.r, 0, 2 * Math.PI, false);
+        ctx.arc(x, y, r, 0, 2 * Math.PI, false);
         ctx.lineWidth = 1;
         ctx.lineWidth = part.w;
         ctx.strokeStyle = '#003366';
@@ -255,9 +264,9 @@ class Player {
         if (drawLabels) {
             let str = "" + part.i+" "+part.vel+" "+part.w.toFixed(2);
             // write str as text at x,y+part.r
-            ctx.font = "20px Arial";
+            ctx.font = "14px Arial";
             ctx.fillStyle = "black";
-            ctx.fillText(str, x-5, y - (part.r + 5));
+            ctx.fillText(str, x-5, y - (r + 5));
         }
         for (let i = 0; i < part.notes.length; i++) {
             let ng = part.getNoteGraphic(i);
