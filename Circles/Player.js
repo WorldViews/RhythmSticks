@@ -143,7 +143,9 @@ class Part {
         let th = 2 * Math.PI * nrevs;
         let x = this.cx + this.r * Math.sin(th);
         let y = this.cy - this.r * Math.cos(th);
-        let color = note.state == "on" ? "rgb(0, 255, 0)" : "gray";
+        let a = this.w;
+        //let color = note.state == "on" ? "rgb(0, 255, 0)" : "gray";
+        let color = note.state == "on" ? `rgba(0, 255, 0, ${a})` :`rgba(100,100,100,${a})`;
         return { x, y, color }
     }
 }
