@@ -11,6 +11,7 @@
     <script>
         "use strict";
 
+        let autoStart = false;
         let player = null;
         //let synth = null;  // defined globally in Player.js
 
@@ -23,7 +24,9 @@
         $(document).ready(function () {
             synth = initSynth();
             player = new Player("myCanvas");
-            player.start();
+            player.reset();
+            if (autoStart)
+                player.start();
             //
         });
     </script>
@@ -36,6 +39,12 @@
     <button id="start" onclick="player.start();">Start</button>
     &nbsp;
     <button id="stop" onclick="player.stop();">Stop</button>
+    &nbsp;
+    speed:
+    <input type="range" id="speedSlider" min="0" max="100" value="50" oninput="player.handleSpeed(this.value);">
+    &nbsp;
+    acc-dec:
+    <input type="range" id="accSlider" min="0" max="100" value="50" oninput="player.handleAcc(this.value);">
     <br>
     <span id="status"></span>
     <span id="speed"></span>

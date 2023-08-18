@@ -86,10 +86,11 @@ class Note {
 
 class Part {
     constructor(i, cx, cy) {
+        console.log("Part(", i, ")");
         this.i = i;
         this.T = 10;
         this.t = 0;
-        this.setS0(1);
+        this.setSpeed(1);
         this.cx = cx;
         this.cy = cy;
         this.vel = 100;
@@ -98,7 +99,7 @@ class Part {
         let fixed = [0, 0, 0, 0, 0, 0, 0, 0];
         let melody = fixed;
         //melody = major;
-        melody = chromatic;
+        //melody = chromatic;
         this.setNotes(melody);
     }
 
@@ -112,10 +113,15 @@ class Part {
 
     // set the reference speed.  We are a power of 2 different
     // from that speed.
-    setS0(s0) {
-        this.speed = s0 * Math.pow(2, -this.i);
+    setSpeed(speed) {
+        this.speed = speed;
+        //this.speed = s0 * Math.pow(2, -this.i);
         this.r = 100 - log2(this.speed) * 30;
         this.setWeight();
+    }
+
+    multSpeed(f) {
+        this.setSpeed(this.speed * f);
     }
 
     incT(dt) {
@@ -123,7 +129,7 @@ class Part {
     }
 
     setT(t) {
-        this.t = t * this.speed;
+        this.t = t;
     }
 
     setWeight() {
@@ -132,6 +138,13 @@ class Part {
         let w = 1/(1 + 4*d*d);
         this.vel = Math.floor(60 * w);
         this.w = w;
+    }
+
+    dump() {
+        console.log("Part(", this.i, ") t=", this.t,
+                "T=", this.T, "speed=", this.speed,
+                "r=", this.r, "vel=", this.vel,
+                "w=", this.w   );
     }
 
     getNoteGraphic(i) {
@@ -156,8 +169,9 @@ class Player {
     // constructor
     constructor(canvasId) {
         this.color = "gray";
-        this.speed = 4;
-        this.t = 0;
+        this.speed = 2.0;
+        this.speedFactor = 0.999;
+        this.playTime = 0;    // play time
         this.prevT = null;
         this.playing = false;
         this.canvas = document.getElementById(canvasId);
@@ -165,18 +179,36 @@ class Player {
         this.cy = this.canvas.height / 2;
         this.ctx = this.canvas.getContext("2d");
         this.parts = [];
-        this.prevK = 0;
-        this.prevK = Math.floor(log2(this.speed));
         let numParts = 5;
         for (let i = 0; i < numParts; i++) {
-            this.parts.push(new Part(i - 1, this.cx, this.cy));
+            let part = new Part(i-1, this.cx, this.cy);
+            part.setSpeed(Math.pow(2, -i));
+            this.parts.push(part);
         }
+    }
+
+    handleAcc(val) {
+        let v = (val - 50) / 50;
+        let f = Math.pow(2, 0.01*v);
+        console.log("handleAcc", val, v, f);
+        this.speedFactor = f;
+    }
+
+    handleSpeed(val) {
+        console.log("handleSpeed", val);
+        let speed = 0.5 + 5 * (val / 100.0);
+        this.setSpeed(speed);
+    }
+
+    setSpeed(speed) {
+        console.log("setSpeed", speed);
+        this.speed = speed;
     }
 
     reset() {
         this.t0 = getTime();
         this.prevT = this.t0;
-        this.t = 0;
+        this.playTime = 0;
         for (let i = 0; i < this.parts.length; i++) {
             this.parts[i].setT(0);
         }
@@ -203,34 +235,43 @@ class Player {
         if (!this.playing) {
             return;
         }
-        let t = getTime();
-        let dt = t - this.prevT;
-        this.prevT = t;
+        let ct = getTime();         // clock time
+        let dct = ct - this.prevT;   // delta clock time
+        this.prevT = ct;
         let twiddle = 0;
         if (twiddle) {
-            this.speed = rampUpAndDown(t - this.t0, 20, 1, 3);
+            this.speed = rampUpAndDown(ct - this.t0, 20, 1, 3);
         }
-        this.speed *= 0.999;
-        $("#speed").html("speed:" + this.speed.toFixed(2));
+        //this.speed *= 0.999;
+        $("#speed").html("speed:" + this.speed.toFixed(2) + "f: " + this.speedFactor.toFixed(4));
+        //
+        // check whether time to remove and add a player ring
+        //
         let k = Math.floor(log2(this.speed));
-        if (k != this.prevK) {
-            //console.log("speed", this.speed, k);
-            let part = new Part(k, this.cx, this.cy);
-            part.setT(this.t);
-            this.parts.push(part);
-            this.parts.shift();
+        let nparts = this.parts.length;
+        let part = this.parts[nparts-1];
+        let lgs = log2(part.speed);
+        //console.log("lgs", lgs);
+        if (lgs < -3) {
+            console.log("lgs", lgs);
+            let part0 = this.parts[0];
+            let i = part0.i - 1;
+            let part = new Part(i, this.cx, this.cy);
+            part.setSpeed(part0.speed * 2);
+            part.setT(part0.t * 2);
+            this.parts.pop(); // get rid of hightest / fastest one
+            // insert part at beginning
+            this.parts.unshift(part);
         }
-        this.prevK = k;
         //console.log("speed",  this.speed.toFixed(2), this.speed);
-        let f = 2;
-        dt *= f;
-        this.t += this.speed * dt;
+        let dpt = this.speed * dct; // dpt = delta play time
+        this.t += dpt;
         // set t for each part
         for (let i = 0; i < this.parts.length; i++) {
             let part = this.parts[i];
-            part.setS0(this.speed);
-            part.incT(dt);
-            //this.parts[i].setT(this.t);
+            //part.setS0(this.speed);
+            part.multSpeed(this.speedFactor);
+            part.incT(dpt);
         }
         // draw the parts
         this.draw(this.ctx);
@@ -265,7 +306,9 @@ class Player {
         ctx.stroke();
         let drawLabels = 1;
         if (drawLabels) {
+            let lgs = log2(part.speed);
             let str = "" + part.i+" "+part.vel+" "+part.w.toFixed(2);
+            str += " "+lgs.toFixed(2);
             // write str as text at x,y+part.r
             ctx.font = "14px Arial";
             ctx.fillStyle = "black";
@@ -278,6 +321,13 @@ class Player {
             ctx.arc(ng.x, ng.y, 5, 0, 2 * Math.PI, false);
             ctx.fillStyle = ng.color;
             ctx.fill();
+        }
+    }
+
+    dump() {
+        for (let i=0; i<this.parts.length; i++) {
+            let part = this.parts[i];
+            part.dump();
         }
     }
 
