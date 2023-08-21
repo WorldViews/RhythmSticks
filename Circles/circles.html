@@ -11,9 +11,18 @@
     <script>
         "use strict";
 
-        let autoStart = false;
+        let autoStart = true;
+        // = false;
         let player = null;
         //let synth = null;  // defined globally in Player.js
+
+        function kplay(key) {
+            synth.send([0x90, key, 100]);
+        }
+
+        function kup(key) {
+            synth.send([0x80, key, 0]);
+        }
 
         function setProgram(idx) {
             console.log("** setProgram", idx);
@@ -36,37 +45,53 @@
     <canvas id="myCanvas" width="500" height="500" style="border:1px solid #d3d3d3;">
     </canvas>
     <br>
-    <button id="start" onclick="player.start();">Start</button>
+    <button id="play" onclick="player.togglePlay();">Play</button>
     &nbsp;
-    <button id="stop" onclick="player.stop();">Stop</button>
+    <button id="reset" onclick="player.reset();">Reset</button>
     &nbsp;
     speed:
     <input type="range" id="speedSlider" min="0" max="100" value="50" oninput="player.handleSpeed(this.value);">
     &nbsp;
-    acc-dec:
+    dec-acc:
     <input type="range" id="accSlider" min="0" max="100" value="50" oninput="player.handleAcc(this.value);">
     <br>
     <span id="status"></span>
     <span id="speed"></span>
-    <div id="keys">
-        Play by keys :<br />
-        <button onmousedown="synth.send([0x90,60,100])" onmouseup="synth.send([0x80,60,0])">C</button>
-        <button onmousedown="synth.send([0x90,62,100])" onmouseup="synth.send([0x80,62,0])">D</button>
-        <button onmousedown="synth.send([0x90,64,100])" onmouseup="synth.send([0x80,64,0])">E</button>
-        <button onmousedown="synth.send([0x90,65,100])" onmouseup="synth.send([0x80,65,0])">F</button>
-        <button onmousedown="synth.send([0x90,67,100])" onmouseup="synth.send([0x80,67,0])">G</button>
-        <button onmousedown="synth.send([0x90,69,100])" onmouseup="synth.send([0x80,69,0])">A</button>
-        <button onmousedown="synth.send([0x90,71,100])" onmouseup="synth.send([0x80,71,0])">B</button>
-        <button onmousedown="synth.send([0x90,72,100])" onmouseup="synth.send([0x80,72,0])">C</button>
-    </div>
-    Quality:
-    <select onchange="synth.setQuality(this.selectedIndex)">
-        <option>Quality=0</option>
-        <option selected>Quality=1</option>
+    <br />
+    Timbre:
+    <select id="prog" onchange="setProgram(this.selectedIndex)"></select>
+    &nbsp;&nbsp;&nbsp;
+    Notes:
+    <select id="notes" onchange="player.setNotes(this.value)">
+        <option value="chromatic">chromatic</option>
+        <option value="major">major</option>
+        <option value="fixed" selected>fixed</option>
+        <option value="quarters">quarters</option>
+        <option value="eighths">eighths</option>
     </select>
+    &nbsp;&nbsp;&nbsp;
+    Labels:
+    <input type="checkbox" id="labels" checked />
     <br />
-    Timbre : <select id="prog" onchange="setProgram(this.selectedIndex)"></select>
-    <br />
+    <div id="keys">
+        &nbsp<br />
+        <button onmousedown="kplay(60)" onmouseup="kup(60)">C</button>
+        <button onmousedown="kplay(62)" onmouseup="kup(62)">D</button>
+        <button onmousedown="kplay(64)" onmouseup="kup(64)">E</button>
+        <button onmousedown="kplay(65)" onmouseup="kup(65)">F</button>
+        <button onmousedown="kplay(67)" onmouseup="kup(67)">G</button>
+        <button onmousedown="kplay(69)" onmouseup="kup(69)">A</button>
+        <button onmousedown="kplay(71)" onmouseup="kup(71)">B</button>
+        <button onmousedown="kplay(72)" onmouseup="kup(72)">C</button>
+        &nbsp;&nbsp;
+        Quality:
+        <select onchange="synth.setQuality(this.selectedIndex)">
+            <option>Quality=0</option>
+            <option selected>Quality=1</option>
+        </select>
+    </div>
+        This was inspired by
+        <a href="https://youtu.be/6l2EtiEC0pU">this visualization</a>
 </body>
 
 </html>
