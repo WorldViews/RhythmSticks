@@ -183,8 +183,8 @@ class Player {
     // constructor
     constructor(canvasId) {
         this.color = "gray";
-        this.speed = 2.0;
-        this.speedFactor = 0.999;
+        this.speed = 4.0;
+        this.speedFactor = 1.001;
         this.playTime = 0;    // play time
         this.prevT = null;
         this.playing = false;
